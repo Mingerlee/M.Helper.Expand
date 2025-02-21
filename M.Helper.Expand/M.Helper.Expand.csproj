@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	
+  <PropertyGroup>
+	  <TargetFrameworks>net8.0;</TargetFrameworks>
+    <!--<TargetFramework>net6.0</TargetFramework>-->
+    <!--<ImplicitUsings>enable</ImplicitUsings>-->
+    <!--<Nullable>enable</Nullable>-->
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>M.Helper.Expand</Title>
+    <Copyright>Copyright Ming</Copyright>
+    <Description>Base class help extension package</Description>
+    <FileVersion>1.0.3.5</FileVersion>
+	<PackageVersion>1.0.3.5</PackageVersion>
+    <Authors>Mr.MingOuyang</Authors>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+	<NoWarn>$(NoWarn);SYSLIB0014</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Aspose.Cells" Version="23.5.0" />
+    <PackageReference Include="itext" Version="9.0.0" />
+    <PackageReference Include="itext7.bouncy-castle-adapter" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+    <PackageReference Include="Microsoft.International.Converters.PinYinConverter" Version="1.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NPOI" Version="2.7.2" />
+    <PackageReference Include="SkiaSharp" Version="2.88.9" />
+  </ItemGroup>
+
+</Project>
