@@ -1,13 +1,13 @@
 ﻿using M.Simple.Expand.Enums;
+using M.Simple.Expand.Helper;
 using M.Simple.Expand.Models;
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace M.Simple.Expand
 {
     public static partial class Extensions
     {
+        private static readonly DateTime defaultDate = new(1900,01,01);
         /// <summary>
         /// <para>M.Simple.Expand扩展</para>
         /// <para>默认日期格式："yyyy/MM/dd"</para>
@@ -37,6 +37,24 @@ namespace M.Simple.Expand
         }
         /// <summary>
         /// <para>M.Simple.Expand扩展</para>
+        /// <para>默认日期格式："yyyy/MM/dd"</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <param name="defaultDateTime">默认日期</param>
+        /// <returns>如果为null返回默认日期</returns>
+        public static string ToDefaultDate(this DateTime? dateTime,DateTime defaultDateTime)
+        {
+            if (dateTime.HasValue)
+            {
+                return dateTime.Value.ToDefaultDate();
+            }
+            else
+            {
+                return defaultDateTime.ToDefaultDate();
+            }
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
         /// <para>日期格式："yyyy年MM月dd日"</para>
         /// </summary>
         /// <param name="dateTime">日期</param>
@@ -59,6 +77,24 @@ namespace M.Simple.Expand
             else
             {
                 return string.Empty;
+            }
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>日期格式："yyyy年MM月dd日"</para>
+        /// </summary>
+        /// <param name="dateTime">日期</param>
+        /// <param name="defaultDateTime">默认日期</param>
+        /// <returns>如果为null返回默认日期</returns>
+        public static string ToChineseDateString(this DateTime? dateTime, DateTime defaultDateTime)
+        {
+            if (dateTime.HasValue)
+            {
+                return string.Format("{0}年{1}月{2}日", dateTime.Value.Year, dateTime.Value.Month, dateTime.Value.Day);
+            }
+            else
+            {
+                return string.Format("{0}年{1}月{2}日", defaultDateTime.Year, defaultDateTime.Month, defaultDateTime.Day);
             }
         }
         /// <summary>
@@ -91,6 +127,22 @@ namespace M.Simple.Expand
             return ToChineseDateTimeString(dateTime.Value, removeSecond);
         }
         /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>日期时间格式："yyyy年MM月dd日 HH时mm分"</para>
+        /// </summary>
+        /// <param name="dateTime">日期</param>
+        /// <param name="defaultDateTime">默认日期</param>
+        /// <param name="removeSecond">是否移除秒</param>
+        /// <returns>如果为null返回默认日期</returns>
+        public static string ToChineseDateTimeString(this DateTime? dateTime, DateTime defaultDateTime, bool removeSecond = false)
+        {
+            if (dateTime == null)
+                return ToChineseDateTimeString(defaultDateTime, removeSecond);
+            else
+                return ToChineseDateTimeString(dateTime.Value, removeSecond);
+        }
+
+        /// <summary>
         ///<para>M.Simple.Expand扩展</para>
         ///<para>时间戳编码</para>
         /// </summary>
@@ -121,7 +173,7 @@ namespace M.Simple.Expand
                 }
                 else if (delta < 120) //2 (minutes) * 60 (seconds)
                 {
-                   return str[2];
+                    return str[2];
                 }
                 else if (delta < 2700) // 45 (minutes) * 60 (seconds)
                 {
@@ -214,7 +266,6 @@ namespace M.Simple.Expand
         /// <para>依据出生日期计算年龄</para>
         /// </summary>
         /// <param name="birthDate"></param>
-        /// <param name="currentDate"></param>
         /// <returns></returns>
         public static int CalculateAge(this DateTime birthDate)
         {
@@ -225,6 +276,117 @@ namespace M.Simple.Expand
                 age--;
             }
             return age;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>获取日期（不含时分秒）</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <param name="defaultDateTime">默认日期</param>
+        /// <returns></returns>
+        public static DateTime GetDate(this DateTime? dateTime, DateTime? defaultDateTime=null)
+        {
+            return dateTime.GetValueOrDefault(defaultDateTime??defaultDate).Date;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>转换为农历日期</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static string ToLunarCalendarDate(this DateTime dateTime)
+        {
+            ChineseCalendarHelper chineseCalendar = new(dateTime);
+            return chineseCalendar.ChineseDateString;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>转换为农历日期</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static string ToLunarCalendarDate(this DateTime? dateTime)
+        {
+            dateTime ??= DateTime.Now;
+
+            ChineseCalendarHelper chineseCalendar = new(dateTime.Value);
+            return chineseCalendar.ChineseDateString;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>转换为农历日期</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <param name="defaultDateTime">默认日期</param>
+        /// <returns></returns>
+        public static string ToLunarCalendarDate(this DateTime? dateTime, DateTime defaultDateTime)
+        {
+            dateTime ??= defaultDateTime;
+
+            ChineseCalendarHelper chineseCalendar = new(dateTime.Value);
+            return chineseCalendar.ChineseDateString;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>获取日期 下一天</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static DateTime NextDay(this DateTime dateTime)
+        {
+            return dateTime.AddDays(1);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>获取日期 下一天</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static DateTime NextDay(this DateTime? dateTime)
+        {
+            return dateTime.GetValueOrDefault(defaultDate).AddDays(1);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>获取日期 下一天</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <param name="defaultDateTime">默认日期</param>
+        /// <returns></returns>
+        public static DateTime NextDay(this DateTime? dateTime, DateTime defaultDateTime)
+        {
+            return dateTime.GetValueOrDefault(defaultDateTime).AddDays(1);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>获取日期 上一天</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static DateTime PervDay(this DateTime dateTime)
+        {
+            return dateTime.AddDays(-1);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>获取日期 上一天</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <returns></returns>
+        public static DateTime PervDay(this DateTime? dateTime)
+        {
+            return dateTime.GetValueOrDefault(defaultDate).AddDays(-1);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>获取日期 上一天</para>
+        /// </summary>
+        /// <param name="dateTime"></param>
+        /// <param name="defaultDateTime"></param>
+        /// <returns></returns>
+        public static DateTime PervDay(this DateTime? dateTime, DateTime defaultDateTime)
+        {
+            return dateTime.GetValueOrDefault(defaultDateTime).AddDays(-1);
         }
         private static List<string> LanguageStr(LanguageEnum language)
         {

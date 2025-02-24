@@ -18,20 +18,57 @@ namespace M.Simple.Expand.Test
             DateTime? dt1 = DateTime.Now;
             DateTime dt2 = new(2025, 2, 20, 16, 00, 00);
             DateTime birthDate = new(1994, 2, 20);
+            DateTime defaultDate = new(2025, 01, 01);
+            DateTime? dt3 = null;
 
             Console.WriteLine(dt.ToDefaultDate());
             Console.WriteLine(dt1.ToDefaultDate());
+            Console.WriteLine(dt3.ToDefaultDate());
+            Console.WriteLine(dt3.ToDefaultDate(defaultDate));
+            Console.WriteLine();
+
             Console.WriteLine(dt.ToChineseDateString());
             Console.WriteLine(dt1.ToChineseDateString());
+            Console.WriteLine(dt3.ToChineseDateString());
+            Console.WriteLine(dt3.ToChineseDateString(defaultDate));
+            Console.WriteLine();
             Console.WriteLine(dt.ToChineseDateTimeString());
             Console.WriteLine(dt1.ToChineseDateTimeString(true));
+            Console.WriteLine(dt3.ToChineseDateTimeString());
+            Console.WriteLine(dt3.ToChineseDateTimeString(defaultDate));
+            Console.WriteLine();
+
             Console.WriteLine(dt.ToTimesTampCode());
             Console.WriteLine(dt2.ToPastCurrentTime(language: LanguageEnum.en_US));
             Console.WriteLine(dt2.ToPastCurrentTime(language: LanguageEnum.zh_CN));
             Console.WriteLine(dt2.ToPastCurrentTime(new DateTime(2025, 2, 21, 16, 00, 00), LanguageEnum.en_US));
             Console.WriteLine(dt2.ToPastCurrentTime(new DateTime(2025, 2, 21, 16, 00, 00), LanguageEnum.zh_CN));
             Console.WriteLine(birthDate.CalculateAge());
+            Console.WriteLine();
 
+            Console.WriteLine(dt.Date);
+            Console.WriteLine(dt1.GetDate());
+            Console.WriteLine(dt3.GetDate());
+            Console.WriteLine(dt3.GetDate(defaultDate));
+            Console.WriteLine();
+
+            Console.WriteLine(dt.ToLunarCalendarDate());
+            Console.WriteLine(dt1.ToLunarCalendarDate());
+            Console.WriteLine(dt3.ToLunarCalendarDate());
+            Console.WriteLine(dt3.ToLunarCalendarDate(defaultDate));
+            
+            Console.WriteLine();
+
+            Console.WriteLine(dt.NextDay());
+            Console.WriteLine(dt1.NextDay());
+            Console.WriteLine(dt3.NextDay());
+            Console.WriteLine(dt3.NextDay(defaultDate));
+            Console.WriteLine();
+
+            Console.WriteLine(dt.PervDay());
+            Console.WriteLine(dt1.PervDay());
+            Console.WriteLine(dt3.PervDay());
+            Console.WriteLine(dt3.PervDay(defaultDate));
         }
         [TestMethod]
         public void TestIsOverlap()
