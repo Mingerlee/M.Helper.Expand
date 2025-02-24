@@ -8,8 +8,8 @@
 	  <Title>M.Simple.Expand</Title>
 	  <Copyright>Copyright Ming</Copyright>
 	  <Description>Base class help extension package</Description>
-	  <FileVersion>1.0.0.0</FileVersion>
-	  <PackageVersion>1.0.0.0</PackageVersion>
+	  <FileVersion>1.0.0.1</FileVersion>
+	  <PackageVersion>1.0.0.1</PackageVersion>
 	  <Authors>@Minger</Authors>
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
