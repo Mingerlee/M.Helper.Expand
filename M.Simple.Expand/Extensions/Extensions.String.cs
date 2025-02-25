@@ -1,8 +1,12 @@
-﻿using Microsoft.International.Converters.PinYinConverter;
+﻿using M.Simple.Expand.Helper;
+using Microsoft.International.Converters.PinYinConverter;
 using System.Text;
 
 namespace M.Simple.Expand
 {
+    /// <summary>
+    ///     M.Simple.Expand扩展
+    /// </summary>
     public static partial class Extensions
     {
         /// <summary>

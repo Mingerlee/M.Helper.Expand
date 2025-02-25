@@ -27,6 +27,15 @@ namespace M.Simple.Expand.Test
             Console.WriteLine(str2.GetRealLength());
             Console.WriteLine(str3.GetRealLength());
             Console.WriteLine(str4.GetRealLength());
+
+            Console.WriteLine(Extensions.GetSnowCode());
+
+            var list=  Extensions.GetSnowCodes(5);
+            for (int i = 0; i < list.Count(); i++)
+            {
+                Console.WriteLine(list.ElementAt(i));
+            }
+           
         }
     }
 }

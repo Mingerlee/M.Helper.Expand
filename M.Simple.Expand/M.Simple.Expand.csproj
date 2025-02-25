@@ -6,11 +6,11 @@
     <Nullable>enable</Nullable>
 	  <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	  <Title>M.Simple.Expand</Title>
-	  <Copyright>Copyright Ming</Copyright>
+	  <Copyright>Copyright Sunny</Copyright>
 	  <Description>Base class help extension package</Description>
-	  <FileVersion>1.0.0.1</FileVersion>
-	  <PackageVersion>1.0.0.1</PackageVersion>
-	  <Authors>@Minger</Authors>
+	  <FileVersion>1.0.0.2</FileVersion>
+	  <PackageVersion>1.0.0.2</PackageVersion>
+	  <Authors>Sunny</Authors>
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
   </PropertyGroup>
 

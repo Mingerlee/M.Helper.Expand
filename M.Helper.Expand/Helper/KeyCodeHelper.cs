@@ -18,10 +18,10 @@ namespace M.Helper.Expand
         private static int RandomBits = 3;//随机位
 
         private static long Index = 0;
-        private static long Worker = 0;
+        private static long Worker = 6;
 
         private static long IndexMax = -1 ^ (-1 << IndexBits);
-        private static long WorkerMax = -1 ^ (-1 << WorkerBits);
+        //private static long WorkerMax = -1 ^ (-1 << WorkerBits);
         //private static long RandomMax = -1 ^ (-1 << RandomBits);
 
         // 机器码偏左移13位
@@ -34,17 +34,6 @@ namespace M.Helper.Expand
         //private static Random r = new Random(Guid.NewGuid().GetHashCode());
 
         private static long LastTimeStamp = 0;
-
-        /// <summary>
-        /// 初始化自行分配机器码
-        /// </summary>
-        public KeyCodeHelper(long Worker = 0)
-        {
-            if (Worker > WorkerMax || Worker < 0)
-                throw new Exception(string.Format("机器位只能是 0 至 {0}之间", WorkerMax));
-
-            KeyCodeHelper.Worker = Worker;
-        }
 
         /// <summary>
         /// 生成一个ID
