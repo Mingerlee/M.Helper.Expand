@@ -112,7 +112,7 @@ namespace M.Simple.Expand
         }
         /// <summary>
         /// <para>M.Simple.Expand扩展</para>
-        /// <para>根据int转成指定枚举Value值</para>
+        /// <para>根据int转成指定枚举Text值</para>
         /// </summary>
         /// <returns>返回指定枚举Text值</returns>
         public static string ToEnumText<T>(this int enumValue) where T : Enum
@@ -129,7 +129,7 @@ namespace M.Simple.Expand
         }
         /// <summary>
         /// <para>M.Simple.Expand扩展</para>
-        /// <para>根据int转成指定枚举Value值</para>
+        /// <para>根据int?转成指定枚举Text值</para>
         /// </summary>
         /// <returns>返回指定枚举Text值</returns>
         public static string ToEnumText<T>(this int? enumValue) where T : Enum
