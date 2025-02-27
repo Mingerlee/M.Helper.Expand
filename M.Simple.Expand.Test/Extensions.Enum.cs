@@ -31,6 +31,17 @@ namespace M.Simple.Expand.Test
 
            var title= s.GetAttributeOfType<MyTitleAttribute>().Title;
             Console.WriteLine(title);
+
+            int value = 0;
+            int value1 = 2;
+            int? value2 = 4;
+            int? value3 = null;
+            Console.WriteLine();
+            Console.WriteLine(value.ToEnumText<PersonEnum>());
+            Console.WriteLine(value1.ToEnumText<PersonEnum>());
+            Console.WriteLine(value2.ToEnumText<PersonEnum>());
+            Console.WriteLine(value3.ToEnumText<PersonEnum>());
+
         }
     }
 }

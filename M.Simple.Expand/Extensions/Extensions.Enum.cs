@@ -112,6 +112,47 @@ namespace M.Simple.Expand
         }
         /// <summary>
         /// <para>M.Simple.Expand扩展</para>
+        /// <para>根据int转成指定枚举Value值</para>
+        /// </summary>
+        /// <returns>返回指定枚举Text值</returns>
+        public static string ToEnumText<T>(this int enumValue) where T : Enum
+        {
+            try
+            {
+                var result= (T)Enum.ToObject(typeof(T), enumValue);
+                return result.ToString();
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>根据int转成指定枚举Value值</para>
+        /// </summary>
+        /// <returns>返回指定枚举Text值</returns>
+        public static string ToEnumText<T>(this int? enumValue) where T : Enum
+        {
+            try
+            {
+                if (enumValue.HasValue)
+                {
+                    var result = (T)Enum.ToObject(typeof(T), enumValue);
+                    return result.ToString();
+                }
+                else
+                {
+                    return string.Empty;
+                }
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
         /// <para>转成枚举值(Value)及描述值的字典</para>
         /// </summary>
         /// <returns>枚举值(Value)及描述值的字典</returns>
