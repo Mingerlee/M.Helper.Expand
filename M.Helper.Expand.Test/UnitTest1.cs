@@ -10,7 +10,7 @@ using System.Security.Claims;
 
 namespace M.Helper.Expand.Test
 {
-    //[TestClass]
+    [TestClass]
     public class UnitTest1
     {
         [TestMethod]
@@ -18,6 +18,8 @@ namespace M.Helper.Expand.Test
         {
             decimal test = 1264598.4568465M;
             Console.WriteLine(test.FormatMoney(FormatMoneyEnum.C3_en_US));
+
+            Console.WriteLine($"{{0}}");
         }
         [TestMethod]
         public void TestConvertToChinese()

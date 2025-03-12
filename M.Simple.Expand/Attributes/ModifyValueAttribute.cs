@@ -13,7 +13,7 @@ namespace M.Simple.Expand.Attributes
     /// <remarks>
     ///     
     /// </remarks>
-    /// <param name="_flidName">属性名称</param>
+    /// <param name="flidName">属性名称</param>
     [AttributeUsage(AttributeTargets.Property | AttributeTargets.Constructor, AllowMultiple = true, Inherited = false)]
     public class ModifyValueAttribute(string? flidName = null) : Attribute
     {

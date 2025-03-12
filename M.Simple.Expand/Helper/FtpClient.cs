@@ -275,7 +275,7 @@ namespace M.Simple.Helper
                         foreach (string targetMask in masks)
                         {
                             //判断当前文件和目标文件后缀名是否一致
-                            if (line.EndsWith(targetMask))
+                            if (line.EndsWith(targetMask,StringComparison.OrdinalIgnoreCase))
                             {
                                 result.Add(line);
                                 break;
