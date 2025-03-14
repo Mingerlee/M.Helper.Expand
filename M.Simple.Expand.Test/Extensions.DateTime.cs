@@ -69,6 +69,9 @@ namespace M.Simple.Expand.Test
             Console.WriteLine(dt1.PervDay());
             Console.WriteLine(dt3.PervDay());
             Console.WriteLine(dt3.PervDay(defaultDate));
+            Console.WriteLine();
+            Console.WriteLine(dt2.DiffDays(defaultDate));
+            
         }
         [TestMethod]
         public void TestIsOverlap()

@@ -388,6 +388,19 @@ namespace M.Simple.Expand
         {
             return dateTime.GetValueOrDefault(defaultDateTime).AddDays(-1);
         }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        ///<para> 计算日期差</para>
+        /// </summary>
+        /// <param name="startTime"></param>
+        /// <param name="endTime">结束日期</param>
+        /// <param name="includeToday">是否包含当天</param>
+        /// <returns>天</returns>
+        public static int DiffDays(this DateTime startTime, DateTime endTime, bool includeToday = false)
+        {
+            TimeSpan daysSpan = new(endTime.Date.Ticks - startTime.Date.Ticks);
+            return includeToday ? daysSpan.Days + 1 : daysSpan.Days;
+        }
         private static List<string> LanguageStr(LanguageEnum language)
         {
             List<string> cn = ["1秒以前", "秒以前", "1分钟以前", "分钟以前", "1小时以前", "小时以前", "昨天", "天以前", "1个月以前", "个月以前", "1年以前", "年以前"];
