@@ -3,11 +3,17 @@
 namespace M.Simple.Expand.Models
 {
     /// <summary>
-    /// <para>M.Simple.Expand扩展</para
+    /// <para>M.Simple.Expand扩展</para>
     /// <para>日期时间集合</para>
     /// </summary>
     public class DateTimePeriod
     {
+        /// <summary>
+        ///     构造
+        /// </summary>
+        /// <param name="startTime"></param>
+        /// <param name="endTime"></param>
+        /// <exception cref="ArgumentException"></exception>
         public DateTimePeriod(DateTime startTime, DateTime endTime)
         {
             if (startTime > endTime)
@@ -27,7 +33,7 @@ namespace M.Simple.Expand.Models
         public DateTime EndTime { get; private set; }
     }
     /// <summary>
-    /// <para>M.Simple.Expand扩展</para
+    /// <para>M.Simple.Expand扩展</para>
     /// <para>日期集合</para>
     /// </summary>
     public class DatePeriod

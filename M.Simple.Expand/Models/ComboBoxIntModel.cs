@@ -18,6 +18,10 @@ namespace M.Simple.Expand.Models
         /// </summary>
         public string Text { get; set; }
     }
+    /// <summary>
+    ///     <para>M.Simple.Expand扩展</para>   
+    ///     <para>下拉框 数值类型选项</para>    
+    /// </summary>
     public class ComboBoxIntViewModel
     {
         /// <summary>

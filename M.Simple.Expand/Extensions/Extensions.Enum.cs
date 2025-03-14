@@ -16,9 +16,9 @@ namespace M.Simple.Expand
         public static string GetDescription(this Enum source)
         {
             FieldInfo fieldInfo = source.GetType().GetField(source.ToString());
-
+            if(fieldInfo==null) return string.Empty;
             DescriptionAttribute[] attrs = fieldInfo.GetCustomAttributes(typeof(DescriptionAttribute), false) as DescriptionAttribute[];
-
+            if(attrs==null || attrs.Length != 0 == false) return string.Empty;
             return attrs.Length > 0 ? attrs[0].Description : source.ToString();
         }
         /// <summary>
@@ -39,7 +39,7 @@ namespace M.Simple.Expand
         /// <param name="comboBox"></param>
         /// <param name="values">指定值集合</param>
         /// <returns></returns>
-        public static ComboBoxIntViewModel ToComboBoxs<T>(this ComboBoxIntViewModel comboBox, IEnumerable<int> values = null) where T : Enum
+        public static ComboBoxIntViewModel ToComboBoxs<T>(this ComboBoxIntViewModel comboBox, IEnumerable<int>? values = null) where T : Enum
         {
             var selectOptions = Enum.GetValues(typeof(T)).Cast<T>()
                .Select(x => new ComboBoxIntModel { Text = x.ToString(), Value = x.ToInt32() });
@@ -76,8 +76,9 @@ namespace M.Simple.Expand
         public static string GetDisplayName(this Enum enumValue)
         {
             FieldInfo fieldInfo = enumValue.GetType().GetField(enumValue.ToString());
+            if (fieldInfo == null) return string.Empty;
             DisplayAttribute[] attrs =  fieldInfo.GetCustomAttributes(typeof(DisplayAttribute), false) as DisplayAttribute[];
-
+            if (attrs == null || attrs.Length<=0) return string.Empty;
             return attrs.Length > 0 ? attrs[0].Name : enumValue.ToString();
         }
         /// <summary>
@@ -89,9 +90,9 @@ namespace M.Simple.Expand
         public static string GetDisplayDescription(this Enum enumValue)
         {
             FieldInfo fieldInfo = enumValue.GetType().GetField(enumValue.ToString());
-
+            if (fieldInfo == null) return string.Empty;
             DisplayAttribute[] attrs =fieldInfo.GetCustomAttributes(typeof(DisplayAttribute), false) as DisplayAttribute[];
-
+            if (attrs == null || attrs.Length <= 0) return string.Empty;
             return attrs.Length > 0 ? attrs[0].Description : enumValue.ToString();
         }
         /// <summary>

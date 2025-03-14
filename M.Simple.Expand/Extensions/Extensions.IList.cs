@@ -17,7 +17,7 @@ namespace M.Simple.Expand
         public static DataTable ToDataTable(this IList list)
         {
             DataTable result = new();
-            if (list.Count > 0)
+            if (list!=null && list.Count > 0)
             {
                 PropertyInfo[] propertys = list[0].GetType().GetProperties();
                 foreach (PropertyInfo pi in propertys)
@@ -48,7 +48,7 @@ namespace M.Simple.Expand
                         object obj = pi.GetValue(list[i], null);
                         tempList.Add(obj);
                     }
-                    object[] array = tempList.ToArray();
+                    object?[] array = tempList.ToArray();
                     result.LoadDataRow(array, true);
                 }
             }

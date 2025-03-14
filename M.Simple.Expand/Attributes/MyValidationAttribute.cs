@@ -100,9 +100,10 @@ namespace M.Simple.Expand.Attributes
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
             if (value == null) return null;
+            string? strValue = ((string)value).Substring(6, 4);
             try
             {
-                if (DateTime.IsLeapYear(Convert.ToInt32(value.ToString().Substring(6, 4))))
+                if (DateTime.IsLeapYear(Convert.ToInt32(strValue)))
                 {
                     string regexStr = @"(^[1-9]\d{5}(19|20)\d{2}((01|03|05|07|08|10|12)(0[1-9]|[1-2]\d|3[0-1])|(04|06|09|11)(0[1-9]|[1-2]\d|30)|02(0[1-9]|[1-2]\d))\d{3}[\dXx]$)";
                     if (!Regex.IsMatch(value.ToString() ?? "", regexStr)) return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
