@@ -7,6 +7,8 @@ using System.Text;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
 using System.Security.Claims;
+using static M.Helper.Expand.EncryptHelper;
+using iText.Layout.Element;
 
 namespace M.Helper.Expand.Test
 {
@@ -152,6 +154,58 @@ namespace M.Helper.Expand.Test
                     dividend = (dividend - modulo) / 26;
                 }
                 Console.WriteLine(columnName);
+        }
+        [TestMethod]
+        public void TestRas()
+        {
+            var list = new List<TestTypeClass>();
+            for (int i = 1; i <= 10; i++)
+            {
+                var r = new Random();
+                list.Add(new TestTypeClass("")
+                {
+                    Amonut = r.Next(1, 10000),
+                    Code = $"A00{i + 2}",
+                    CreateDate = DateTime.Now.AddDays(r.Next(1, 365)),
+                    Description = $"描述{i}",
+                    ICD = 12324324234 + i,
+                    Id = i,
+                    IDouble = Math.Round(r.Next(1, 10000) / 3.0, 2),
+                    IFloat = (float)Math.Round(r.Next(5000) / 3.0, 2),
+                    Name = $"张三{i}"
+                });
+            }
+            //！！！结果显示太长，请自行运行！！！
+
+            //获取公钥和私钥，每次生成的都不一样
+            KeyModel encryptDecrypt = RsaEncrypt.GetKeyPair();
+            Console.WriteLine($"私钥：{encryptDecrypt.PrivateKey}");
+            Console.WriteLine($"公钥：{encryptDecrypt.PublicKey}");
+
+            //------------------------------私钥--------------------------------------
+            //加密 -- 私钥能加密的原因是私钥包含公钥
+            Console.WriteLine(JsonConvert.SerializeObject(list));
+            string encryptResultPrivate = RsaEncrypt.RSAEncrypt(JsonConvert.SerializeObject(list), encryptDecrypt.PublicKey);
+            Console.WriteLine($"密文:{encryptResultPrivate}");
+            //解密
+            Console.WriteLine($"解密：{RsaEncrypt.RSADecrypt(encryptResultPrivate, encryptDecrypt.PrivateKey)}");
+
+            //------------------------------公钥--------------------------------------
+            //加密
+            string encryptResultPublic = RsaEncrypt.Encrypt("生成签名的原文", encryptDecrypt.PublicKey);
+            Console.WriteLine($"密文:{encryptResultPublic}");
+            //解密
+            Console.WriteLine($"解密：{RsaEncrypt.Decrypt(encryptResultPublic, encryptDecrypt.PrivateKey)}");
+
+            //------------------------------签名--------------------------------------
+            //生成签名
+            Console.WriteLine($"生成签名");
+            string autograph = RsaEncrypt.SignData("生成签名的原文", encryptDecrypt.PrivateKey);
+            Console.WriteLine($"签名:{autograph}");
+
+            //验证签名
+            Console.WriteLine($"验证签名:{RsaEncrypt.VerifyData("生成签名的原文", autograph, encryptDecrypt.PublicKey)}");
+            Console.WriteLine($"验证签名原文改动:{RsaEncrypt.VerifyData("生成签名的原文改动", autograph, encryptDecrypt.PublicKey)}");
         }
         //[TestMethod]
         public void TestFtpHelper()

@@ -6,7 +6,7 @@ namespace M.Simple.Helper
 {
     /// <summary>
     ///     <para>M.Simple.Helper帮助类</para>
-    ///     <para>AES加密解密帮助类</para>
+    ///     <para>AES对称式加密解密帮助类</para>
     /// </summary>
     internal class AESEncryptHelper
     {
@@ -180,5 +180,180 @@ namespace M.Simple.Helper
             }
         }
         #endregion
+    }
+    /// <summary>
+    ///     <para>M.Simple.Helper帮助类</para>
+    ///     <para>RSA非对称式加密解密帮助类</para>
+    /// </summary>
+    internal class RSAEncryptHelper
+    {
+        /// <summary>
+        /// <para>M.Simple.Helper帮助类</para>
+        /// <para>获取公钥/私钥</para>
+        /// <para>每次生成的公钥和私钥都不一样</para>
+        /// </summary>
+        /// <returns>Encrypt   Decrypt</returns>
+        public static RSAKeyModel GetKeyPair()
+        {
+            RSACryptoServiceProvider RSA = new();
+
+            //包括专用参数： 如果为true，则包含公钥和私钥RSA密钥；false，仅包括公众钥匙 
+            string publicKey = RSA.ToXmlString(false); //生成的是公开的解密key
+            string privateKey = RSA.ToXmlString(true); //生成的是私有的既可以加密也可以解密的key
+            return new RSAKeyModel(publicKey, privateKey);
+        }
+        /// <summary>
+        /// <para>M.Simple.Helper帮助类</para>
+        /// <para>RSA加密</para>
+        /// </summary>
+        /// <param name="encryptText">密文</param>
+        /// <param name="encryptKey">秘钥</param>
+        /// <returns>明文</returns>
+        public static string RSAEncrypt(string encryptText, string encryptKey)
+        {
+            RSACryptoServiceProvider rsa = new();
+            rsa.FromXmlString(encryptKey);
+
+            //UnicodeEncoding ByteConverter = new UnicodeEncoding();
+            //内容转成Unicode编码
+            byte[] DataToEncrypt = Encoding.UTF8.GetBytes(encryptText);
+            //生成Rsa码
+            byte[] resultBytes = rsa.Encrypt(DataToEncrypt, false);
+
+            //字节转字符串
+            return Convert.ToBase64String(resultBytes);
+        }
+        /// <summary>
+        /// <para>M.Simple.Helper帮助类</para>
+        /// <para>RSA解密</para>
+        /// </summary>
+        /// <param name="decryptText">密文</param>
+        /// <param name="decryptKey">秘钥</param>
+        /// <returns>明文</returns>
+        public static string RSADecrypt(string decryptText, string decryptKey)
+        {
+            //字符转字节
+            byte[] dataToDecrypt = Convert.FromBase64String(decryptText);
+
+            RSACryptoServiceProvider RSA = new();
+            RSA.FromXmlString(decryptKey);
+            //解码
+            byte[] resultBytes = RSA.Decrypt(dataToDecrypt, false);
+
+            //UnicodeEncoding ByteConverter = new UnicodeEncoding();
+            //根据Unicode转化成字符串
+            return Encoding.UTF8.GetString(resultBytes);
+        }
+        /// <summary>
+        /// <para>M.Simple.Helper帮助类</para>
+        /// <para>生成签名</para>
+        /// </summary>
+        /// <param name="content">原文</param>
+        /// <param name="privatekey">私钥</param>
+        /// <returns>密文</returns>
+        public static string RSASignData(string content, string privatekey)
+        {
+            //字符转字节
+            byte[] messagebytes = Encoding.UTF8.GetBytes(content);
+
+            RSACryptoServiceProvider oRSA3 = new();
+            oRSA3.FromXmlString(privatekey);
+
+            //生成签名
+            byte[] AOutput = oRSA3.SignData(messagebytes, "SHA1");
+            //字节转字符
+            return Convert.ToBase64String(AOutput);
+        }
+        /// <summary>
+        /// <para>M.Simple.Helper帮助类</para>
+        ///<para> 验证签名</para>
+        /// </summary>
+        /// <param name="content">原文</param>
+        /// <param name="autograph">签名</param>
+        /// <param name="publickey">共有key</param>
+        /// <returns>验证成功：true  验证失败：false</returns>
+        public static bool RSAVerifyData(string content, string autograph, string publickey)
+        {
+            //字符转字节
+            byte[] messagebytes = Encoding.UTF8.GetBytes(content);
+            byte[] messageAutographbytes = Convert.FromBase64String(autograph);
+
+            RSACryptoServiceProvider RSA = new();
+            RSA.FromXmlString(publickey);
+
+            //验证 content 和 autograph 是否相同
+            bool bVerify = RSA.VerifyData(messagebytes, "SHA1", messageAutographbytes);
+            return bVerify;
+        }
+        /// <summary>
+        /// <para>M.Simple.Helper帮助类</para>
+        /// <para>RSA加密（字符过长，分段加密）</para>
+        /// </summary>
+        /// <param name="content">明文</param>
+        /// <param name="publicKey">秘钥</param>
+        /// <returns>密文</returns>
+        public static string RSAEncryptWithBlock(string content, string publicKey)
+        {
+            using RSACryptoServiceProvider RSACryptography = new();
+            RSACryptography.FromXmlString(publicKey);
+            byte[] PlaintextData = Encoding.UTF8.GetBytes(content);
+            int MaxBlockSize = RSACryptography.KeySize / 8 - 11;    //加密块最大长度限制
+
+            if (PlaintextData.Length <= MaxBlockSize)
+                return Convert.ToBase64String(RSACryptography.Encrypt(PlaintextData, false));
+
+            using MemoryStream PlaiStream = new(PlaintextData);
+            using MemoryStream CrypStream = new();
+            byte[] Buffer = new byte[MaxBlockSize];
+            int BlockSize = PlaiStream.Read(Buffer, 0, MaxBlockSize);
+
+            while (BlockSize > 0)
+            {
+                byte[] ToEncrypt = new byte[BlockSize];
+                Array.Copy(Buffer, 0, ToEncrypt, 0, BlockSize);
+
+                byte[] Cryptograph = RSACryptography.Encrypt(ToEncrypt, false);
+                CrypStream.Write(Cryptograph, 0, Cryptograph.Length);
+
+                BlockSize = PlaiStream.Read(Buffer, 0, MaxBlockSize);
+            }
+
+            return Convert.ToBase64String(CrypStream.ToArray(), Base64FormattingOptions.None);
+        }
+        /// <summary>
+        /// <para>M.Simple.Helper帮助类</para>
+        /// <para>RSA解密</para>
+        /// </summary>
+        /// <param name="content"></param>
+        /// <param name="privateKey"></param>
+        /// <returns></returns>
+        public static string RSADecryptWithBlock(string content, string privateKey)
+        {
+            using RSACryptoServiceProvider RSACryptography = new();
+            RSACryptography.FromXmlString(privateKey);
+            byte[] CiphertextData = Convert.FromBase64String(content);
+            int MaxBlockSize = RSACryptography.KeySize / 8;    //解密块最大长度限制 117
+
+            if (CiphertextData.Length <= MaxBlockSize)
+                return Encoding.UTF8.GetString(RSACryptography.Decrypt(CiphertextData, false));
+
+            using MemoryStream CrypStream = new(CiphertextData);
+            using MemoryStream PlaiStream = new();
+            byte[] Buffer = new byte[MaxBlockSize];
+            int BlockSize = CrypStream.Read(Buffer, 0, MaxBlockSize);
+
+            while (BlockSize > 0)
+            {
+                byte[] ToDecrypt = new byte[BlockSize];
+                Array.Copy(Buffer, 0, ToDecrypt, 0, BlockSize);
+
+                byte[] Plaintext = RSACryptography.Decrypt(ToDecrypt, false);
+                PlaiStream.Write(Plaintext, 0, Plaintext.Length);
+
+                BlockSize = CrypStream.Read(Buffer, 0, MaxBlockSize);
+            }
+
+            return Encoding.UTF8.GetString(PlaiStream.ToArray());
+        }
     }
 }

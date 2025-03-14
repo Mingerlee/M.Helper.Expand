@@ -71,5 +71,96 @@ namespace M.Simple.Expand
         {
             return AESEncryptHelper.AesDecrypt(cipherText, key, iv);
         }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>RSA加密</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <returns>返回：密文，公钥，私钥</returns>
+        public static RSAEncryptResultModel RsaEncrypt(this string plainText)
+        {
+            var pair = RSAEncryptHelper.GetKeyPair();
+            var cipherText = RSAEncryptHelper.RSAEncrypt(plainText, pair.PrivateKey);
+            return new() { CipherText = cipherText, PublicKey = pair.PublicKey, PrivateKey = pair.PrivateKey };
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>RSA加密</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <param name="encryptKey">秘钥</param>
+        /// <returns>密文</returns>
+        public static string RsaEncrypt(this string plainText,string encryptKey)
+        {
+            return RSAEncryptHelper.RSAEncrypt(plainText, encryptKey);
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>RSA加密(分段)</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <param name="encryptKey">秘钥</param>
+        /// <returns>密文</returns>
+        public static string RsaEncryptWithBlock(this string plainText, string encryptKey)
+        {
+            return RSAEncryptHelper.RSAEncryptWithBlock(plainText, encryptKey);
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>RSA加密(分段)</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <returns>返回：密文，公钥，私钥</returns>
+        public static RSAEncryptResultModel RsaEncryptWithBlock(this string plainText)
+        {
+            var pair = RSAEncryptHelper.GetKeyPair();
+            var cipherText = RSAEncryptHelper.RSAEncryptWithBlock(plainText, pair.PrivateKey);
+            return new() { CipherText = cipherText, PublicKey = pair.PublicKey, PrivateKey = pair.PrivateKey };
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>RSA生成签名</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <param name="encryptKey">秘钥</param>
+        /// <returns>签名密文</returns>
+        public static string RsaSignData(this string plainText, string encryptKey)
+        {
+            return RSAEncryptHelper.RSASignData(plainText, encryptKey);
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>RSA生成签名</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <param name="autograph">签名密文</param>
+        /// <param name="publickey">公钥</param>
+        /// <returns>签名密文</returns>
+        public static bool RsaVerifyData(this string plainText, string autograph, string publickey)
+        {
+            return RSAEncryptHelper.RSAVerifyData(plainText, autograph,publickey);
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>RSA解密</para>
+        /// </summary>
+        /// <param name="cipherText">密文</param>
+        /// <param name="privateKey">私钥</param>
+        /// <returns>明文</returns>
+        public static string RsaDecrypt(this string cipherText, string privateKey)
+        {
+            return RSAEncryptHelper.RSADecrypt(cipherText, privateKey);
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>RSA解密(分段)</para>
+        /// </summary>
+        /// <param name="cipherText">密文</param>
+        /// <param name="privateKey">私钥</param>
+        /// <returns>明文</returns>
+        public static string RsaDecryptWithBlock(this string cipherText, string privateKey)
+        {
+            return RSAEncryptHelper.RSADecryptWithBlock(cipherText, privateKey);
+        }
     }
 }

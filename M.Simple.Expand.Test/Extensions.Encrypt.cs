@@ -67,5 +67,56 @@ namespace M.Simple.Expand.Test
             Console.WriteLine(s1.AesDecrypt(key, iv));
 
         }
+        [TestMethod]
+        public void TestRsaEncrypt()
+        {
+            var list = new List<Student>();
+            for (int i = 1; i <= 10; i++)
+            {
+                var r = new Random();
+                list.Add(new Student
+                {
+                    Age = r.Next(18, 28),
+                    Id = i,
+                    Name = $"张三{i}",
+                    StudentCode = $"A00{i + 2}",
+                });
+            }
+
+            Console.WriteLine(JsonConvert.SerializeObject(list));
+            Console.WriteLine();
+            var s = JsonConvert.SerializeObject(list).RsaEncryptWithBlock();
+            Console.WriteLine($"分段加密，返回密文:{s.CipherText}");
+            Console.WriteLine();
+            Console.WriteLine($"分段加密，返回公钥:{s.PublicKey}");
+            Console.WriteLine();
+            Console.WriteLine($"分段加密，返回私钥:{s.PrivateKey}");
+            Console.WriteLine();
+            Console.WriteLine($"解密：{s.CipherText.RsaDecryptWithBlock(s.PrivateKey)}");
+            Console.WriteLine();
+
+            Console.WriteLine(JsonConvert.SerializeObject(list).RsaEncryptWithBlock(s.PublicKey));
+            Console.WriteLine();
+
+            string plainText = "Welcome to China";
+            var cipherTextPublicKey = plainText.RsaEncrypt(s.PublicKey);
+            Console.WriteLine($"公钥加密：{cipherTextPublicKey}");
+            Console.WriteLine();
+            var cipherTextPrivateKey = plainText.RsaEncrypt(s.PrivateKey);
+            Console.WriteLine($"私钥加密：{cipherTextPrivateKey}");
+            Console.WriteLine();
+
+            Console.WriteLine($"解密：{cipherTextPublicKey.RsaDecrypt(s.PrivateKey)}");
+            Console.WriteLine();
+            Console.WriteLine($"解密：{cipherTextPrivateKey.RsaDecrypt(s.PrivateKey)}");
+            Console.WriteLine();
+
+            var sSignData = JsonConvert.SerializeObject(list).RsaSignData(s.PrivateKey);
+            Console.WriteLine($"生成签名：{sSignData}");
+            Console.WriteLine();
+            var sVerifyData = JsonConvert.SerializeObject(list).RsaVerifyData(sSignData, s.PublicKey);
+            Console.WriteLine($"验证签名：{sVerifyData}");
+            Console.WriteLine();
+        }
     }
 }
