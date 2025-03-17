@@ -43,6 +43,14 @@ namespace M.Simple.Expand.Test
             Console.WriteLine(money2.ToFormatMoney(Enums.FormatMoneyEnum.C2));
             Console.WriteLine(money2.ToFormatMoney(Enums.FormatMoneyEnum.C2_en_US));
             Console.WriteLine(money2.ToFormatMoney(Enums.FormatMoneyEnum.C2_zh_CN));
+            Console.WriteLine();
+            var strMoney1 = money1.ToFormatMoney(Enums.FormatMoneyEnum.C2_zh_CN);
+            Console.WriteLine(strMoney1.MoneyStringToDecimal());
+            var strMoney = money1.ToFormatMoney(Enums.FormatMoneyEnum.C2_en_US);
+            Console.WriteLine(strMoney.MoneyStringToDecimal());
+            var strMoney2 = money2.ToFormatMoney(Enums.FormatMoneyEnum.C2_en_US);
+            Console.WriteLine(strMoney2.MoneyStringToDecimal());
+            Console.WriteLine("#123456,45a.sa".MoneyStringToDecimal());
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using M.Simple.Expand.Helper;
-using Microsoft.International.Converters.PinYinConverter;
+﻿using Microsoft.International.Converters.PinYinConverter;
 using System.Text;
 
 namespace M.Simple.Expand
@@ -119,7 +118,7 @@ namespace M.Simple.Expand
         ///全角空格为12288，半角空格为32
         ///其他字符半角(33-126)与全角(65281-65374)的对应关系是：均相差65248
         ///</remarks>
-        public static string ToDBC(string input)
+        public static string ToDBC(this string input)
         {
             char[] c = input.ToCharArray();
             for (int i = 0; i < c.Length; i++)
@@ -144,7 +143,7 @@ namespace M.Simple.Expand
         ///全角空格为12288，半角空格为32
         ///其他字符半角(33-126)与全角(65281-65374)的对应关系是：均相差65248
         ///</remarks>       
-        public static string ToSBC(string input)
+        public static string ToSBC(this string input)
         {
             //半角转全角：
             char[] c = input.ToCharArray();
@@ -159,6 +158,27 @@ namespace M.Simple.Expand
                     c[i] = (char)(c[i] + 65248);
             }
             return new string(c);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>金额格式字符串转decimal，默认保留两位小数</para>
+        /// </summary>
+        /// <param name="input">金额格式字符串</param>
+        ///  <param name="digits">精度(保留的几位小数)</param>
+        /// <returns></returns>
+        public static decimal MoneyStringToDecimal(this string input,int digits=2)
+        {
+            if(string.IsNullOrEmpty(input)) return Math.Round(0M, digits);
+
+            string inputStr = input.Replace("$", "").Replace("¥","").Replace("￥", "").Replace(",", "");
+
+           var flag= decimal.TryParse(inputStr, out decimal result);
+            if (flag)
+            {
+                return Math.Round(result, digits);
+            }
+            else
+                return Math.Round(0M, digits);
         }
     }
 }
