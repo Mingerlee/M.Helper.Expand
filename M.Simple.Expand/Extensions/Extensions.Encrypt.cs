@@ -162,5 +162,28 @@ namespace M.Simple.Expand
         {
             return RSAEncryptHelper.RSADecryptWithBlock(cipherText, privateKey);
         }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>MD5加密</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <returns>密文</returns>
+        public static MD5EncryptResultModel MD5Encrypt(this string plainText)
+        {
+            return MD5EncryptHelper.MD5Encrypt64(plainText);
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>MD5验证</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <param name="cipherText">密文</param>
+        /// <param name="encryptSecret">秘钥</param>
+        /// <returns>bool</returns>
+        public static bool MD5Verify(this string plainText, string cipherText, string encryptSecret)
+        {
+            return MD5EncryptHelper.MD5Verify(plainText, cipherText, encryptSecret);
+        }
+        
     }
 }

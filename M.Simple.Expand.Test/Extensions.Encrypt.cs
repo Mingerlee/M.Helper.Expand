@@ -118,5 +118,18 @@ namespace M.Simple.Expand.Test
             Console.WriteLine($"验证签名：{sVerifyData}");
             Console.WriteLine();
         }
+        [TestMethod]
+        public void TestMD5Encrypt()
+        {
+            var str1 = "ABCDSDJF";
+            var str2 = "ABCDSDJF202503017170255";
+            Console.WriteLine($"密文:{JsonConvert.SerializeObject(str1.MD5Encrypt())}");
+            Console.WriteLine($"密文:{JsonConvert.SerializeObject(str2.MD5Encrypt())}");
+
+            string ci = "vZtTB4jRV11NkdVv5CBlKg==";
+            string e = "iGKHXgDKwSNOY2c1ezMLfn+zH6kwmq4jLot38aaK1P4vwgSiwcv7LiKWFkUF6RD5lLw0BKMyMDI1LzMvMTcgMTc6MjQ6Mzk=";
+            Console.WriteLine();
+            Console.WriteLine(str2.MD5Verify(ci,e));
+        }
     }
 }

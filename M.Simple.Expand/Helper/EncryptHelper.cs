@@ -1,6 +1,7 @@
 ﻿using M.Simple.Expand.Models;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Unicode;
 
 namespace M.Simple.Helper
 {
@@ -354,6 +355,44 @@ namespace M.Simple.Helper
             }
 
             return Encoding.UTF8.GetString(PlaiStream.ToArray());
+        }
+    }
+
+    internal class MD5EncryptHelper
+    {
+        public static MD5EncryptResultModel MD5Encrypt64(string password)
+        {
+            string encryptSecret = CreateKey();
+            string cl =string.Concat(password, encryptSecret);//组合
+            //string pwd = "";
+            MD5 md5 = MD5.Create(); //实例化一个md5对像
+            // 加密后是一个字节类型的数组，这里要注意编码UTF8/Unicode等的选择　
+            byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(cl));
+            return new MD5EncryptResultModel {  CipherText=Convert.ToBase64String(s),EncryptSecret= encryptSecret };
+        }
+        public static string MD5Encrypt64(string password,string encryptSecret)
+        {
+            string cl = string.Concat(password, encryptSecret);//组合
+            //string pwd = "";
+            MD5 md5 = MD5.Create(); //实例化一个md5对像
+            // 加密后是一个字节类型的数组，这里要注意编码UTF8/Unicode等的选择　
+            byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(cl));
+            return Convert.ToBase64String(s);
+        }
+        public static bool MD5Verify(string password, string cipherText, string encryptSecret)
+        {
+            return MD5Encrypt64(password, encryptSecret).Equals(cipherText);
+        }
+        private static string CreateKey() 
+        {
+            var rd = new Random();
+            var rand = RandomNumberGenerator.Create();
+            byte[] bytesKey = new byte[rd.Next(0,128)];
+            rand.GetBytes(bytesKey);
+
+            byte[] datetimeBytes= Encoding.UTF8.GetBytes(DateTime.Now.ToString());
+            var bytesConcat = bytesKey.Concat(datetimeBytes).ToArray();
+            return Convert.ToBase64String(bytesConcat);
         }
     }
 }

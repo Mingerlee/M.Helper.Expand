@@ -62,4 +62,18 @@ namespace M.Simple.Expand.Models
         /// </summary>
         public string PrivateKey { get; set; }
     }
+    /// <summary>
+    ///     MD5加密结果模型
+    /// </summary>
+    public class MD5EncryptResultModel
+    {
+        /// <summary>
+        ///     密文
+        /// </summary>
+        public string CipherText { get; set; }
+        /// <summary>
+        ///     秘钥
+        /// </summary>
+        public string EncryptSecret { get; set; }
+    }
 }
