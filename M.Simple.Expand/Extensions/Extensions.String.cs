@@ -180,5 +180,24 @@ namespace M.Simple.Expand
             else
                 return Math.Round(0M, digits);
         }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>获取hashCode</para>
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="values"></param>
+        /// <returns></returns> 
+        public static int ToHashCode(this string input, params object[] values)
+        {
+            string result = input;
+            foreach (var value in values)
+            {
+                if (value != null)
+                {
+                    result += value.ToString();
+                }
+            }
+            return result.GetHashCode();
+        }
     }
 }

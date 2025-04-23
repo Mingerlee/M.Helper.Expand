@@ -30,12 +30,22 @@ namespace M.Simple.Expand.Test
 
             Console.WriteLine(Extensions.GetSnowCode());
 
-            var list=  Extensions.GetSnowCodes(5);
+            var list=  Extensions.GetSnowCodes(6);
             for (int i = 0; i < list.Count(); i++)
             {
                 Console.WriteLine(list.ElementAt(i));
             }
-           
+            Console.WriteLine();
+            int i1 = 1234;
+            decimal? i2 = null;
+            string i3 = "this is a biu biu biu";
+            decimal i4 = 4563M;
+            Console.WriteLine(str4.ToHashCode(i1, i2, i3, i4));
+
+            Console.WriteLine(str4.ToHashCode(i1, i4, i3, i2));
+
+            Console.WriteLine(string.Concat(str4, i1, i2, i3, i4));
+            Console.WriteLine(string.Concat(str4, i1, i4, i3, i2));
         }
     }
 }
