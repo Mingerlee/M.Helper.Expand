@@ -168,7 +168,40 @@ namespace M.Simple.Expand
         /// </summary>
         /// <param name="plainText">明文</param>
         /// <returns>密文</returns>
-        public static MD5EncryptResultModel MD5Encrypt(this string plainText)
+        public static MD5EncryptResultModel MD5SaltEncrypt(this string plainText)
+        {
+            return MD5EncryptHelper.MD5SaltEncrypt64(plainText);
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>MD5加密</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <param name="encryptSecret">盐值</param>
+        /// <returns>密文</returns>
+        public static string MD5SaltEncrypt(this string plainText, string encryptSecret)
+        {
+            return MD5EncryptHelper.MD5SaltEncrypt64(plainText, encryptSecret);
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>MD5验证</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <param name="cipherText">密文</param>
+        /// <param name="encryptSecret">盐值</param>
+        /// <returns>bool</returns>
+        public static bool MD5SaltVerify(this string plainText, string cipherText, string encryptSecret)
+        {
+            return MD5EncryptHelper.MD5SaltVerify(plainText, cipherText, encryptSecret);
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>MD5加密</para>
+        /// </summary>
+        /// <param name="plainText">明文</param>
+        /// <returns>密文</returns>
+        public static string MD5Encrypt(this string plainText)
         {
             return MD5EncryptHelper.MD5Encrypt64(plainText);
         }
@@ -178,12 +211,10 @@ namespace M.Simple.Expand
         /// </summary>
         /// <param name="plainText">明文</param>
         /// <param name="cipherText">密文</param>
-        /// <param name="encryptSecret">秘钥</param>
-        /// <returns>bool</returns>
-        public static bool MD5Verify(this string plainText, string cipherText, string encryptSecret)
+        /// <returns></returns>
+        public static bool MD5Verify(this string plainText, string cipherText)
         {
-            return MD5EncryptHelper.MD5Verify(plainText, cipherText, encryptSecret);
+            return MD5EncryptHelper.MD5Verify(plainText, cipherText);
         }
-        
     }
 }

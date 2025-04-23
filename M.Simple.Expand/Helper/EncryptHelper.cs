@@ -357,31 +357,46 @@ namespace M.Simple.Helper
             return Encoding.UTF8.GetString(PlaiStream.ToArray());
         }
     }
-
+    /// <summary>
+    ///     <para>M.Simple.Helper帮助类</para>
+    ///     <para>MD5加密帮助类</para>
+    /// </summary>
     internal class MD5EncryptHelper
     {
-        public static MD5EncryptResultModel MD5Encrypt64(string password)
+        public static MD5EncryptResultModel MD5SaltEncrypt64(string password)
         {
             string encryptSecret = CreateKey();
-            string cl =string.Concat(password, encryptSecret);//组合
+            string cl = string.Concat(password, encryptSecret);//组合
             //string pwd = "";
-            MD5 md5 = MD5.Create(); //实例化一个md5对像
+            //实例化一个md5对像
             // 加密后是一个字节类型的数组，这里要注意编码UTF8/Unicode等的选择　
-            byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(cl));
-            return new MD5EncryptResultModel {  CipherText=Convert.ToBase64String(s),EncryptSecret= encryptSecret };
+            byte[] s = MD5.HashData(Encoding.UTF8.GetBytes(cl));
+            return new MD5EncryptResultModel { CipherText = Convert.ToBase64String(s), EncryptSecret = encryptSecret };
         }
-        public static string MD5Encrypt64(string password,string encryptSecret)
+        public static string MD5SaltEncrypt64(string password,string encryptSecret)
         {
             string cl = string.Concat(password, encryptSecret);//组合
             //string pwd = "";
-            MD5 md5 = MD5.Create(); //实例化一个md5对像
+            //实例化一个md5对像
             // 加密后是一个字节类型的数组，这里要注意编码UTF8/Unicode等的选择　
-            byte[] s = md5.ComputeHash(Encoding.UTF8.GetBytes(cl));
+            byte[] s = MD5.HashData(Encoding.UTF8.GetBytes(cl));
             return Convert.ToBase64String(s);
         }
-        public static bool MD5Verify(string password, string cipherText, string encryptSecret)
+        public static bool MD5SaltVerify(string password, string cipherText, string encryptSecret)
         {
-            return MD5Encrypt64(password, encryptSecret).Equals(cipherText);
+            return MD5SaltEncrypt64(password, encryptSecret).Equals(cipherText);
+        }
+        public static string MD5Encrypt64(string password)
+        {
+            if (string.IsNullOrEmpty(password)) return string.Empty;
+            //实例化一个md5对像
+            // 加密后是一个字节类型的数组，这里要注意编码UTF8/Unicode等的选择　
+            byte[] s = MD5.HashData(Encoding.UTF8.GetBytes(password));
+            return Convert.ToBase64String(s);
+        }
+        public static bool MD5Verify(string password, string cipherText)
+        {
+            return MD5Encrypt64(password).Equals(cipherText);
         }
         private static string CreateKey() 
         {

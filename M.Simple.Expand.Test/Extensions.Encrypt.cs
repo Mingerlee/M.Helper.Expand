@@ -123,13 +123,19 @@ namespace M.Simple.Expand.Test
         {
             var str1 = "ABCDSDJF";
             var str2 = "ABCDSDJF202503017170255";
-            Console.WriteLine($"密文:{JsonConvert.SerializeObject(str1.MD5Encrypt())}");
-            Console.WriteLine($"密文:{JsonConvert.SerializeObject(str2.MD5Encrypt())}");
+            Console.WriteLine($"密文:{JsonConvert.SerializeObject(str1.MD5SaltEncrypt())}");
+            Console.WriteLine($"密文:{JsonConvert.SerializeObject(str2.MD5SaltEncrypt())}");
 
             string ci = "vZtTB4jRV11NkdVv5CBlKg==";
             string e = "iGKHXgDKwSNOY2c1ezMLfn+zH6kwmq4jLot38aaK1P4vwgSiwcv7LiKWFkUF6RD5lLw0BKMyMDI1LzMvMTcgMTc6MjQ6Mzk=";
             Console.WriteLine();
-            Console.WriteLine(str2.MD5Verify(ci,e));
+            Console.WriteLine(str2.MD5SaltVerify(ci,e));
+
+            Console.WriteLine();
+            Console.WriteLine($"密文:{JsonConvert.SerializeObject(str1.MD5Encrypt())}");
+            Console.WriteLine($"密文:{JsonConvert.SerializeObject(str2.MD5Encrypt())}");
+            string str3 = "1JvBtz3tqQA6WxPvSivgRg==1";
+            Console.WriteLine(str2.MD5Verify(str3));
         }
     }
 }
