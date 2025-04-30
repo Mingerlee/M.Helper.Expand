@@ -325,7 +325,7 @@ namespace M.Simple.Expand.Attributes
             if (value == null) return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
             try
             {
-                _ = int.TryParse(value.ToString() ?? "", out int result);
+                _ = decimal.TryParse(value.ToString() ?? "", out decimal result);
                 if (IsEqualMinValue && result < MinValue)
                 {
                     return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
@@ -370,7 +370,7 @@ namespace M.Simple.Expand.Attributes
             if (value == null) return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
             try
             {
-                _ = int.TryParse(value.ToString() ?? "", out int result);
+                _ = decimal.TryParse(value.ToString() ?? "", out decimal result);
 
                 if (IsEqualMaxValue && result > MaxValue)
                 {
@@ -425,7 +425,7 @@ namespace M.Simple.Expand.Attributes
             if (value == null) return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
             try
             {
-                _ = int.TryParse(value.ToString() ?? "", out int result);
+                _ = decimal.TryParse(value.ToString() ?? "", out decimal result);
 
                 if (IsEqualMinValue && !IsEqualMaxValue && !(result >= MinValue && result < MaxValue))
                 {
