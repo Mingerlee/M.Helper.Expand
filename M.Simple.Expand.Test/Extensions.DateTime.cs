@@ -56,7 +56,7 @@ namespace M.Simple.Expand.Test
             Console.WriteLine(dt1.ToLunarCalendarDate());
             Console.WriteLine(dt3.ToLunarCalendarDate());
             Console.WriteLine(dt3.ToLunarCalendarDate(defaultDate));
-            
+
             Console.WriteLine();
 
             Console.WriteLine(dt.NextDay());
@@ -71,7 +71,18 @@ namespace M.Simple.Expand.Test
             Console.WriteLine(dt3.PervDay(defaultDate));
             Console.WriteLine();
             Console.WriteLine(dt2.DiffDays(defaultDate));
+
+
+            DateTime dateTime1 = new(2025, 04, 16);
+            DateTime defaultDate2 = new(2025, 01, 15);
+            Console.WriteLine();
+            Console.WriteLine(dateTime1.ToString());
+            Console.WriteLine(defaultDate2.ToString());
+
+            Console.WriteLine(dateTime1.DiffMonth(defaultDate2, DiffMonthWayEnum.精确));
             
+
+
         }
         [TestMethod]
         public void TestIsOverlap()

@@ -2,6 +2,7 @@
 using M.Simple.Expand.Helper;
 using M.Simple.Expand.Models;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace M.Simple.Expand
 {
@@ -400,6 +401,37 @@ namespace M.Simple.Expand
         {
             TimeSpan daysSpan = new(endTime.Date.Ticks - startTime.Date.Ticks);
             return includeToday ? daysSpan.Days + 1 : daysSpan.Days;
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para> 计算月份差</para>
+        /// </summary>
+        /// <param name="startTime">结束日期</param>
+        /// <param name="endTime"></param>
+        /// <param name="diffMonthWay">计算方式：简单、精确、跨月</param>
+        /// <remarks>
+        ///     <para> 简单整月差值：忽略具体日期，仅计算年份和月份差</para>
+        ///     <para> 精确整月差值：只有当日期也相同才认为是整月</para>
+        ///     <para> 跨月即计为一个月：只要进入下一个月即计为1个月</para>
+        /// </remarks>
+        /// <returns></returns>
+        public static int DiffMonth(this DateTime startTime, DateTime endTime, DiffMonthWayEnum diffMonthWay= DiffMonthWayEnum.简单)
+        {
+            var baseMonth = ((startTime.Year - endTime.Year) * 12) + startTime.Month - endTime.Month;
+            switch (diffMonthWay)
+            {
+                case DiffMonthWayEnum.简单:return baseMonth;
+                case DiffMonthWayEnum.精确:if (startTime.Day < endTime.Day) baseMonth--;return baseMonth;
+                case DiffMonthWayEnum.跨月: if (startTime.Day >= endTime.Day) baseMonth++; return baseMonth;
+                default:return -1;
+            }
+            //return diffMonthWay switch
+            //{
+            //    DiffMonthWayEnum.简单 => baseMonth,
+            //    DiffMonthWayEnum.精确 => startTime.Day < endTime.Day ? baseMonth-- : baseMonth,
+            //    DiffMonthWayEnum.跨月 => startTime.Day >= endTime.Day ? baseMonth++ : baseMonth,
+            //    _ => -1,
+            //};
         }
         private static List<string> LanguageStr(LanguageEnum language)
         {
