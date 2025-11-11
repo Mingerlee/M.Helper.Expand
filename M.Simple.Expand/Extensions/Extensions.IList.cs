@@ -54,5 +54,99 @@ namespace M.Simple.Expand
             }
             return result;
         }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>获取数组内值的HashCode之和</para>
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static int GetListHashCode(this IEnumerable<int> list)
+        {
+            int result = 0;
+            foreach (var item in list)
+            {
+                result += item.GetHashCode();
+            }
+            return result;
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>获取数组内值的HashCode之和</para>
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static int GetListHashCode(this IEnumerable<int?> list)
+        {
+            int result = 0;
+            foreach (var item in list)
+            {
+                if (item.HasValue)
+                {
+                    result += item.GetHashCode();
+                }
+            }
+            return result;
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>获取数组内值的HashCode之和</para>
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static int GetListHashCode(this IList<int?> list)
+        {
+            int result = 0;
+            foreach (var item in list)
+            {
+                if (item.HasValue)
+                    result += item.GetHashCode();
+            }
+            return result;
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>获取数组内值的HashCode之和</para>
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static int GetListHashCode(this IList<int> list)
+        {
+            int result = 0;
+            foreach (var item in list)
+            {
+                result += item.GetHashCode();
+            }
+            return result;
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>获取数组内值的HashCode之和</para>
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static int GetListHashCode(this IEnumerable<string> list)
+        {
+            int result = 0;
+            foreach (var item in list)
+            {
+                result += item.GetHashCode();
+            }
+            return result;
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>获取数组内值的HashCode之和</para>
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public static int GetListHashCode(this IList<string> list)
+        {
+            int result = 0;
+            foreach (var item in list)
+            {
+                result += item.GetHashCode();
+            }
+            return result;
+        }
     }
 }

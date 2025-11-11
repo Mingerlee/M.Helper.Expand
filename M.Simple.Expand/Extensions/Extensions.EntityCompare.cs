@@ -52,21 +52,23 @@ namespace M.Simple.Expand
                     if (!hasFieldAttribute)
                         continue;
                 }
-                string value = item.GetValue(t, null)?.ToString() ?? "";//该字段的值
-                string filedName = item.Name;//实体类字段名称;
-                if (oldFieldLst.ContainsKey(filedName))
+                if (item.PropertyType.IsValueType || item.PropertyType.Name.StartsWith("String"))
                 {
-                    string olddata = oldFieldLst[filedName];
-                    if (olddata != value)
+                    string value = item.GetValue(t, null)?.ToString() ?? "";//该字段的值
+                    string filedName = item.Name;//实体类字段名称;
+                    if (oldFieldLst.ContainsKey(filedName))
                     {
-                        data.Add(new ComparesResults { FiledName = filedName, FiledOldValue = olddata, FiledNewValue = value, IsModify = true });
+                        string olddata = oldFieldLst[filedName];
+                        if (olddata != value)
+                        {
+                            data.Add(new ComparesResults { FiledName = filedName, FiledOldValue = olddata, FiledNewValue = value, IsModify = true });
+                        }
+                    }
+                    else
+                    {
+                        data.Add(new ComparesResults { FiledName = filedName, FiledNewValue = value, IsAdded = true });
                     }
                 }
-                else
-                {
-                    data.Add(new ComparesResults { FiledName = filedName, FiledNewValue = value, IsAdded = true });
-                }
-
             }
             return data;
         }
@@ -228,6 +230,45 @@ namespace M.Simple.Expand
                 default:
                     break;
             }
+        }
+        /// <summary>
+        ///    <para>M.Simple.Expand扩展</para> 
+        ///    <para>获取属性的值</para>
+        /// </summary>
+        /// <param name="property"></param>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static string GetStringValue(this PropertyInfo property, object obj)
+        {
+            string result = string.Empty;
+            if (property.GetValue(obj, null) == null)
+                return result;
+            if (string.IsNullOrWhiteSpace(property.GetValue(obj, null).ToString()))
+            {
+                return result;
+            }
+            if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?))
+            {
+                result = ((DateTime)property.GetValue(obj, null)).ToString("yyyy/MM/dd");
+            }
+            else if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(bool?))
+            {
+                result = ((bool)property.GetValue(obj, null)).ToString();
+            }
+            else if (property.PropertyType == typeof(int) || property.PropertyType == typeof(int?))
+            {
+                result = ((int)property.GetValue(obj, null)).ToString();
+            }
+            else if (property.PropertyType == typeof(decimal) || property.PropertyType == typeof(decimal?) || property.PropertyType == typeof(float) || property.PropertyType == typeof(float?) || property.PropertyType == typeof(double) || property.PropertyType == typeof(double?))
+            {
+                result = ((decimal)property.GetValue(obj, null)).ToString("0.0000");
+            }
+            else if (property.PropertyType == typeof(string))
+            {
+                result = property.GetValue(obj, null).ToString();
+            }
+
+            return result;
         }
     }
 }
