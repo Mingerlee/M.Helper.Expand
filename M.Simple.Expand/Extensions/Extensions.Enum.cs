@@ -104,12 +104,38 @@ namespace M.Simple.Expand
         {
             try
             {
-                return (T)Enum.Parse(typeof(T), enumString);
+                if (Enum.TryParse(typeof(T), enumString, out object t))
+                {
+                    return (T)t;
+                }
+                else
+                {
+                    return default;
+                }
             }
             catch
             {
                 return default;
             }
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>根据字符串转成指定枚举值</para>
+        /// </summary>
+        /// <returns>返回指定枚举值</returns>
+        public static bool TryToEnum<T>(this string enumString, out T result) where T : Enum
+        {
+
+            var flag= Enum.TryParse(typeof(T), enumString, out object t);
+            if (flag)
+            {
+                result = (T)t;
+            }
+            else
+            {
+                result = default;
+            }
+            return flag;
         }
         /// <summary>
         /// <para>M.Simple.Expand扩展</para>

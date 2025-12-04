@@ -18,16 +18,19 @@ namespace M.Simple.Expand.Test
             Console.WriteLine(PersonEnum.Teacher.GetDescription());
             Console.WriteLine(PersonEnum.Teacher.GetDisplayName());
             Console.WriteLine(PersonEnum.Teacher.GetDisplayDescription());
-            
+
             Console.WriteLine(JsonConvert.SerializeObject(new ComboBoxIntViewModel().ToComboBoxs<PersonEnum>()));
 
             Console.WriteLine(JsonConvert.SerializeObject(typeof(PersonEnum).ToTextDescriptions()));
 
             Console.WriteLine(JsonConvert.SerializeObject(typeof(PersonEnum).ToValueDescriptions()));
 
-            var s = "Professor".ToEnum<PersonEnum>();
+            var ss=  "Professors".TryToEnum(out PersonEnum result);
 
-            Console.WriteLine(s.ToInt32());
+            var s = "Professor".ToEnum<PersonEnum>();
+            Console.WriteLine(s);
+            
+            Console.WriteLine("ToEnum：" + s.ToInt32());
 
            var title= s.GetAttributeOfType<MyTitleAttribute>().Title;
             Console.WriteLine(title);
