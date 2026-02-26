@@ -199,5 +199,19 @@ namespace M.Simple.Expand
             }
             return result.GetHashCode();
         }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>拆分邮件地址</para>
+        /// </summary>
+        /// <param name="Addresses"></param>
+        /// <returns></returns>
+        public static string[] GetEMailAddressArray(this string Addresses)
+        {
+            if (string.IsNullOrWhiteSpace(Addresses))
+                return default;
+            var AdjustedString = Addresses.Replace(',', ';');
+            var addresses = AdjustedString.Split(';');
+            return addresses;
+        }
     }
 }

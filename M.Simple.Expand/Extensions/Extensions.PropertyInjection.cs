@@ -1,4 +1,5 @@
 ﻿using M.Simple.Expand.Attributes;
+using M.Simple.Expand.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
@@ -51,6 +52,17 @@ namespace M.Simple.Expand
                     }
                 }
             }
+        }
+        /// <summary>
+        ///     注入邮件配置
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="mailSettingsFunc">邮件服务器配置</param>
+        /// <returns></returns>
+        public static void AddEMailSetup(this IServiceCollection services, Func<IServiceProvider, MailSettings> mailSettingsFunc)
+        {
+            services.AddSingleton(mailSettingsFunc.Invoke);
+            services.AddSingleton<IEMailService, EMailService>();
         }
     }
 }
