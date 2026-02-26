@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -16,6 +17,7 @@ namespace M.Simple.Expand.Services
         /// <summary>
         ///     smtp主机服务器
         /// </summary>
+        [Required]
         public string StmpHostServer { get; set; }
         /// <summary>
         ///     用户名
@@ -28,6 +30,7 @@ namespace M.Simple.Expand.Services
         /// <summary>
         ///     发件人邮箱地址
         /// </summary>
+        [Required]
         public string FromAddress { get; set; }
         /// <summary>
         ///     端口
@@ -42,7 +45,7 @@ namespace M.Simple.Expand.Services
         /// </summary>
         public bool RequireAuth { get; set; }
         /// <summary>
-        ///     邮件发送选项
+        ///    邮件发送选项
         /// </summary>
         public MailDeliveryOptions DeliveryOption { get; set; }
         /// <summary>
