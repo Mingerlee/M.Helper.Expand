@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mail;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace M.Simple.Expand.Services
+﻿namespace M.Simple.Expand.Services
 {
     /// <summary>
-    ///     邮件内容
+    ///     <para>M.Simple.Services服务类</para>    
+    ///     <para>邮件内容</para>    
     /// </summary>
     public class MailContent
     {

@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
 namespace M.Simple.Expand.Services
 {
     /// <summary>
-    ///     <para>M.Simple.Expand扩展</para>
+    ///     <para>M.Simple.Services服务类</para>    
     ///     <para>邮件状态</para>
     /// </summary>
     [Description("邮件状态")]
@@ -26,7 +21,8 @@ namespace M.Simple.Expand.Services
         Success = 1,
     }
     /// <summary>
-    ///     邮件发送选项
+    ///     <para>M.Simple.Services服务类</para>    
+    ///     <para>邮件发送选项</para>
     /// </summary>
     public enum MailDeliveryOptions
     {

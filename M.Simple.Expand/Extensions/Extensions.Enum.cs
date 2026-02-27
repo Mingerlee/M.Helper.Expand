@@ -123,7 +123,7 @@ namespace M.Simple.Expand
         /// <para>根据字符串转成指定枚举值</para>
         /// </summary>
         /// <returns>返回指定枚举值</returns>
-        public static bool TryToEnum<T>(this string enumString, out T result) where T : Enum
+        public static bool TryToEnum<T>(this string enumString, out T? result) where T : Enum
         {
 
             var flag= Enum.TryParse(typeof(T), enumString, out object t);

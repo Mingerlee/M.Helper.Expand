@@ -5,7 +5,7 @@ using System.Reflection;
 namespace M.Simple.Expand.Services
 {
     /// <summary>
-    /// <para>M.Simple.Expand扩展</para>
+    /// <para>M.Simple.Services服务类</para>
     /// <para>从容器装配service</para>
     /// </summary>
     /// <remarks>
@@ -26,7 +26,7 @@ namespace M.Simple.Expand.Services
             Autowired(service, serviceProvider);
         }
         /// <summary>
-        /// <para>M.Simple.Expand扩展</para>
+        /// <para>M.Simple.Services服务类</para>
         /// <para>装配属性和字段</para>
         /// </summary>
         /// <param name="service"></param>

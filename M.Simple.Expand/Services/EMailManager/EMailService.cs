@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mail;
+﻿using System.Net.Mail;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace M.Simple.Expand.Services
 {
     /// <summary>
-    ///     <para>M.Simple.Expand扩展</para>
+    ///     <para>M.Simple.Services服务类</para>
     ///     <para>邮件服务</para>
     /// </summary>
     public class EMailService : IEMailService

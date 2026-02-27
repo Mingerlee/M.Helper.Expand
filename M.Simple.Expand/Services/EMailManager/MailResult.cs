@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 namespace M.Simple.Expand.Services
 {
     /// <summary>
-    ///     <para>M.Simple.Expand扩展</para>
+    ///     <para>M.Simple.Services服务类</para>
     ///     <para>邮件发送接口模型</para>
     /// </summary>
     public class MailResult
     {
         /// <summary>
-        ///     
+        ///     构造
         /// </summary>
         public MailResult()
         {

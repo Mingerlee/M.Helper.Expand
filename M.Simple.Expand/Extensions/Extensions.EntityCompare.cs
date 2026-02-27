@@ -241,31 +241,29 @@ namespace M.Simple.Expand
         public static string GetStringValue(this PropertyInfo property, object obj)
         {
             string result = string.Empty;
-            if (property.GetValue(obj, null) == null)
-                return result;
-            if (string.IsNullOrWhiteSpace(property.GetValue(obj, null).ToString()))
-            {
-                return result;
-            }
+            var value = property.GetValue(obj, null);
+            if (value == null) return result;
+            if (string.IsNullOrWhiteSpace(value.ToString())) return result;
+
             if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?))
             {
-                result = ((DateTime)property.GetValue(obj, null)).ToString("yyyy/MM/dd");
+                  result = ((DateTime)value).ToString("yyyy/MM/dd");
             }
             else if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(bool?))
             {
-                result = ((bool)property.GetValue(obj, null)).ToString();
+                result = ((bool)value).ToString();
             }
             else if (property.PropertyType == typeof(int) || property.PropertyType == typeof(int?))
             {
-                result = ((int)property.GetValue(obj, null)).ToString();
+                result = ((int)value).ToString();
             }
             else if (property.PropertyType == typeof(decimal) || property.PropertyType == typeof(decimal?) || property.PropertyType == typeof(float) || property.PropertyType == typeof(float?) || property.PropertyType == typeof(double) || property.PropertyType == typeof(double?))
             {
-                result = ((decimal)property.GetValue(obj, null)).ToString("0.0000");
+                result = ((decimal)value).ToString("0.0000");
             }
             else if (property.PropertyType == typeof(string))
             {
-                result = property.GetValue(obj, null).ToString();
+                result = value.ToString();
             }
 
             return result;

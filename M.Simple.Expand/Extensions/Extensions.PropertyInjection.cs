@@ -64,5 +64,16 @@ namespace M.Simple.Expand
             services.AddSingleton(mailSettingsFunc.Invoke);
             services.AddSingleton<IEMailService, EMailService>();
         }
+        /// <summary>
+        ///     注入ftp配置
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="ftpClientSettingsFunc">ftp配置</param>
+        /// <returns></returns>
+        public static void AddFtpClientSetup(this IServiceCollection services, Func<IServiceProvider, FtpClientSettings> ftpClientSettingsFunc)
+        {
+            services.AddSingleton(ftpClientSettingsFunc.Invoke);
+            services.AddSingleton<IFtpClientService, FtpClientService>();
+        }
     }
 }
