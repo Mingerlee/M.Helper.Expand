@@ -35,5 +35,13 @@ namespace M.Simple.Expand
         {
             return guid.GetNextGuid().ToString().Replace("-", "").PadLeft(32).ToUpper();
         }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>转换为无横线的GUID字符串</para>
+        /// </summary>
+        public static string GetNoHyphenString(this Guid guid)
+        {
+            return guid.ToString("N");
+        }
     }
 }

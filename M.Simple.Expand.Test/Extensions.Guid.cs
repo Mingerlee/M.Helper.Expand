@@ -15,6 +15,7 @@ namespace M.Simple.Expand.Test
         {
             Console.WriteLine(new Guid().GetNextGuid());
             Console.WriteLine(new Guid().GetEncryptSecret());
+            Console.WriteLine(new Guid().GetNoHyphenString());
         }
     }
 }

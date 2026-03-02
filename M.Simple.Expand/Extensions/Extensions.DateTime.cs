@@ -433,6 +433,22 @@ namespace M.Simple.Expand
             //    _ => -1,
             //};
         }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para> 获取当月第一天</para>
+        /// </summary>
+        public static DateTime GetFirstDayOfMonth(this DateTime dateTime)
+        {
+            return new DateTime(dateTime.Year, dateTime.Month, 1);
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para> 获取当月最后一天</para>
+        /// </summary>
+        public static DateTime GetLastDayOfMonth(this DateTime dateTime)
+        {
+            return new DateTime(dateTime.Year, dateTime.Month, DateTime.DaysInMonth(dateTime.Year, dateTime.Month));
+        }
         private static List<string> LanguageStr(LanguageEnum language)
         {
             List<string> cn = ["1秒以前", "秒以前", "1分钟以前", "分钟以前", "1小时以前", "小时以前", "昨天", "天以前", "1个月以前", "个月以前", "1年以前", "年以前"];

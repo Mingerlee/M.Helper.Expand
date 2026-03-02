@@ -145,6 +145,104 @@ namespace M.Simple.Expand.Test
                 }
             }
         }
+        [TestMethod]
+        public void TestGroupBySelectFirst()
+        {
+            List<Person> list = [new Person()
+            {
+                Id = 1,
+                Name = "张三",
+                Age = 18,
+                Code = "C0001",
+                CreartDate = DateTime.Now,
+                CreartUser = "U00001",
+                Title = "Teacher",
+                UpdateDate = DateTime.Now,
+                Vaild = 1
+            },
+                new Person()
+                {
+                    Id = 2,
+                    Name = "张三",
+                    Age = 19,
+                    Code = "C0002",
+                    CreartDate = DateTime.Now,
+                    CreartUser = "U00001",
+                    Title = "Teacher",
+                    UpdateDate = DateTime.Now,
+                    Vaild = 1
+                },
+                new Person()
+                {
+                    Id = 3,
+                    Name = "李四",
+                    Age = 20,
+                    Code = "C0003",
+                    CreartDate = DateTime.Now,
+                    CreartUser = "U00001",
+                    Title = "Teacher",
+                    UpdateDate = DateTime.Now,
+                    Vaild = 1
+                },
+                new Person()
+                {
+                    Id = 4,
+                    Name = "李四",
+                    Age = 21,
+                    Code = "C0004",
+                    CreartDate = DateTime.Now,
+                    CreartUser = "U00001",
+                    Title = "Teacher",
+                    UpdateDate = DateTime.Now,
+                    Vaild = 1
+                },
+                new Person()
+                {
+                    Id = 5,
+                    Name = "李四",
+                    Age = 23,
+                    Code = "C0005",
+                    CreartDate = DateTime.Now,
+                    CreartUser = "U00001",
+                    Title = "Teacher",
+                    UpdateDate = DateTime.Now,
+                    Vaild = 1
+                },
+                new Person()
+                {
+                    Id = 6,
+                    Name = "WangWu",
+                    Age = 24,
+                    Code = "C0006",
+                    CreartDate = DateTime.Now,
+                    CreartUser = "U00001",
+                    Title = "Teacher",
+                    UpdateDate = DateTime.Now,
+                    Vaild = 1
+                },
+                new Person()
+                {
+                    Id = 7,
+                    Name = "wangwu",
+                    Age = 26,
+                    Code = "C0006",
+                    CreartDate = DateTime.Now,
+                    CreartUser = "U00001",
+                    Title = "Teacher",
+                    UpdateDate = DateTime.Now,
+                    Vaild = 1
+                }];
+            var dt = list.GroupBySelectFirst(p=>p.Name);
+            var dt1 = list.GroupByThenSortTakeFirst(p => p.Name,a=>a.Age);
 
+            foreach (var row in dt)
+            {
+                Console.WriteLine($"GroupBySelectFirst:{row.Id}");
+            }
+            foreach (var row in dt1)
+            {
+                Console.WriteLine($"GroupByThenSortTakeFirst:{row.Id}");
+            }
+        }
     }
 }
