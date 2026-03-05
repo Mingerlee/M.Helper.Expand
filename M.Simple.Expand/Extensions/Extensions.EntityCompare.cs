@@ -6,71 +6,149 @@ namespace M.Simple.Expand
 {
     public static partial class Extensions
     {
+        ///// <summary>
+        ///// <para>M.Simple.Expand扩展</para>
+        /////<para> 比较两个实体值是否有修改过，返回修改结果集合</para>
+        ///// </summary>
+        ///// <typeparam name="T"></typeparam>
+        ///// <param name="t"></param>
+        ///// <param name="compareModel">对比的model实体</param>
+        ///// <param name="isAttr">是否有CompareValueAttribute特性标记</param>
+        ///// <returns>修改结果集合</returns>
+        //public static List<ComparesResults> CompareModel<T>(this T t, T compareModel, bool isAttr = false)
+        //{
+        //    List<ComparesResults> data = new List<ComparesResults>();
+        //    if (t == null || compareModel == null)
+        //    {
+        //        return data;
+        //    }
+        //    PropertyInfo[] newProperties = t.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        //    PropertyInfo[] oldProperties = compareModel.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        //    if (newProperties.Length <= 0 || oldProperties.Length <= 0)
+        //    {
+        //        return data;
+        //    }
+        //    var oldFieldLst = new Dictionary<string, string>();
+        //    foreach (PropertyInfo item in oldProperties)
+        //    {
+        //        if (isAttr)
+        //        {
+        //            bool hasFieldAttribute = item.CustomAttributes.Any(t => t.AttributeType == typeof(CompareValueAttribute));
+        //            if (!hasFieldAttribute)
+        //                continue;
+        //        }
+        //        string name = item.Name;//实体类字段名称
+        //        string value = item.GetValue(compareModel, null)?.ToString() ?? "";//该字段的值
+        //        if (item.PropertyType.IsValueType || item.PropertyType.Name.StartsWith("String"))
+        //        {
+        //            oldFieldLst.Add(name, value);//在此可转换value的类型
+        //        }
+        //    }
+        //    foreach (PropertyInfo item in newProperties)
+        //    {
+        //        if (isAttr)
+        //        {
+        //            bool hasFieldAttribute = item.CustomAttributes.Any(t => t.AttributeType == typeof(CompareValueAttribute));
+        //            if (!hasFieldAttribute)
+        //                continue;
+        //        }
+        //        if (item.PropertyType.IsValueType || item.PropertyType.Name.StartsWith("String"))
+        //        {
+        //            string value = item.GetValue(t, null)?.ToString() ?? "";//该字段的值
+        //            string filedName = item.Name;//实体类字段名称;
+        //            if (oldFieldLst.ContainsKey(filedName))
+        //            {
+        //                string olddata = oldFieldLst[filedName];
+        //                if (olddata != value)
+        //                {
+        //                    data.Add(new ComparesResults { FiledName = filedName, FiledOldValue = olddata, FiledNewValue = value, IsModify = true });
+        //                }
+        //            }
+        //            else
+        //            {
+        //                data.Add(new ComparesResults { FiledName = filedName, FiledNewValue = value, IsAdded = true });
+        //            }
+        //        }
+        //    }
+        //    return data;
+        //}
         /// <summary>
         /// <para>M.Simple.Expand扩展</para>
-        ///<para> 比较两个实体值是否有修改过，返回修改结果集合</para>
+        /// <para> 比较两个实体值是否有修改过，返回修改结果集合</para>
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="t"></param>
-        /// <param name="compareModel">对比的model实体</param>
-        /// <param name="isAttr">是否有CompareValueAttribute特性标记</param>
+        /// <param name="newModel">新实体</param>
+        /// <param name="oldModel">对比的旧实体</param>
+        /// <param name="isAttr">是否只比较有CompareValueAttribute特性标记的属性</param>
         /// <returns>修改结果集合</returns>
-        public static List<ComparesResults> CompareModel<T>(this T t, T compareModel, bool isAttr = false)
+        public static List<ComparesResults> CompareModel<T>(this T newModel, T oldModel, bool isAttr = false)
         {
-            List<ComparesResults> data = new List<ComparesResults>();
-            if (t == null || compareModel == null)
+            var results = new List<ComparesResults>();
+
+            // 空值快速返回
+            if (newModel == null && oldModel == null) return results;
+            if (newModel == null) return results; // 旧模型非空但新模型为空，按原有逻辑不处理
+            if (oldModel == null)
             {
-                return data;
-            }
-            PropertyInfo[] newProperties = t.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            PropertyInfo[] oldProperties = compareModel.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            if (newProperties.Length <= 0 || oldProperties.Length <= 0)
-            {
-                return data;
-            }
-            var oldFieldLst = new Dictionary<string, string>();
-            foreach (PropertyInfo item in oldProperties)
-            {
-                if (isAttr)
+                // 旧模型为空，所有有效属性都标记为新增
+                var properties = GetProperties(typeof(T), isAttr);
+                foreach (var prop in properties)
                 {
-                    bool hasFieldAttribute = item.CustomAttributes.Any(t => t.AttributeType == typeof(CompareValueAttribute));
-                    if (!hasFieldAttribute)
-                        continue;
-                }
-                string name = item.Name;//实体类字段名称
-                string value = item.GetValue(compareModel, null)?.ToString() ?? "";//该字段的值
-                if (item.PropertyType.IsValueType || item.PropertyType.Name.StartsWith("String"))
-                {
-                    oldFieldLst.Add(name, value);//在此可转换value的类型
-                }
-            }
-            foreach (PropertyInfo item in newProperties)
-            {
-                if (isAttr)
-                {
-                    bool hasFieldAttribute = item.CustomAttributes.Any(t => t.AttributeType == typeof(CompareValueAttribute));
-                    if (!hasFieldAttribute)
-                        continue;
-                }
-                if (item.PropertyType.IsValueType || item.PropertyType.Name.StartsWith("String"))
-                {
-                    string value = item.GetValue(t, null)?.ToString() ?? "";//该字段的值
-                    string filedName = item.Name;//实体类字段名称;
-                    if (oldFieldLst.ContainsKey(filedName))
+                    var value = prop.GetValue(newModel)?.ToString() ?? string.Empty;
+                    results.Add(new ComparesResults
                     {
-                        string olddata = oldFieldLst[filedName];
-                        if (olddata != value)
+                        FiledName = prop.Name,
+                        FiledNewValue = value,
+                        IsAdded = true
+                    });
+                }
+                return results;
+            }
+
+            var type = typeof(T);
+            var propertiesToCompare = GetProperties(type,isAttr);
+
+            // 预构建旧模型的属性值字典（一次性遍历）
+            var oldValueDict = new Dictionary<string, string>(propertiesToCompare.Count);
+            foreach (var prop in propertiesToCompare)
+            {
+                var value = prop.GetValue(oldModel)?.ToString() ?? string.Empty;
+                oldValueDict[prop.Name] = value;
+            }
+
+            // 对比新模型属性
+            foreach (var prop in propertiesToCompare)
+            {
+                var propName = prop.Name;
+                var newValue = prop.GetValue(newModel)?.ToString() ?? string.Empty;
+
+                if (oldValueDict.TryGetValue(propName, out var oldValue))
+                {
+                    // 存在旧值，判断是否修改
+                    if (!string.Equals(oldValue, newValue, StringComparison.Ordinal))
+                    {
+                        results.Add(new ComparesResults
                         {
-                            data.Add(new ComparesResults { FiledName = filedName, FiledOldValue = olddata, FiledNewValue = value, IsModify = true });
-                        }
-                    }
-                    else
-                    {
-                        data.Add(new ComparesResults { FiledName = filedName, FiledNewValue = value, IsAdded = true });
+                            FiledName = propName,
+                            FiledOldValue = oldValue,
+                            FiledNewValue = newValue,
+                            IsModify = true
+                        });
                     }
                 }
+                else
+                {
+                    // 无旧值，标记为新增
+                    results.Add(new ComparesResults
+                    {
+                        FiledName = propName,
+                        FiledNewValue = newValue,
+                        IsAdded = true
+                    });
+                }
             }
-            return data;
+
+            return results;
         }
         /// <summary>
         /// <para>M.Simple.Expand扩展</para>
@@ -173,7 +251,7 @@ namespace M.Simple.Expand
         /// <param name="property"></param>
         /// <param name="obj"></param>
         /// <param name="value"></param>
-        public static void SetStringValue(this PropertyInfo property,object? obj,string value)
+        public static void SetStringValue(this PropertyInfo property, object? obj, string value)
         {
             switch (property.PropertyType.FullName)
             {
@@ -247,7 +325,7 @@ namespace M.Simple.Expand
 
             if (property.PropertyType == typeof(DateTime) || property.PropertyType == typeof(DateTime?))
             {
-                  result = ((DateTime)value).ToString("yyyy/MM/dd");
+                result = ((DateTime)value).ToString("yyyy/MM/dd");
             }
             else if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(bool?))
             {
@@ -268,5 +346,79 @@ namespace M.Simple.Expand
 
             return result;
         }
+        /// <summary>
+        ///     
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="isAttr"></param>
+        /// <returns></returns>
+        private static List<PropertyInfo> GetProperties(Type type, bool isAttr)
+        {
+            var allProperties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            var valueTypeProperties = allProperties.Where(p =>
+                p.PropertyType.IsValueType || p.PropertyType == typeof(string)).ToList();
+
+            var attrProperties = valueTypeProperties
+                .Where(p => p.IsDefined(typeof(CompareValueAttribute), inherit: false))
+                .ToList();
+
+            var nonAttrProperties = valueTypeProperties.Except(attrProperties).ToList();
+
+            return isAttr ? attrProperties : valueTypeProperties;
+        }
     }
+    //internal static class PropertyCache
+    //{
+    //    // 缓存类型的属性信息（过滤后）
+    //    // 核心缓存（线程安全）
+    //    private static readonly ConcurrentDictionary<Type, Dictionary<bool, List<PropertyInfo>>> _propertyCache = new();
+    //    // 记录缓存的最后访问时间（用于清理）
+    //    private static readonly ConcurrentDictionary<Type, DateTime> _lastAccessTime = new();
+    //    /// <summary>
+    //    /// 获取指定类型的有效属性列表
+    //    /// </summary>
+    //    /// <param name="type">实体类型</param>
+    //    /// <param name="isAttr">是否只包含CompareValueAttribute标记的属性</param>
+    //    /// <returns>过滤后的属性列表</returns>
+    //    public static List<PropertyInfo> GetProperties(Type type, bool isAttr)
+    //    {
+    //        // 更新最后访问时间
+    //        _lastAccessTime[type] = DateTime.Now;
+
+    //        return _propertyCache.GetOrAdd(type, t =>
+    //        {
+    //            var allProperties = t.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+    //            var valueTypeProperties = allProperties.Where(p =>
+    //                p.PropertyType.IsValueType || p.PropertyType == typeof(string)).ToList();
+
+    //            var attrProperties = valueTypeProperties
+    //                .Where(p => p.IsDefined(typeof(CompareValueAttribute), inherit: false))
+    //                .ToList();
+
+    //            var nonAttrProperties = valueTypeProperties.Except(attrProperties).ToList();
+
+    //            return new Dictionary<bool, List<PropertyInfo>>
+    //            {
+    //                [true] = attrProperties,
+    //                [false] = valueTypeProperties
+    //            };
+    //        })[isAttr];
+    //    }
+
+    //    /// <summary>
+    //    /// 清理过期缓存（建议在后台线程定期调用）
+    //    /// </summary>
+    //    /// <param name="expireMinutes">缓存过期分钟数</param>
+    //    public static void CleanExpiredCache(int expireMinutes = 30)
+    //    {
+    //        var expireTime = DateTime.Now.AddMinutes(-expireMinutes);
+    //        var expiredTypes = _lastAccessTime.Where(kv => kv.Value < expireTime).Select(kv => kv.Key).ToList();
+
+    //        foreach (var type in expiredTypes)
+    //        {
+    //            _propertyCache.TryRemove(type, out _);
+    //            _lastAccessTime.TryRemove(type, out _);
+    //        }
+    //    }
+    //}
 }

@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace M.Simple.Expand
@@ -17,7 +20,7 @@ namespace M.Simple.Expand
         public static DataTable ToDataTable(this IList list)
         {
             DataTable result = new();
-            if (list!=null && list.Count > 0)
+            if (list != null && list.Count > 0)
             {
                 PropertyInfo[] propertys = list[0].GetType().GetProperties();
                 foreach (PropertyInfo pi in propertys)
@@ -158,6 +161,73 @@ namespace M.Simple.Expand
         }
         /// <summary>
         ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>如果集合为 null，返回空集合（避免空引用异常）</para>
+        /// </summary>
+        public static IEnumerable<T> DefaultEmpty<T>(this IEnumerable<T> source)
+        {
+            return source ?? Enumerable.Empty<T>();
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>排除指定元素</para>
+        /// </summary>
+        /// <remarks>支持自定义相等比较</remarks>
+        public static IEnumerable<T> ExceptItem<T>(this IEnumerable<T> source, T item, IEqualityComparer<T>? comparer = null)
+        {
+            if (source == null) yield break;
+            // 初始化比较器，默认使用全属性比较器
+            comparer ??= FastAllPropertiesEqualityComparer<T>.Instance;
+            foreach (var element in source)
+            {
+                if (!comparer.Equals(element, item)) yield return element;
+            }
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>排除指定的多个元素（支持自定义相等比较）</para>
+        /// </summary>
+        /// <param name="source">源集合</param>
+        /// <param name="itemsToExclude">要排除的元素集合</param>
+        /// <param name="comparer">自定义相等比较器</param>
+        public static IEnumerable<T> ExceptItems<T>(this IEnumerable<T> source, IEnumerable<T> itemsToExclude, IEqualityComparer<T>? comparer = null)
+        {
+            // 空值安全处理：源集合为空则返回空集合；排除集合为空则返回源集合
+            if (source.IsNullOrEmpty()) yield break;
+            if (itemsToExclude.IsNullOrEmpty())
+            {
+                foreach (var item in source) yield return item;
+                yield break;
+            }
+
+            // 初始化比较器，默认使用全属性比较器
+            comparer ??= FastAllPropertiesEqualityComparer<T>.Instance;
+
+            // 将排除集合转为HashSet，提升查找性能（O(1)）
+            var excludeSet = new HashSet<T>(itemsToExclude, comparer);
+
+            // 遍历源集合，排除指定元素
+            foreach (var item in source)
+            {
+                if (!excludeSet.Contains(item))
+                {
+                    yield return item;
+                }
+            }
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
+        ///     <para>判断集合长度是否 >= 指定值（无需全遍历，性能优化）</para>
+        /// </summary>
+        public static bool HasAtLeast<T>(this IEnumerable<T> source, int count)
+        {
+            if (count <= 0) return true;
+            using var enumerator = source.DefaultEmpty().GetEnumerator();
+            int i = 0;
+            while (enumerator.MoveNext() && ++i < count) ;
+            return i >= count;
+        }
+        /// <summary>
+        ///     <para>M.Simple.Expand扩展</para>
         ///     <para>随机获取集合中的一个元素</para>
         /// </summary>
         public static T RandomTake<T>(this IEnumerable<T> source)
@@ -249,6 +319,128 @@ namespace M.Simple.Expand
 
             if (batch.Count != 0)
                 yield return batch; // 返回最后一批不足batchSize的元素
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>筛选非空元素（针对可空引用类型/值类型）</para>
+        /// </summary>
+        ///<remarks>过滤集合中的null元素string,int</remarks>
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source) where T : struct
+        {
+            if (source == null) yield break;
+            foreach (var item in source)
+            {
+                if (item.HasValue) yield return item.Value;
+            }
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>筛选非空元素（针对可空引用类型/值类型）</para>
+        /// </summary>
+        ///<remarks>过滤集合中的null元素class</remarks>
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T> source) where T : class
+        {
+            if (source == null) yield break;
+            foreach (var item in source)
+            {
+                if (item != null) yield return item;
+            }
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>扁平化嵌套集合</para>
+        /// </summary>
+        ///<remarks>如[[1,2],[3,4]] → [1,2,3,4]</remarks>
+        public static IEnumerable<T> Flatten<T>(this IEnumerable<IEnumerable<T>> source)
+        {
+            if (source == null) yield break;
+            foreach (var subCollection in source)
+            {
+                if (subCollection == null) continue;
+                foreach (var item in subCollection)
+                {
+                    yield return item;
+                }
+            }
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>转换为字典（重复键时取最后一个值）</para>
+        /// </summary>
+        public static Dictionary<TKey, T> ToDictionarySafe<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector, IEqualityComparer<TKey>? comparer = null) where TKey : notnull
+        {
+            if (source == null || keySelector == null) return new Dictionary<TKey, T>(comparer);
+
+            var dict = new Dictionary<TKey, T>(comparer);
+            foreach (var item in source)
+            {
+                var key = keySelector(item);
+                dict[key] = item; // 重复键覆盖
+            }
+            return dict;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>列表转换成字典(自动忽略重复数据)</para>
+        /// </summary>
+        /// <typeparam name="TModel">Model的类型</typeparam>
+        /// <typeparam name="TKey">Key的类型</typeparam>
+        /// <typeparam name="TValue">Value的类型</typeparam>
+        /// <param name="list">列表</param>
+        /// <param name="keySelector">用于从每个元素中提取键的函数</param>
+        /// <param name="elementSelector">用于从每个元素产生结果元素值的转换函数</param>
+        /// <returns>Value</returns>
+        public static Dictionary<TKey, TValue> ToDictionarys<TModel, TKey, TValue>(this IEnumerable<TModel> list, Func<TModel, TKey> keySelector, Func<TModel, TValue> elementSelector) where TKey : notnull
+        {
+            var dict = new Dictionary<TKey, TValue>();
+            if (list != null && list.Any())
+            {
+                foreach (var model in list)
+                {
+                    var key = keySelector(model);
+                    var value = elementSelector(model);
+                    dict.MergeIgnore(key, value);
+                }
+            }
+
+            return dict;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>随机打乱集合元素顺序</para>
+        /// </summary>
+        /// <remarks>Fisher-Yates 洗牌算法，高性能</remarks>
+        public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
+        {
+            if (source.IsNullOrEmpty()) yield break;
+            var list = source.ToList();
+            Random rng = new Random();
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                (list[k], list[n]) = (list[n], list[k]); // 值交换
+            }
+            foreach (var item in list) yield return item;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>取集合最后 N 条元素（无需全遍历，性能优化）</para>
+        /// </summary>
+        public static IEnumerable<T> TakeLast<T>(this IEnumerable<T> source, int count)
+        {
+            if (count <= 0) yield break;
+            var queue = new Queue<T>(count);
+
+            foreach (var item in source.DefaultEmpty())
+            {
+                if (queue.Count == count) queue.Dequeue();
+                queue.Enqueue(item);
+            }
+
+            while (queue.Count > 0)
+                yield return queue.Dequeue();
         }
     }
 }

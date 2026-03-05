@@ -159,31 +159,5 @@
                 dictionary.Remove(key);
             }
         }
-        /// <summary>
-        /// <para>M.Simple.Expand扩展</para>
-        /// <para>列表转换成字典(自动忽略重复数据)</para>
-        /// </summary>
-        /// <typeparam name="TModel">Model的类型</typeparam>
-        /// <typeparam name="TKey">Key的类型</typeparam>
-        /// <typeparam name="TValue">Value的类型</typeparam>
-        /// <param name="list">列表</param>
-        /// <param name="keySelector">用于从每个元素中提取键的函数</param>
-        /// <param name="elementSelector">用于从每个元素产生结果元素值的转换函数</param>
-        /// <returns>Value</returns>
-        public static Dictionary<TKey, TValue> ToDictionarys<TModel, TKey, TValue>(this IEnumerable<TModel> list, Func<TModel, TKey> keySelector, Func<TModel, TValue> elementSelector) where TKey : notnull
-        {
-            var dict = new Dictionary<TKey, TValue>();
-            if (list != null && list.Any())
-            {
-                foreach (var model in list)
-                {
-                    var key = keySelector(model);
-                    var value = elementSelector(model);
-                    dict.MergeIgnore(key, value);
-                }
-            }
-
-            return dict;
-        }
     }
 }
