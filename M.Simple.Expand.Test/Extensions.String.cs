@@ -28,13 +28,6 @@ namespace M.Simple.Expand.Test
             Console.WriteLine(str3.GetRealLength());
             Console.WriteLine(str4.GetRealLength());
 
-            Console.WriteLine(Extensions.GetSnowCode());
-
-            var list=  Extensions.GetSnowCodes(6);
-            for (int i = 0; i < list.Count(); i++)
-            {
-                Console.WriteLine(list.ElementAt(i));
-            }
             Console.WriteLine();
             int i1 = 1234;
             decimal? i2 = null;
@@ -46,6 +39,17 @@ namespace M.Simple.Expand.Test
 
             Console.WriteLine(string.Concat(str4, i1, i2, i3, i4));
             Console.WriteLine(string.Concat(str4, i1, i4, i3, i2));
+        }
+        [TestMethod]
+        public void TestCodeGenerator()
+        {
+            Console.WriteLine($"雪花编码：{SnowCodeGenerator.GetSnowCode()}");
+            Console.WriteLine($"雪花编码(含时间戳)：{SnowCodeGenerator.GetTimeStampSnowCode()}");
+            Console.WriteLine($"雪花编码SnowflakeIdGenerator：{new SnowflakeIdGenerator(1).NextId()}");
+            
+            Console.WriteLine($"唯一编码：{UniqueCodeGenerator.GenerateGuidCode()}");
+            Console.WriteLine($"唯一编码(含时间戳)：{UniqueCodeGenerator.GenerateTimeStampGuidCode()}");
+            Console.WriteLine($"短编码：{ShortCodeGenerator.GenerateShortCode()}");
         }
     }
 }

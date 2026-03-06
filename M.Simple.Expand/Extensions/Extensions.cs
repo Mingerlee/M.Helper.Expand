@@ -12,29 +12,29 @@ namespace M.Simple.Expand
     /// </summary>
     public static partial class Extensions
     {
-        /// <summary>
-        ///     <para>M.Simple.Expand扩展</para>
-        ///     <para>获取雪花编码</para>
-        /// </summary>
-        /// <returns></returns>
-        public static string GetSnowCode()
-        {
-            return KeyCodeHelper.GetSnowCode();
-        }
-        /// <summary>
-        ///     <para>M.Simple.Expand扩展</para>
-        ///     <para>获取雪花编码集合</para>
-        /// </summary>
-        /// <param name="number"></param>
-        /// <returns></returns>
-        public static IEnumerable<string> GetSnowCodes(int number)
-        {
-            List<string> results = [];
-            for (int i = 0; i < number; i++)
-            {
-                results.Add(KeyCodeHelper.GetSnowCode());
-            }
-            return results;
-        }
+        ///// <summary>
+        /////     <para>M.Simple.Expand扩展</para>
+        /////     <para>获取雪花编码</para>
+        ///// </summary>
+        ///// <returns></returns>
+        //public static long GetSnowCode()
+        //{
+        //    return SnowCodeGenerator.GetSnowCode();
+        //}
+        ///// <summary>
+        /////     <para>M.Simple.Expand扩展</para>
+        /////     <para>获取雪花编码集合</para>
+        ///// </summary>
+        ///// <param name="number"></param>
+        ///// <returns></returns>
+        //public static IEnumerable<long> GetSnowCodes(int number)
+        //{
+        //    List<long> results = [];
+        //    for (int i = 0; i < number; i++)
+        //    {
+        //        results.Add(SnowCodeGenerator.GetSnowCode());
+        //    }
+        //    return results;
+        //}
     }
 }
