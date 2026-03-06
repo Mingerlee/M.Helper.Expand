@@ -10,6 +10,14 @@ namespace M.Simple.Expand
     {
         /// <summary>
         /// <para>M.Simple.Expand扩展</para>
+        /// <para>判断字符串是否为 null/空/空白字符</para>
+        /// </summary>
+        public static bool IsNullOrEmptyOrWhiteSpace(this string str)
+        {
+            return string.IsNullOrWhiteSpace(str);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
         /// <para>隐藏部分字符</para>
         /// </summary>
         /// <param name="s"></param>
@@ -212,6 +220,60 @@ namespace M.Simple.Expand
             var AdjustedString = Addresses.Replace(',', ';');
             var addresses = AdjustedString.Split(';');
             return addresses;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>首字母大写</para>
+        /// </summary>
+        public static string FirstLetterToUpper(this string str)
+        {
+            if (str.IsNullOrEmptyOrWhiteSpace())
+                return str;
+
+            return char.ToUpper(str[0]) + str[1..];
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>下划线命名转驼峰命名（如：user_name → userName）</para>
+        /// </summary>
+        public static string UnderlineToCamel(this string str)
+        {
+            if (str.IsNullOrEmptyOrWhiteSpace() || !str.Contains('_'))
+                return str;
+
+            var parts = str.Split('_');
+            return parts[0].ToLower() + string.Concat(parts.Skip(1).Select(p => p.FirstLetterToUpper()));
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>驼峰命名转下划线命名（如：userName → user_name）</para>
+        /// </summary>
+        public static string CamelToUnderline(this string str)
+        {
+            if (str.IsNullOrEmptyOrWhiteSpace())
+                return str;
+
+            var sb = new StringBuilder();
+            foreach (char c in str)
+            {
+                if (char.IsUpper(c))
+                    sb.Append($"_{char.ToLower(c)}");
+                else
+                    sb.Append(c);
+            }
+            return sb.ToString().TrimStart('_');
+        }
+        /// <summary>
+        /// 字符串反转
+        /// </summary>
+        public static string ReverseString(this string str)
+        {
+            if (str.IsNullOrEmptyOrWhiteSpace())
+                return str;
+
+            char[] chars = str.ToCharArray();
+            Array.Reverse(chars);
+            return new string(chars);
         }
     }
 }

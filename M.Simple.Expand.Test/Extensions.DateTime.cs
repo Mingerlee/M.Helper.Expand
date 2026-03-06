@@ -231,5 +231,21 @@ namespace M.Simple.Expand.Test
             ];
             Console.WriteLine(persons.Select(p=>new DateTimePeriod(p.CreartDate,p.UpdateDate)).ToList().IsOverlap());
         }
+        [TestMethod]
+        public void TestDate1()
+        {
+            DateTime dt = DateTime.Now;
+
+            Console.WriteLine($"GetFirstDayOfMonth:{dt.GetFirstDayOfMonth()}");
+            Console.WriteLine($"GetLastDayOfMonth:{dt.GetLastDayOfMonth()}");
+            Console.WriteLine($"IsToday:{dt.IsToday()}");
+            Console.WriteLine($"IsYesterday:{dt.IsYesterday()}");
+            Console.WriteLine($"IsTomorrow:{dt.IsTomorrow()}");
+            Console.WriteLine($"IsWeekend:{dt.IsWeekend()}");
+            Console.WriteLine($"IsWorkday:{dt.IsWorkday()}");
+            Console.WriteLine($"FirstDayOfWeek:{dt.FirstDayOfWeek()}");
+            Console.WriteLine($"LastDayOfWeek:{dt.LastDayOfWeek()}");
+        }
+
     }
 }

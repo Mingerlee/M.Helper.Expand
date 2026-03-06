@@ -449,6 +449,65 @@ namespace M.Simple.Expand
         {
             return new DateTime(dateTime.Year, dateTime.Month, DateTime.DaysInMonth(dateTime.Year, dateTime.Month));
         }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para> 判断是否为今天</para>
+        /// </summary>
+        public static bool IsToday(this DateTime dt)
+        {
+            return dt.Date == DateTime.Today;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para> 判断是否为昨天</para>
+        /// </summary>
+        public static bool IsYesterday(this DateTime dt)
+        {
+            return dt.Date == DateTime.Today.AddDays(-1);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para> 判断是否为明天</para>
+        /// </summary>
+        public static bool IsTomorrow(this DateTime dt)
+        {
+            return dt.Date == DateTime.Today.AddDays(1);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para> 判断是否为周末（周六/周日）</para>
+        /// </summary>
+        public static bool IsWeekend(this DateTime dt)
+        {
+            return dt.DayOfWeek == DayOfWeek.Saturday || dt.DayOfWeek == DayOfWeek.Sunday;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>判断是否为工作日（周一至周五）</para>
+        /// </summary>
+        public static bool IsWorkday(this DateTime dt)
+        {
+            return !dt.IsWeekend();
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>取本周的第一天（周一）</para>
+        /// </summary>
+        public static DateTime FirstDayOfWeek(this DateTime dt)
+        {
+            // 调整周一开始（默认DayOfWeek.Sunday是周日）
+            int diff = dt.DayOfWeek - DayOfWeek.Monday;
+            if (diff < 0) diff += 7;
+            return dt.AddDays(-diff).Date;
+        }
+        /// <summary>
+        ///<para>M.Simple.Expand扩展</para>
+        ///<para>取本周的最后一天（周日）</para>
+        /// </summary>
+        public static DateTime LastDayOfWeek(this DateTime dt)
+        {
+            return dt.FirstDayOfWeek().AddDays(6);
+        }
         private static List<string> LanguageStr(LanguageEnum language)
         {
             List<string> cn = ["1秒以前", "秒以前", "1分钟以前", "分钟以前", "1小时以前", "小时以前", "昨天", "天以前", "1个月以前", "个月以前", "1年以前", "年以前"];

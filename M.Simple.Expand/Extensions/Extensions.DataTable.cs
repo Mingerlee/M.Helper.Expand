@@ -42,7 +42,29 @@ namespace M.Simple.Expand
         /// <returns></returns>
         public static bool IsNullOrEmpty(this DataTable dt)
         {
-            return dt == null || dt.Rows.Count <= 0;
+            return dt == null || dt.Columns.Count == 0 || dt.Rows.Count <= 0;
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>根据条件筛选DataTable的行（类似Linq的Where）</para>
+        /// </summary>
+        /// <param name="dt">源DataTable</param>
+        /// <param name="predicate">筛选条件</param>
+        /// <returns>筛选后的新DataTable</returns>
+        public static DataTable Where(this DataTable dt, Func<DataRow, bool> predicate)
+        {
+            // 校验源表是否为空
+            if (dt == null || dt.Rows.Count == 0)
+                return dt.Clone(); // 返回结构相同但无数据的表
+
+            // 筛选符合条件的行并创建新表
+            var filteredRows = dt.Rows.Cast<DataRow>().Where(predicate).ToArray();
+            var newDt = dt.Clone();
+            foreach (var row in filteredRows)
+            {
+                newDt.ImportRow(row);
+            }
+            return newDt;
         }
     }
 }

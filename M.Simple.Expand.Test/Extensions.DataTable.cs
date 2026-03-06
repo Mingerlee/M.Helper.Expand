@@ -26,8 +26,11 @@ namespace M.Simple.Expand.Test
                 dt.Rows.Add(4, "C004", "Â½Áù", "Student", 20, DateTime.Now, "U0001", 1);
                 dt.Rows.Add(5, "C005", "ÁºÆß", "Student", 19, DateTime.Now, "U0001", 1);
 
-                var list = dt.ToLists<Person>();
+                var s = dt.Where(row => row["Code"].ToString()== "C001");
+                Console.WriteLine(JsonConvert.SerializeObject(s));
+                Console.WriteLine();
 
+                var list = dt.ToLists<Person>();
                 Console.WriteLine(JsonConvert.SerializeObject(list));
             }
         }

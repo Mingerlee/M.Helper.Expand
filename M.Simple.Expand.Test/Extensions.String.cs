@@ -51,5 +51,19 @@ namespace M.Simple.Expand.Test
             Console.WriteLine($"唯一编码(含时间戳)：{UniqueCodeGenerator.GenerateTimeStampGuidCode()}");
             Console.WriteLine($"短编码：{ShortCodeGenerator.GenerateShortCode()}");
         }
+        [TestMethod]
+        public void TestString1()
+        {
+            string str = "username";
+            string str1 = "user_name_code";
+            string str2 = "userNameCode";
+
+            Console.WriteLine($"FirstLetterToUpper:{str.FirstLetterToUpper()}");
+            Console.WriteLine($"UnderlineToCamel:{str1.UnderlineToCamel()}");
+            Console.WriteLine($"CamelToUnderline:{str2.CamelToUnderline()}");
+            Console.WriteLine($"ReverseString:{str.ReverseString()}");
+            Console.WriteLine($"ReverseString:{str1.ReverseString()}");
+            Console.WriteLine($"ReverseString:{str2.ReverseString()}");
+        }
     }
 }
