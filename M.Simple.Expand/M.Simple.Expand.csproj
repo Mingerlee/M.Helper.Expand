@@ -8,8 +8,8 @@
 	  <Title>M.Simple.Expand</Title>
 	  <Copyright>Copyright Sunny</Copyright>
 	  <Description>Base class help extension package</Description>
-	  <FileVersion>1.0.1.7</FileVersion>
-	  <PackageVersion>1.0.1.7</PackageVersion>
+	  <FileVersion>1.0.1.8</FileVersion>
+	  <PackageVersion>1.0.1.8</PackageVersion>
 	  <Authors>Sunny</Authors>
 	  <GenerateDocumentationFile>True</GenerateDocumentationFile>
 	  <PackageReadmeFile>README.md</PackageReadmeFile>
