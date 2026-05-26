@@ -121,5 +121,48 @@ namespace M.Simple.Expand
                 _ => string.Format("{0:###,###}", number)
             };
         }
+        /// <summary>
+        /// 按规则向上取整：保留两位小数，第三位及以后向上进一
+        /// 212.0001 → 212.00
+        /// 212.001  → 212.01
+        /// 212.000  → 212.00
+        /// </summary>
+        public static decimal CeilingSpecial(this decimal value, int digits = 2)
+        {
+            // 计算放大倍数 10^n
+            decimal multiplier = (decimal)Math.Pow(10, digits);
+            decimal scaled = value * multiplier;
+            var fraction = IsNextDecimalDigitZero(value, digits);
+
+            if (fraction)
+            {
+                // 是0，直接舍掉
+                return Math.Floor(scaled) / multiplier;
+            }
+            else
+            {
+                // 有小数部分 → 向上取整
+                return Math.Ceiling(scaled) / multiplier;
+            }
+        }
+        /// <summary>
+        /// 判断 第 (decimalPlaces + 1) 位小数 是否等于 0
+        /// 例：decimalPlaces = 2 → 判断第 3 位小数是不是 0
+        /// </summary>
+        /// <returns>true=第N+1位是0，false=第N+1位非0</returns>
+        private static bool IsNextDecimalDigitZero(decimal value, int decimalPlaces)
+        {
+            if (decimalPlaces < 0)
+                throw new ArgumentOutOfRangeException(nameof(decimalPlaces));
+
+            // 放大到要判断的那一位
+            decimal multiplier = (decimal)Math.Pow(10, decimalPlaces + 1);
+            decimal scaled = value * multiplier;
+
+            // 取整数部分的最后一位，就是第 N+1 位小数
+            int digit = (int)(Math.Floor(scaled) % 10);
+
+            return digit == 0;
+        }
     }
 }

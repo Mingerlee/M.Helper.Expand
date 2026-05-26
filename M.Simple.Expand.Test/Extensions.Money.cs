@@ -52,5 +52,37 @@ namespace M.Simple.Expand.Test
             Console.WriteLine(strMoney2.MoneyStringToDecimal());
             Console.WriteLine("#123456,45a.sa".MoneyStringToDecimal());
         }
+        [TestMethod]
+        public void Ceiling()
+        {
+            decimal money = 212.0001M;
+
+            Console.WriteLine($"212.0001->{money.CeilingSpecial(3):#0.0000}");
+
+            money = 212.0010M;
+
+            Console.WriteLine($"212.0010->{money.CeilingSpecial(3):#0.0000}");
+
+            money = 212.0000M;
+
+            Console.WriteLine($"212.0000->{money.CeilingSpecial(3):#0.0000}");
+
+            money = 212.0100M;
+
+            Console.WriteLine($"212.0100->{money.CeilingSpecial(3):#0.0000}");
+
+            money = 212.0110M;
+
+            Console.WriteLine($"212.0110->{money.CeilingSpecial(3):#0.0000}");
+
+            money = 212.0101M;
+
+            Console.WriteLine($"212.0101->{money.CeilingSpecial(3):#0.0000}");
+
+            money = 212.0011M;
+
+            Console.WriteLine($"212.0011->{money.CeilingSpecial(3):#0.0000}");
+
+        }
     }
 }
