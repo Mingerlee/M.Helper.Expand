@@ -275,5 +275,78 @@ namespace M.Simple.Expand
             Array.Reverse(chars);
             return new string(chars);
         }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>大小写字母互转（大写转小写，小写转大写）</para>
+        /// </summary>
+        /// <param name="str">任意字符串</param>
+        /// <returns>大小写互换后的字符串</returns>
+        public static string SwapCase(this string str)
+        {
+            if (str.IsNullOrEmptyOrWhiteSpace())
+                return str;
+
+            char[] chars = str.ToCharArray();
+            for (int i = 0; i < chars.Length; i++)
+            {
+                if (char.IsUpper(chars[i]))
+                    chars[i] = char.ToLower(chars[i]);
+                else if (char.IsLower(chars[i]))
+                    chars[i] = char.ToUpper(chars[i]);
+            }
+            return new string(chars);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>判断字符串是否包含任意一个指定子串</para>
+        /// </summary>
+        /// <param name="str">源字符串</param>
+        /// <param name="values">要检查的子串列表</param>
+        /// <param name="comparison">字符串比较规则，默认区分大小写</param>
+        /// <returns>包含任意一个返回 true，否则 false</returns>
+        public static bool ContainsAny(this string str, StringComparison comparison, params string[] values)
+        {
+            if (str.IsNullOrEmptyOrWhiteSpace() || values == null || values.Length == 0)
+                return false;
+
+            return values.Any(v => str.Contains(v, comparison));
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>判断字符串是否包含任意一个指定子串（默认区分大小写）</para>
+        /// </summary>
+        /// <param name="str">源字符串</param>
+        /// <param name="values">要检查的子串列表</param>
+        /// <returns>包含任意一个返回 true，否则 false</returns>
+        public static bool ContainsAny(this string str, params string[] values)
+        {
+            return str.ContainsAny(StringComparison.CurrentCulture, values);
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>判断字符串是否包含所有指定子串</para>
+        /// </summary>
+        /// <param name="str">源字符串</param>
+        /// <param name="comparison">字符串比较规则，默认区分大小写</param>
+        /// <param name="values">要检查的子串列表</param>
+        /// <returns>包含全部返回 true，否则 false</returns>
+        public static bool ContainsAll(this string str, StringComparison comparison, params string[] values)
+        {
+            if (str.IsNullOrEmptyOrWhiteSpace() || values == null || values.Length == 0)
+                return false;
+
+            return values.All(v => str.Contains(v, comparison));
+        }
+        /// <summary>
+        /// <para>M.Simple.Expand扩展</para>
+        /// <para>判断字符串是否包含所有指定子串（默认区分大小写）</para>
+        /// </summary>
+        /// <param name="str">源字符串</param>
+        /// <param name="values">要检查的子串列表</param>
+        /// <returns>包含全部返回 true，否则 false</returns>
+        public static bool ContainsAll(this string str, params string[] values)
+        {
+            return str.ContainsAll(StringComparison.CurrentCulture, values);
+        }
     }
 }
