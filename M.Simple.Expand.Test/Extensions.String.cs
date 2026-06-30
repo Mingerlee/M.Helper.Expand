@@ -64,6 +64,11 @@ namespace M.Simple.Expand.Test
             Console.WriteLine($"ReverseString:{str.ReverseString()}");
             Console.WriteLine($"ReverseString:{str1.ReverseString()}");
             Console.WriteLine($"ReverseString:{str2.ReverseString()}");
+
+            Console.WriteLine($"SwapCase:{str2.SwapCase()}");
+            Console.WriteLine($"ContainsAny:{str1.ContainsAny("code", "name")}");
+            Console.WriteLine($"ContainsAll:{str2.ContainsAll("code", "name")}");
+
         }
     }
 }
