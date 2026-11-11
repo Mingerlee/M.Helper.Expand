@@ -46,7 +46,7 @@ dotnet run --project docs/samples/M.Simple.Expand.Samples.csproj --configuration
 
 库引用 Configuration 系列 10.0.3、DI Abstractions 9.0.2、PinYinConverterCore 1.0.2；示例额外引用 DI 容器实现 9.0.2。本项目不是零依赖基础包。
 
-本手册依据当前源码和可运行示例编写。旧 XML 注释与实现不一致的地方，以各功能页中已核对的行为说明为准。未修改原功能实现，未验证真实 SMTP/FTP、跨机器 ID 唯一性、NativeAOT 或裁剪。
+本手册依据当前源码和可运行示例编写，包含集合排除、范围校验、日期计算、模型转换、资源释放及并发隔离等修复后的约定。各功能页说明实际行为与兼容性变化；真实 SMTP/FTP、跨机器 ID 唯一性、NativeAOT 或裁剪仍未验证。
 
 ## 本地文档站点
 
