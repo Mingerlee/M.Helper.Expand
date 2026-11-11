@@ -46,7 +46,9 @@ public class SampleConsumer
 
 - AutowiredAttribute 只是标记，不会让默认容器自动完成属性注入。示例显式解析 AutowiredService 并调用 Autowired(consumer)。
 
-- Scoped 服务应从对应 scope 解析；不要让默认单例捕获 scoped 对象。程序集扫描失败、动态加载和并发缓存等边界未做额外封装。
+- AutowiredService 保持默认 Singleton，使用 ConcurrentDictionary 与 Lazy 缓存装配委托，同类型的编译只执行一次。委托不缓存依赖实例，每次装配都从本次传入的 IServiceProvider 解析服务；可并发装配不同目标对象。
+
+- Scoped 服务应从对应 scope 解析，调用 Autowired(target, scope.ServiceProvider)；单参数重载仍使用创建 AutowiredService 时的 provider，不会自动识别当前请求作用域。不要让单例捕获 scoped 对象，也不要并发装配同一个有可变属性的目标对象。程序集扫描失败及动态程序集类型加载异常仍按原行为处理。
 
 ## API 查询
 

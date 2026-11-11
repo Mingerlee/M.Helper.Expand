@@ -378,7 +378,7 @@ Int32 value__
 M.Simple.Expand.Enums.DiffMonthWayEnum 简单
 ```
 
-简单整月差值
+自然月差，忽略日；方向为结束日期减开始日期
 
 ### 精确
 
@@ -386,7 +386,7 @@ M.Simple.Expand.Enums.DiffMonthWayEnum 简单
 M.Simple.Expand.Enums.DiffMonthWayEnum 精确
 ```
 
-精确整月差值
+完整月差，按较早日期AddMonths确定边界，缺失对应日时取月末
 
 ### 跨月
 
@@ -394,7 +394,7 @@ M.Simple.Expand.Enums.DiffMonthWayEnum 精确
 M.Simple.Expand.Enums.DiffMonthWayEnum 跨月
 ```
 
-跨月即计为一个月
+跨过的自然月边界数；同月为0，与简单模式一致
 
 ## M.Simple.Expand.Enums.FormatMoneyEnum
 
@@ -752,9 +752,13 @@ Int32 DiffMonth(System.DateTime, System.DateTime, M.Simple.Expand.Enums.DiffMont
 
 M.Simple.Expand扩展 计算月份差
 
-- startTime：结束日期
+- startTime：开始日期，忽略时分秒
+
+- endTime：结束日期，忽略时分秒
 
 - diffMonthWay：计算方式：简单、精确、跨月
+
+返回：有符号的月份差
 
 ### ExceptItem
 
@@ -2486,7 +2490,7 @@ M.Simple.Services服务类获取当前目录下明细(包含文件和文件夹)
 Void GotoFtpDirectory(System.String, Boolean)
 ```
 
-M.Simple.Services服务类切换当前目录
+M.Simple.Services服务类切换当前实例目录；并行的目录操作流程应分别使用独立实例
 
 - IsRoot：true 绝对路径 false 相对路径
 
@@ -2496,7 +2500,7 @@ M.Simple.Services服务类切换当前目录
 Void ResetFtpClientSettings(M.Simple.Expand.Services.FtpClientSettings)
 ```
 
-重新设置ftp服务配置
+用配置副本替换当前实例配置；不影响其他实例或已构造的请求
 
 ### Settings
 
@@ -2504,7 +2508,7 @@ Void ResetFtpClientSettings(M.Simple.Expand.Services.FtpClientSettings)
 M.Simple.Expand.Services.FtpClientSettings Settings
 ```
 
-ftp服务配置
+ftp服务配置快照；修改后需通过ResetFtpClientSettings应用
 
 ## M.Simple.Expand.Services.FtpClientSettings
 
@@ -2766,7 +2770,7 @@ M.Simple.Services服务类切换当前目录
 Void ResetFtpClientSettings(M.Simple.Expand.Services.FtpClientSettings)
 ```
 
-重新设置ftp服务配置
+用配置副本替换当前实例配置；不影响其他实例或已构造的请求
 
 ## M.Simple.Expand.Services.MailContent
 

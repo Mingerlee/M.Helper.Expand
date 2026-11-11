@@ -12,15 +12,15 @@ namespace M.Simple.Expand.Enums
     public enum DiffMonthWayEnum
     {
         /// <summary>
-        ///     简单整月差值
+        ///     自然月差，忽略日；方向为结束日期减开始日期
         /// </summary>
         简单 = 1,
         /// <summary>
-        ///     精确整月差值
+        ///     完整月差，按较早日期AddMonths确定边界，缺失对应日时取月末
         /// </summary>
         精确 = 2,
         /// <summary>
-        ///     跨月即计为一个月
+        ///     跨过的自然月边界数；同月为0，与简单模式一致
         /// </summary>
         跨月 = 3,
     }

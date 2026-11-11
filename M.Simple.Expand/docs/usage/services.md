@@ -34,6 +34,12 @@ static partial class Demo
         using var provider = services.BuildServiceProvider();
         Check(provider.GetRequiredService<IEMailService>() is EMailService, "邮件服务注册");
         Check(provider.GetRequiredService<IFtpClientService>() is FtpClientService, "FTP 服务注册");
+        var first = provider.GetRequiredService<IFtpClientService>();
+        var second = provider.GetRequiredService<IFtpClientService>();
+        first.GotoFtpDirectory("first", true);
+        second.GotoFtpDirectory("second", true);
+        Check(!ReferenceEquals(first, second), "FTP 每次解析独立实例");
+        Check(((FtpClientService)first).Settings.FtpRemotePath == "first", "FTP 目录隔离");
         Console.WriteLine("邮件与 FTP 服务解析成功；仅演示注册，不建立网络连接。");
     }
 }
@@ -43,7 +49,11 @@ static partial class Demo
 
 ## 使用规则与边界
 
-- AddEMailSetup 注册 MailSettings 和 IEMailService；AddFtpClientSetup 注册 FtpClientSettings 和 IFtpClientService。两类配置与服务在当前实现中均为 Singleton。
+- AddEMailSetup 注册的 MailSettings 和 IEMailService 保持 Singleton。AddFtpClientSetup 将 FtpClientSettings 注册为 Singleton 配置模板，将 IFtpClientService 注册为 Transient：每次解析创建独立服务，同一个 scope 内再次解析也得到新实例。每个FTP实例复制配置模板，切换目录不会回写模板或其他实例。
+
+- 每条独立的“切目录→操作文件”流程应单独解析 IFtpClientService；同一流程内复用该实例。不要在单例消费者中长期捕获一个FTP实例供多个并行流程共享。实例内加锁仅保证目录更新和单次配置快照一致，不保证共享同一实例时跨多次方法调用的流程原子性。
+
+- FtpClientService.Settings 返回配置副本，直接修改该副本不再改变服务；需要应用修改时调用 ResetFtpClientSettings(settings)。构造和重置都会复制传入配置，之后修改原配置对象不影响服务。调用方不要在传入配置的同时并发修改该对象。每个请求的地址与凭据来自同一快照，重置影响后续构造的请求。
 
 - 邮件主机字段名称为 StmpHostServer（历史拼写）；另有 FromAddress、PortNumber、EnableSSL、RequireAuth、Username、Password、DeliveryOption。
 

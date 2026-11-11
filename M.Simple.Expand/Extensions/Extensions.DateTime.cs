@@ -412,32 +412,37 @@ namespace M.Simple.Expand
         ///     <para>M.Simple.Expand扩展</para>
         ///     <para> 计算月份差</para>
         /// </summary>
-        /// <param name="startTime">结束日期</param>
-        /// <param name="endTime"></param>
+        /// <param name="startTime">开始日期，忽略时分秒</param>
+        /// <param name="endTime">结束日期，忽略时分秒</param>
         /// <param name="diffMonthWay">计算方式：简单、精确、跨月</param>
         /// <remarks>
-        ///     <para> 简单整月差值：忽略具体日期，仅计算年份和月份差</para>
-        ///     <para> 精确整月差值：只有当日期也相同才认为是整月</para>
-        ///     <para> 跨月即计为一个月：只要进入下一个月即计为1个月</para>
+        ///     <para>方向与DiffDays一致：结束日期较晚为正，较早为负；同一天返回0，交换起止日期只改变符号。</para>
+        ///     <para>简单与跨月：计算跨过的自然月边界数，同月返回0。</para>
+        ///     <para>精确：以较早日期为锚点，取AddMonths(n)不超过较晚日期的最大非负整数n，再应用方向。</para>
+        ///     <para>AddMonths在目标月份无对应日时取月末，例如1月31日至非闰年2月28日算1个整月。</para>
         /// </remarks>
-        /// <returns></returns>
+        /// <returns>有符号的月份差</returns>
+        /// <exception cref="ArgumentOutOfRangeException">计算方式不是已定义的枚举值</exception>
         public static int DiffMonth(this DateTime startTime, DateTime endTime, DiffMonthWayEnum diffMonthWay= DiffMonthWayEnum.简单)
         {
-            var baseMonth = ((startTime.Year - endTime.Year) * 12) + startTime.Month - endTime.Month;
-            switch (diffMonthWay)
-            {
-                case DiffMonthWayEnum.简单:return baseMonth;
-                case DiffMonthWayEnum.精确:if (startTime.Day < endTime.Day) baseMonth--;return baseMonth;
-                case DiffMonthWayEnum.跨月: if (startTime.Day >= endTime.Day) baseMonth++; return baseMonth;
-                default:return -1;
-            }
-            //return diffMonthWay switch
-            //{
-            //    DiffMonthWayEnum.简单 => baseMonth,
-            //    DiffMonthWayEnum.精确 => startTime.Day < endTime.Day ? baseMonth-- : baseMonth,
-            //    DiffMonthWayEnum.跨月 => startTime.Day >= endTime.Day ? baseMonth++ : baseMonth,
-            //    _ => -1,
-            //};
+            if (diffMonthWay != DiffMonthWayEnum.简单 && diffMonthWay != DiffMonthWayEnum.精确 && diffMonthWay != DiffMonthWayEnum.跨月)
+                throw new ArgumentOutOfRangeException(nameof(diffMonthWay), diffMonthWay, "不支持的月份计算方式。");
+
+            DateTime start = startTime.Date;
+            DateTime end = endTime.Date;
+            if (start == end) return 0;
+
+            // 始终从较早日期计算绝对月数，再应用方向，保证正反计算对称。
+            int direction = end > start ? 1 : -1;
+            DateTime earlier = direction > 0 ? start : end;
+            DateTime later = direction > 0 ? end : start;
+            int months = (later.Year - earlier.Year) * 12 + later.Month - earlier.Month;
+
+            // 整月边界直接从原始锚点AddMonths，避免逐月累加导致月末日期漂移。
+            if (diffMonthWay == DiffMonthWayEnum.精确 && earlier.AddMonths(months) > later)
+                months--;
+
+            return direction * months;
         }
         /// <summary>
         ///     <para>M.Simple.Expand扩展</para>

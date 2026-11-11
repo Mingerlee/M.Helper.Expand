@@ -153,13 +153,13 @@
 <p>重载或注释详情请对照功能手册与源码。</p>
 <h3 id="简单">简单</h3>
 <div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.DiffMonthWayEnum 简单</code></pre></div>
-<p>简单整月差值</p>
+<p>自然月差，忽略日；方向为结束日期减开始日期</p>
 <h3 id="精确">精确</h3>
 <div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.DiffMonthWayEnum 精确</code></pre></div>
-<p>精确整月差值</p>
+<p>完整月差，按较早日期AddMonths确定边界，缺失对应日时取月末</p>
 <h3 id="跨月">跨月</h3>
 <div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.DiffMonthWayEnum 跨月</code></pre></div>
-<p>跨月即计为一个月</p>
+<p>跨过的自然月边界数；同月为0，与简单模式一致</p>
 <h2 id="msimpleexpandenumsformatmoneyenum">M.Simple.Expand.Enums.FormatMoneyEnum</h2>
 <p>M.Simple.Expand扩展金额格式化枚举</p>
 <h3 id="c0">C0</h3>
@@ -297,8 +297,10 @@
 <h3 id="diffmonth">DiffMonth</h3>
 <div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 DiffMonth(System.DateTime, System.DateTime, M.Simple.Expand.Enums.DiffMonthWayEnum)</code></pre></div>
 <p>M.Simple.Expand扩展 计算月份差</p>
-<ul><li>startTime：结束日期</li></ul>
+<ul><li>startTime：开始日期，忽略时分秒</li></ul>
+<ul><li>endTime：结束日期，忽略时分秒</li></ul>
 <ul><li>diffMonthWay：计算方式：简单、精确、跨月</li></ul>
+<p>返回：有符号的月份差</p>
 <h3 id="exceptitem">ExceptItem</h3>
 <div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] ExceptItem[T](System.Collections.Generic.IEnumerable`1[T], T, System.Collections.Generic.IEqualityComparer`1[T])</code></pre></div>
 <p>M.Simple.Expand扩展排除指定元素</p>
@@ -981,14 +983,14 @@
 <p>M.Simple.Services服务类获取当前目录下明细(包含文件和文件夹)</p>
 <h3 id="gotoftpdirectory">GotoFtpDirectory</h3>
 <div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void GotoFtpDirectory(System.String, Boolean)</code></pre></div>
-<p>M.Simple.Services服务类切换当前目录</p>
+<p>M.Simple.Services服务类切换当前实例目录；并行的目录操作流程应分别使用独立实例</p>
 <ul><li>IsRoot：true 绝对路径 false 相对路径</li></ul>
 <h3 id="resetftpclientsettings">ResetFtpClientSettings</h3>
 <div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void ResetFtpClientSettings(M.Simple.Expand.Services.FtpClientSettings)</code></pre></div>
-<p>重新设置ftp服务配置</p>
+<p>用配置副本替换当前实例配置；不影响其他实例或已构造的请求</p>
 <h3 id="settings-1">Settings</h3>
 <div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.FtpClientSettings Settings</code></pre></div>
-<p>ftp服务配置</p>
+<p>ftp服务配置快照；修改后需通过ResetFtpClientSettings应用</p>
 <h2 id="msimpleexpandservicesftpclientsettings">M.Simple.Expand.Services.FtpClientSettings</h2>
 <p>M.Simple.Services服务类ftp配置</p>
 <h3 id="ftpclientsettings">FtpClientSettings</h3>
@@ -1092,7 +1094,7 @@
 <ul><li>IsRoot：true 绝对路径 false 相对路径</li></ul>
 <h3 id="resetftpclientsettings-1">ResetFtpClientSettings</h3>
 <div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void ResetFtpClientSettings(M.Simple.Expand.Services.FtpClientSettings)</code></pre></div>
-<p>重新设置ftp服务配置</p>
+<p>用配置副本替换当前实例配置；不影响其他实例或已构造的请求</p>
 <h2 id="msimpleexpandservicesmailcontent">M.Simple.Expand.Services.MailContent</h2>
 <p>M.Simple.Services服务类邮件内容</p>
 <h3 id="mailcontent">MailContent</h3>

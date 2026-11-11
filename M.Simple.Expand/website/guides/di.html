@@ -34,6 +34,7 @@ public class SampleConsumer
 <ul><li>导入 M.Simple.Expand.Attributes、M.Simple.Expand.Services 和 Microsoft.Extensions.DependencyInjection。宿主需提供 DI 容器实现；库主要引用 DI Abstractions，示例额外安装容器包。</li></ul>
 <ul><li>AddAppServices 扫描当前 AppDomain 已加载程序集里的 AppServiceAttribute。默认生命周期为 Singleton；未指定 ServiceType 时尝试取第一个接口，否则按自身类型注册。多接口类型建议显式填写 ServiceType。</li></ul>
 <ul><li>AutowiredAttribute 只是标记，不会让默认容器自动完成属性注入。示例显式解析 AutowiredService 并调用 Autowired(consumer)。</li></ul>
-<ul><li>Scoped 服务应从对应 scope 解析；不要让默认单例捕获 scoped 对象。程序集扫描失败、动态加载和并发缓存等边界未做额外封装。</li></ul>
+<ul><li>AutowiredService 保持默认 Singleton，使用 ConcurrentDictionary 与 Lazy 缓存装配委托，同类型的编译只执行一次。委托不缓存依赖实例，每次装配都从本次传入的 IServiceProvider 解析服务；可并发装配不同目标对象。</li></ul>
+<ul><li>Scoped 服务应从对应 scope 解析，调用 Autowired(target, scope.ServiceProvider)；单参数重载仍使用创建 AutowiredService 时的 provider，不会自动识别当前请求作用域。不要让单例捕获 scoped 对象，也不要并发装配同一个有可变属性的目标对象。程序集扫描失败及动态程序集类型加载异常仍按原行为处理。</li></ul>
 <h2 id="api-查询">API 查询</h2>
 <p><a href="../api.html">API 与源码索引</a>列出实际声明及 XML 注释。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="../index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#可运行示例">可运行示例</a><a class="toc-level-2" href="#使用规则与边界">使用规则与边界</a><a class="toc-level-2" href="#api-查询">API 查询</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

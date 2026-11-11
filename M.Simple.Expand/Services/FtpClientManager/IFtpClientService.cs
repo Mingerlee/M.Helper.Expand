@@ -7,7 +7,7 @@
     public interface IFtpClientService
     {
         /// <summary>
-        ///     重新设置ftp服务配置
+        ///     用配置副本替换当前实例配置；不影响其他实例或已构造的请求
         /// </summary>
         /// <param name="settings"></param>
         void ResetFtpClientSettings(FtpClientSettings settings);

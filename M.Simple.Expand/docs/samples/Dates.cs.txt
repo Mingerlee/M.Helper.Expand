@@ -1,4 +1,5 @@
 using M.Simple.Expand;
+using M.Simple.Expand.Enums;
 using M.Simple.Expand.Models;
 
 static partial class Demo
@@ -11,6 +12,12 @@ static partial class Demo
         Console.WriteLine(date.GetLastDayOfMonth().ToString("yyyy-MM-dd"));
         Console.WriteLine(date.NextDay().ToDefaultDate());
         Console.WriteLine($"相差天数：{date.DiffDays(date.AddDays(3))}");
+        var monthEnd = new DateTime(2026, 1, 31);
+        var nextMonth = new DateTime(2026, 2, 28);
+        Console.WriteLine($"整月差：{monthEnd.DiffMonth(nextMonth, DiffMonthWayEnum.精确)}；反向：{nextMonth.DiffMonth(monthEnd, DiffMonthWayEnum.精确)}");
+        Check(monthEnd.DiffMonth(nextMonth, DiffMonthWayEnum.精确) == 1, "月末完整月边界");
+        Check(nextMonth.DiffMonth(monthEnd, DiffMonthWayEnum.精确) == -1, "月份差方向");
+        Check(date.DiffMonth(date, DiffMonthWayEnum.跨月) == 0, "同日不跨月");
         var periods = new List<DateTimePeriod>
         {
             new(date, date.AddHours(2)),

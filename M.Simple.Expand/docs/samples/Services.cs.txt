@@ -23,6 +23,12 @@ static partial class Demo
         using var provider = services.BuildServiceProvider();
         Check(provider.GetRequiredService<IEMailService>() is EMailService, "邮件服务注册");
         Check(provider.GetRequiredService<IFtpClientService>() is FtpClientService, "FTP 服务注册");
+        var first = provider.GetRequiredService<IFtpClientService>();
+        var second = provider.GetRequiredService<IFtpClientService>();
+        first.GotoFtpDirectory("first", true);
+        second.GotoFtpDirectory("second", true);
+        Check(!ReferenceEquals(first, second), "FTP 每次解析独立实例");
+        Check(((FtpClientService)first).Settings.FtpRemotePath == "first", "FTP 目录隔离");
         Console.WriteLine("邮件与 FTP 服务解析成功；仅演示注册，不建立网络连接。");
     }
 }

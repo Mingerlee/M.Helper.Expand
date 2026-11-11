@@ -1,4 +1,5 @@
 ﻿using M.Simple.Expand.Attributes;
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 
@@ -15,8 +16,8 @@ namespace M.Simple.Expand.Services
     [AppService]
     public class AutowiredService(IServiceProvider serviceProvider)
     {
-        IServiceProvider serviceProvider = serviceProvider;
-        Dictionary<Type, Action<object, IServiceProvider>> autowiredActions = [];
+        private readonly IServiceProvider serviceProvider = serviceProvider;
+        private readonly ConcurrentDictionary<Type, Lazy<Action<object, IServiceProvider>>> autowiredActions = new();
         /// <summary>
         ///     
         /// </summary>
@@ -33,52 +34,54 @@ namespace M.Simple.Expand.Services
         /// <param name="serviceProvider"></param>
         public void Autowired(object service, IServiceProvider serviceProvider)
         {
-            var serviceType = service.GetType();
-            if (autowiredActions.TryGetValue(serviceType, out Action<object, IServiceProvider> act))
-            {
-                act(service, serviceProvider);
-            }
-            else
-            {
-                //参数
-                var objParam = Expression.Parameter(typeof(object), "obj");
-                var spParam = Expression.Parameter(typeof(IServiceProvider), "sp");
+            ArgumentNullException.ThrowIfNull(service);
+            ArgumentNullException.ThrowIfNull(serviceProvider);
+            // 缓存装配委托而非依赖实例；同一类型只编译一次，调用时使用当前provider。
+            var action = autowiredActions.GetOrAdd(service.GetType(), static serviceType =>
+                new Lazy<Action<object, IServiceProvider>>(() => CreateAutowiredAction(serviceType),
+                    LazyThreadSafetyMode.ExecutionAndPublication)).Value;
+            action(service, serviceProvider);
+        }
 
-                var obj = Expression.Convert(objParam, serviceType);
-                var GetService = typeof(IServiceProvider).GetMethod("GetService");
-                List<Expression> setList = new List<Expression>();
+        private static Action<object, IServiceProvider> CreateAutowiredAction(Type serviceType)
+        {
+            //参数
+            var objParam = Expression.Parameter(typeof(object), "obj");
+            var spParam = Expression.Parameter(typeof(IServiceProvider), "sp");
 
-                if (GetService == null) throw new ArgumentNullException("GetService is null...");
-                    
-                //字段赋值
-                foreach (FieldInfo field in serviceType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            var obj = Expression.Convert(objParam, serviceType);
+            var GetService = typeof(IServiceProvider).GetMethod("GetService");
+            List<Expression> setList = new List<Expression>();
+
+            if (GetService == null) throw new ArgumentNullException("GetService is null...");
+
+            //字段赋值
+            foreach (FieldInfo field in serviceType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                var autowiredAttr = field.GetCustomAttribute<AutowiredAttribute>();
+                if (autowiredAttr != null)
                 {
-                    var autowiredAttr = field.GetCustomAttribute<AutowiredAttribute>();
-                    if (autowiredAttr != null)
-                    {
-                        var fieldExp = Expression.Field(obj, field);
-                        var createService = Expression.Call(spParam, GetService, Expression.Constant(field.FieldType));
-                        var setExp = Expression.Assign(fieldExp, Expression.Convert(createService, field.FieldType));
-                        setList.Add(setExp);
-                    }
+                    var fieldExp = Expression.Field(obj, field);
+                    var createService = Expression.Call(spParam, GetService, Expression.Constant(field.FieldType));
+                    var setExp = Expression.Assign(fieldExp, Expression.Convert(createService, field.FieldType));
+                    setList.Add(setExp);
                 }
-                //属性赋值
-                foreach (PropertyInfo property in serviceType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                {
-                    var autowiredAttr = property.GetCustomAttribute<AutowiredAttribute>();
-                    if (autowiredAttr != null)
-                    {
-                        var propExp = Expression.Property(obj, property);
-                        var createService = Expression.Call(spParam, GetService, Expression.Constant(property.PropertyType));
-                        var setExp = Expression.Assign(propExp, Expression.Convert(createService, property.PropertyType));
-                        setList.Add(setExp);
-                    }
-                }
-                var bodyExp = Expression.Block(setList);
-                var setAction = Expression.Lambda<Action<object, IServiceProvider>>(bodyExp, objParam, spParam).Compile();
-                autowiredActions[serviceType] = setAction;
-                setAction(service, serviceProvider);
             }
+            //属性赋值
+            foreach (PropertyInfo property in serviceType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+            {
+                var autowiredAttr = property.GetCustomAttribute<AutowiredAttribute>();
+                if (autowiredAttr != null)
+                {
+                    var propExp = Expression.Property(obj, property);
+                    var createService = Expression.Call(spParam, GetService, Expression.Constant(property.PropertyType));
+                    var setExp = Expression.Assign(propExp, Expression.Convert(createService, property.PropertyType));
+                    setList.Add(setExp);
+                }
+            }
+            var bodyExp = Expression.Block(setList);
+            var setAction = Expression.Lambda<Action<object, IServiceProvider>>(bodyExp, objParam, spParam).Compile();
+            return setAction;
         }
     }
 }

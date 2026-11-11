@@ -9,10 +9,35 @@ namespace M.Simple.Expand.Services
     /// </summary>
     public class FtpClientService : IFtpClientService
     {
+        private readonly object _settingsLock = new();
+        private FtpClientSettings _settings = null!;
         /// <summary>
-        ///     ftp服务配置
+        ///     ftp服务配置快照；修改后需通过ResetFtpClientSettings应用
         /// </summary>
-        public FtpClientSettings Settings { get; internal set; }
+        public FtpClientSettings Settings
+        {
+            get
+            {
+                lock (_settingsLock) return CopySettings(_settings);
+            }
+            internal set
+            {
+                ArgumentNullException.ThrowIfNull(value);
+                lock (_settingsLock) _settings = CopySettings(value);
+            }
+        }
+
+        private static FtpClientSettings CopySettings(FtpClientSettings settings)
+        {
+            // 只复制配置值，服务内部的目录修改不回写容器或调用方持有的配置。
+            return new FtpClientSettings
+            {
+                FtpServerIP = settings.FtpServerIP,
+                FtpRemotePath = settings.FtpRemotePath,
+                FtpUserID = settings.FtpUserID,
+                FtpPassword = settings.FtpPassword
+            };
+        }
         /// <summary>
         ///     构造
         /// </summary>
@@ -22,7 +47,7 @@ namespace M.Simple.Expand.Services
             Settings = settings;
         }
         /// <summary>
-        ///     重新设置ftp服务配置
+        ///     用配置副本替换当前实例配置；不影响其他实例或已构造的请求
         /// </summary>
         /// <param name="settings"></param>
         public void ResetFtpClientSettings(FtpClientSettings settings)
@@ -605,27 +630,30 @@ namespace M.Simple.Expand.Services
         }
         /// <summary>
         /// <para>M.Simple.Services服务类</para>
-        /// <para>切换当前目录</para>
+        /// <para>切换当前实例目录；并行的目录操作流程应分别使用独立实例</para>
         /// </summary>
         /// <param name="DirectoryName"></param>
         /// <param name="IsRoot">true 绝对路径   false 相对路径</param>
         public void GotoFtpDirectory(string DirectoryName, bool IsRoot)
         {
-            if (IsRoot)
+            ArgumentNullException.ThrowIfNull(DirectoryName);
+            lock (_settingsLock)
             {
-                Settings.FtpRemotePath = DirectoryName;
-            }
-            else
-            {
-                Settings.FtpRemotePath += DirectoryName + "/";
+                // 相对目录只插入一个分隔符，目录状态仅属于当前服务实例。
+                string nextPath = DirectoryName.Trim('/');
+                string currentPath = _settings.FtpRemotePath?.Trim('/') ?? string.Empty;
+                _settings.FtpRemotePath = IsRoot || currentPath.Length == 0 ? nextPath
+                    : nextPath.Length == 0 ? currentPath : currentPath + "/" + nextPath;
             }
         }
 
         private FtpWebRequest CreateFtpWebRequest(string fileName = "")
         {
-            var url = string.Concat(Settings.FtpUrl, fileName);
+            // 同一个请求的地址与认证来自同一快照，重置只影响后续构造的请求。
+            var settings = Settings;
+            var url = string.Concat(settings.FtpUrl, fileName);
             FtpWebRequest reqFTP = (FtpWebRequest)WebRequest.Create(new Uri(url));
-            reqFTP.Credentials = new NetworkCredential(Settings.FtpUserID, Settings.FtpPassword);
+            reqFTP.Credentials = new NetworkCredential(settings.FtpUserID, settings.FtpPassword);
             reqFTP.KeepAlive = false; // 操作完成后关闭连接
 
             return reqFTP;

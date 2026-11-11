@@ -5,6 +5,7 @@
 <h2 id="可运行示例">可运行示例</h2>
 <div class="code-block"><div class="code-toolbar"><span>powershell</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="powershell">dotnet run --project docs/samples/M.Simple.Expand.Samples.csproj --configuration Release -- datetime</code></pre></div>
 <div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Expand;
+using M.Simple.Expand.Enums;
 using M.Simple.Expand.Models;
 
 static partial class Demo
@@ -17,6 +18,12 @@ static partial class Demo
         Console.WriteLine(date.GetLastDayOfMonth().ToString(&quot;yyyy-MM-dd&quot;));
         Console.WriteLine(date.NextDay().ToDefaultDate());
         Console.WriteLine($&quot;相差天数：{date.DiffDays(date.AddDays(3))}&quot;);
+        var monthEnd = new DateTime(2026, 1, 31);
+        var nextMonth = new DateTime(2026, 2, 28);
+        Console.WriteLine($&quot;整月差：{monthEnd.DiffMonth(nextMonth, DiffMonthWayEnum.精确)}；反向：{nextMonth.DiffMonth(monthEnd, DiffMonthWayEnum.精确)}&quot;);
+        Check(monthEnd.DiffMonth(nextMonth, DiffMonthWayEnum.精确) == 1, &quot;月末完整月边界&quot;);
+        Check(nextMonth.DiffMonth(monthEnd, DiffMonthWayEnum.精确) == -1, &quot;月份差方向&quot;);
+        Check(date.DiffMonth(date, DiffMonthWayEnum.跨月) == 0, &quot;同日不跨月&quot;);
         var periods = new List&lt;DateTimePeriod&gt;
         {
             new(date, date.AddHours(2)),
@@ -29,7 +36,12 @@ static partial class Demo
 <p>示例与其他文件共享 Demo.Check 和辅助模型；完整上下文见<a href="../samples.html">示例项目</a>。</p>
 <h2 id="使用规则与边界">使用规则与边界</h2>
 <ul><li>ToDefaultDate 用于默认日期文本；NextDay 和 PervDay 分别为后一天和前一天，PervDay 为原始 API 拼写。GetFirstDayOfMonth、GetLastDayOfMonth 返回月边界。</li></ul>
-<ul><li>DiffDays 计算日期差，includeToday 控制附加计数；DiffMonth 的算法通过 DiffMonthWayEnum 选择。CalculateAge 使用运行时当前日期。</li></ul>
+<ul><li>start.DiffDays(end) 与 start.DiffMonth(end) 均忽略时分秒，方向按结束日期减开始日期：向未来为正，向过去为负。DiffDays 的 includeToday 保持原规则，在日期差上直接加1（不按方向调整）；默认 false 时同日为0。CalculateAge 使用运行时当前日期。</li></ul>
+<ul><li>DiffMonth 的“简单”和“跨月”均统计跨过的自然月边界数，与月份编号之差一致：同月为0，1月31日到2月1日为1。两个枚举保留兼容，均不计算“涉及几个月”，也不向不足一个月的同月区间加1。</li></ul>
+<ul><li>“精确”计算完整月数：先取较早、较晚日期，再找最大的非负 n，使较早日期.AddMonths(n)不超过较晚日期，最后应用方向。月份没有对应日时按 AddMonths 取月末；从原始日期直接加 n 个月，不逐月累加，也不约定所有月末互相等价。因此非闰年1月31日至2月28日为1，2月28日至3月28日为1，4月30日至5月29日为0。</li></ul>
+<ul><li>三种模式同日均返回0，交换起止日期结果取反。无效 DiffMonthWayEnum 值抛 ArgumentOutOfRangeException。兼容性变化：DiffMonth 修正了旧版相反的方向、跨月多算1和整月边界问题；依赖旧结果符号或额外加1的调用方需要调整。</li></ul>
+<p>以下示例均从前一日期算到后一日期，反向调用结果取反：</p>
+<div class="table-scroll"><table><thead><tr><th>开始 → 结束</th><th>简单 / 跨月</th><th>精确整月</th></tr></thead><tbody><tr><td>2026-01-15 → 2026-01-15</td><td>0</td><td>0</td></tr><tr><td>2026-01-01 → 2026-01-31</td><td>0</td><td>0</td></tr><tr><td>2026-01-31 → 2026-02-01</td><td>1</td><td>0</td></tr><tr><td>2026-01-31 → 2026-02-28</td><td>1</td><td>1</td></tr><tr><td>2024-01-31 → 2024-02-28</td><td>1</td><td>0</td></tr><tr><td>2024-01-31 → 2024-02-29</td><td>1</td><td>1</td></tr><tr><td>2026-01-31 → 2026-03-30</td><td>2</td><td>1</td></tr><tr><td>2025-12-31 → 2026-01-01</td><td>1</td><td>0</td></tr></tbody></table></div>
 <ul><li>两种 IsOverlap 在 null、空列表或仅一个区间时均返回 false。多个区间仍会原地排序，建议传入副本以保护原顺序。DateTimePeriod 的端点相接不算重叠；DatePeriod 按日期比较，端点相接算重叠，沿用原有边界规则。</li></ul>
 <ul><li>可空重载的回退逻辑按具体方法而异；有些使用当前时间，不要统一假设返回空字符串。DateTime 的 Kind 和时区应由调用方明确。</li></ul>
 <ul><li>IsWorkday 依据星期判断，不包含法定节假日和调休日历。</li></ul>

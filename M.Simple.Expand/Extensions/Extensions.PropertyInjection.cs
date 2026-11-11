@@ -73,7 +73,8 @@ namespace M.Simple.Expand
         public static void AddFtpClientSetup(this IServiceCollection services, Func<IServiceProvider, FtpClientSettings> ftpClientSettingsFunc)
         {
             services.AddSingleton(ftpClientSettingsFunc.Invoke);
-            services.AddSingleton<IFtpClientService, FtpClientService>();
+            // 当前目录属于一次工作流；每次解析独立实例，避免不同调用共享可变目录。
+            services.AddTransient<IFtpClientService, FtpClientService>();
         }
     }
 }
