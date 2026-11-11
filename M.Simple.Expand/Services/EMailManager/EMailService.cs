@@ -190,7 +190,8 @@ namespace M.Simple.Expand.Services
                 //Add CC Addresses
                 if (!string.IsNullOrEmpty(model.CcAddresses))
                 {
-                    var addresses = model.ToAddresses.GetEMailAddressArray();
+                    // 抄送只读取抄送地址，避免误用主收件人。
+                    var addresses = model.CcAddresses.GetEMailAddressArray();
                     foreach (var a in addresses)
                     {
                         if (!string.IsNullOrEmpty(a))
@@ -200,7 +201,8 @@ namespace M.Simple.Expand.Services
                 //Add BCC Addresses
                 if (!string.IsNullOrEmpty(model.BccAddresses))
                 {
-                    var addresses = model.ToAddresses.GetEMailAddressArray();
+                    // 密送使用独立地址列表。
+                    var addresses = model.BccAddresses.GetEMailAddressArray();
                     foreach (var a in addresses)
                     {
                         if (!string.IsNullOrEmpty(a))
@@ -210,7 +212,8 @@ namespace M.Simple.Expand.Services
                 //Add ReplyTo Addresses
                 if (!string.IsNullOrEmpty(model.ReplyToAddresses))
                 {
-                    var addresses = model.ToAddresses.GetEMailAddressArray();
+                    // 回复地址与收件人分别设置。
+                    var addresses = model.ReplyToAddresses.GetEMailAddressArray();
                     foreach (var a in addresses)
                     {
                         if (!string.IsNullOrEmpty(a))

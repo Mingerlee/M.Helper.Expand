@@ -37,6 +37,7 @@ static partial class Demo
 <ul><li>AddEMailSetup 注册 MailSettings 和 IEMailService；AddFtpClientSetup 注册 FtpClientSettings 和 IFtpClientService。两类配置与服务在当前实现中均为 Singleton。</li></ul>
 <ul><li>邮件主机字段名称为 StmpHostServer（历史拼写）；另有 FromAddress、PortNumber、EnableSSL、RequireAuth、Username、Password、DeliveryOption。</li></ul>
 <ul><li>邮件内容使用 MailContent：ToAddresses、Subject、Body、IsHTML、AttachmentPaths。SendMail 和 SendMailAsync 返回 MailResult，状态字段见 API 参考。</li></ul>
+<ul><li>邮件地址分别设置 ToAddresses（收件人）、CcAddresses（抄送）、BccAddresses（密送）、ReplyToAddresses（回复地址），各列表独立读取，支持逗号或分号分隔多个地址。可选地址为 null 或空字符串时不添加对应地址；回归测试只检查内存中的地址转换，不发送邮件。</li></ul>
 <ul><li>FTP 的 FtpServerIP 传主机或主机:端口，不带 ftp://；FtpRemotePath 为目录，FtpUrl 属性负责拼接地址。常用方法为 FtpUpload、FtpDownload、GetFtpFileList、GotoFtpDirectory。</li></ul>
 <ul><li>默认示例只解析服务，不发送邮件、不连接 FTP。异步 FTP 上传下载需传 CancellationToken。FTP 使用传统协议，账号和网络边界由使用方配置。</li></ul>
 <ul><li>GetFtpListDirectoryDetails、FtpDelete、FtpReName、FtpMakeDirectory 等会实际访问远程服务。先准备专用测试目录，再显式调用；不要直接把示例当作生产操作脚本。</li></ul>

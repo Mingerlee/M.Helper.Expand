@@ -3046,9 +3046,9 @@ Int32 value__
 System.String GenerateShortCode()
 ```
 
-生成Base62短编码（基于雪花ID）
+生成Base62短编码（基于雪花ID） 进程内复用固定节点号1的生成器，不保证跨进程或进程重启后的唯一性
 
-返回：11位唯一短编码
+返回：11位短编码，同一进程内共享生成器的序列状态
 
 ## M.Simple.Expand.SnowCodeGenerator
 
@@ -3130,7 +3130,7 @@ System.String GenerateGuidCode()
 System.String GenerateTimeStampGuidCode()
 ```
 
-生成带时间戳的唯一编码（可排序） 格式：时间戳(17位)+Guid后8位（如：20260305123045678+A7164466） 优势：可按时间排序，仍保证唯一性
+生成带时间戳的唯一编码（可排序） 格式：UTC时间自0001-01-01起的毫秒数 + 完整32位大写无分隔符GUID 时间戳仅提供毫秒级时间顺序，同一毫秒内不保证生成顺序；唯一性依赖完整GUID
 
 返回：带时间戳的唯一编码
 

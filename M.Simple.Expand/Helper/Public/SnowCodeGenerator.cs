@@ -286,27 +286,17 @@
 
         /// <summary>
         /// 生成带时间戳的唯一编码（可排序）
-        /// 格式：时间戳(17位)+Guid后8位（如：20260305123045678+A7164466）
-        /// 优势：可按时间排序，仍保证唯一性
+        /// 格式：UTC时间自0001-01-01起的毫秒数 + 完整32位大写无分隔符GUID
+        /// 时间戳仅提供毫秒级时间顺序，同一毫秒内不保证生成顺序；唯一性依赖完整GUID
         /// </summary>
         /// <returns>带时间戳的唯一编码</returns>
         public static string GenerateTimeStampGuidCode()
         {
-            // 高性能获取时间戳（毫秒级，精确到100纳秒）
-            long timestamp = DateTime.UtcNow.Ticks / 10000; // 转换为毫秒，17位数字
+            // 保留原有时间戳口径，不将其变更为Unix时间戳或日期格式。
+            long timestamp = DateTime.UtcNow.Ticks / 10000;
 
-            // 只取Guid的后8位（减少长度，仍保证唯一性）
-            Span<byte> guidBytes = stackalloc byte[4];
-            Guid.NewGuid().TryWriteBytes(guidBytes);
-            Span<char> guidPart = stackalloc char[8];
-            for (int i = 0; i < 4; i++)
-            {
-                guidPart[i * 2] = _hexChars[guidBytes[i] >> 4];
-                guidPart[i * 2 + 1] = _hexChars[guidBytes[i] & 0x0F];
-            }
-
-            // 拼接结果（避免StringBuilder开销）
-            return $"{timestamp}{new string(guidPart)}";
+            // 复用完整GUID编码，避免缓冲区不足导致写入失败及截断GUID带来的碰撞。
+            return $"{timestamp}{GenerateGuidCode()}";
         }
     }
     /// <summary>
@@ -316,6 +306,9 @@
     {
         private const string _charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
         private static readonly int _base = _charset.Length;
+
+        // 进程内共享生成器，保留同毫秒内的序列状态；NextId内部加锁保护并发调用。
+        private static readonly SnowflakeIdGenerator _snowflakeIdGenerator = new(1);
 
         /// <summary>
         /// 将长整型转换为Base62短编码
@@ -339,11 +332,12 @@
 
         /// <summary>
         /// 生成Base62短编码（基于雪花ID）
+        /// 进程内复用固定节点号1的生成器，不保证跨进程或进程重启后的唯一性
         /// </summary>
-        /// <returns>11位唯一短编码</returns>
+        /// <returns>11位短编码，同一进程内共享生成器的序列状态</returns>
         public static string GenerateShortCode()
         {
-            return Encode(new SnowflakeIdGenerator(1).NextId());
+            return Encode(_snowflakeIdGenerator.NextId());
         }
     }
 }

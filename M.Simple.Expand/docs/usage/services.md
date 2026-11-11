@@ -49,6 +49,8 @@ static partial class Demo
 
 - 邮件内容使用 MailContent：ToAddresses、Subject、Body、IsHTML、AttachmentPaths。SendMail 和 SendMailAsync 返回 MailResult，状态字段见 API 参考。
 
+- 邮件地址分别设置 ToAddresses（收件人）、CcAddresses（抄送）、BccAddresses（密送）、ReplyToAddresses（回复地址），各列表独立读取，支持逗号或分号分隔多个地址。可选地址为 null 或空字符串时不添加对应地址；回归测试只检查内存中的地址转换，不发送邮件。
+
 - FTP 的 FtpServerIP 传主机或主机:端口，不带 ftp://；FtpRemotePath 为目录，FtpUrl 属性负责拼接地址。常用方法为 FtpUpload、FtpDownload、GetFtpFileList、GotoFtpDirectory。
 
 - 默认示例只解析服务，不发送邮件、不连接 FTP。异步 FTP 上传下载需传 CancellationToken。FTP 使用传统协议，账号和网络边界由使用方配置。
