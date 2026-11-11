@@ -65,7 +65,11 @@ static partial class Demo
 
 - FtpClient.Download、FtpClientService.FtpDownload 和 FtpDownloadAsync 先写入目标目录的临时文件，完整下载并成功关闭流后才替换目标文件。连接失败、远端拒绝、传输失败或异步取消时保留已有文件；目标原本不存在时不留下不完整的目标文件。正常失败路径会清理临时文件，清理被文件系统拒绝时可能残留 `.ftp-*.tmp`；进程被强制终止时也可能残留。
 
-- FtpDownloadAsync 的 CancellationToken 同时用于中断网络请求及数据复制，取消通过 OperationCanceledException 返回。下载成功仍覆盖同名文件，空文件下载成功也会正常替换。
+- FtpUploadAsync、FtpDownloadAsync、FtpDeleteAsync、FtpRemoveDirectoryAsync 的网络等待均使用异步接口；上传异步获取请求流并等待最终确认，文件数据使用异步文件句柄复制。已取消的 token 会在访问文件或建立请求前直接终止；执行中取消通过 Abort 中断请求，覆盖等待服务器欢迎、命令响应、数据传输及最终确认等阶段。
+
+- 取消通过 OperationCanceledException（可能为其子类 TaskCanceledException）传播，保留调用方 token，返回任务处于 Canceled 状态；不会包装成普通 Exception。非取消的协议错误仍作为失败抛出，并在 InnerException 中保留原异常。下载取消时保留旧文件并清理临时文件；正常空文件下载仍可替换原文件。
+
+- 取消不会回滚服务器已执行的上传、删除或删目录操作；上传中断可能留下远端不完整文件，取消发生在最终响应前也不能据此判断服务器是否已完成操作。需要时由调用方核对远端结果。
 
 - 邮件发送在成功、发送失败和消息构建失败时均释放客户端、消息、附件及正文视图。公开 GetSmtpClient(settings) 成功返回的客户端由调用方 using/Dispose；配置客户端失败由库内部释放。示例及资源回归测试通过本地投递目录验证，不向外部收件人发送邮件。
 

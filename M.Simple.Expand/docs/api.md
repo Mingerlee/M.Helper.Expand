@@ -2344,6 +2344,8 @@ M.Simple.Services服务类ftp：删除当前目录下的指定文件
 
 - fileName：文件名
 
+- cancellationToken：取消网络等待和数据传输的令牌
+
 ### FtpDirectoryExist
 
 ```text
@@ -2377,6 +2379,8 @@ M.Simple.Services服务类ftp：下载文件
 - filePath：保存路径
 
 - fileName：文件名称
+
+- cancellationToken：取消网络等待和数据传输的令牌
 
 ### FtpFileExist
 
@@ -2428,6 +2432,8 @@ M.Simple.Services服务类删除文件夹
 
 - folderName：文件夹名称
 
+- cancellationToken：取消网络等待和数据传输的令牌
+
 ### FtpUpload
 
 ```text
@@ -2447,6 +2453,8 @@ System.Threading.Tasks.Task`1[System.Boolean] FtpUploadAsync(System.String, Syst
 M.Simple.Services服务类ftp：上传文件到当前目录
 
 - filename：文件名(绝对路径)
+
+- cancellationToken：取消网络等待和数据传输的令牌
 
 ### GetFtpDirectoryList
 
@@ -2614,6 +2622,8 @@ M.Simple.Services服务类ftp：删除当前目录下的指定文件
 
 - fileName：文件名
 
+- cancellationToken：取消网络等待和数据传输的令牌
+
 ### FtpDirectoryExist
 
 ```text
@@ -2647,6 +2657,8 @@ M.Simple.Services服务类ftp：下载文件
 - filePath：保存路径
 
 - fileName：文件名称
+
+- cancellationToken：取消网络等待和数据传输的令牌
 
 ### FtpFileExist
 
@@ -2698,6 +2710,8 @@ M.Simple.Services服务类删除文件夹
 
 - folderName：文件夹名称
 
+- cancellationToken：取消网络等待和数据传输的令牌
+
 ### FtpUpload
 
 ```text
@@ -2717,6 +2731,8 @@ System.Threading.Tasks.Task`1[System.Boolean] FtpUploadAsync(System.String, Syst
 M.Simple.Services服务类ftp：上传文件到当前目录
 
 - filename：文件名(绝对路径)
+
+- cancellationToken：取消网络等待和数据传输的令牌
 
 ### GetFtpDirectoryList
 

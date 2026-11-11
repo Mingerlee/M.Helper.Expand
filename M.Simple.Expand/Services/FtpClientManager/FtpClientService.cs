@@ -100,40 +100,45 @@ namespace M.Simple.Expand.Services
         /// <para>ftp：上传文件到当前目录</para>
         /// </summary>
         /// <param name="filename">文件名(绝对路径)</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">取消网络等待和数据传输的令牌</param>
+        /// <exception cref="OperationCanceledException">操作已取消，异常保留调用方令牌</exception>
         public async Task<bool> FtpUploadAsync(string filename, CancellationToken cancellationToken)
         {
-            FileInfo fileInf = new(filename);
-            FtpWebRequest reqFTP = CreateFtpWebRequest(fileInf.Name);
-            reqFTP.Method = WebRequestMethods.Ftp.UploadFile;
-            reqFTP.UseBinary = true;
-            reqFTP.UsePassive = false;
-            reqFTP.ContentLength = fileInf.Length;
-            int buffLength = 2048;
-            byte[] buff = new byte[buffLength];
-            int contentLen;
-            using FileStream fs = fileInf.OpenRead();
             try
             {
-                using Stream strm = reqFTP.GetRequestStream();
-                contentLen = await fs.ReadAsync(buff.AsMemory(0, buffLength), cancellationToken: cancellationToken);
-                while (contentLen != 0)
+                cancellationToken.ThrowIfCancellationRequested();
+                FileInfo fileInf = new(filename);
+                FtpWebRequest reqFTP = CreateFtpWebRequest(fileInf.Name);
+                reqFTP.Method = WebRequestMethods.Ftp.UploadFile;
+                reqFTP.UseBinary = true;
+                reqFTP.UsePassive = false;
+                reqFTP.ContentLength = fileInf.Length;
+                using var cancellationRegistration = cancellationToken.Register(reqFTP.Abort);
+                await using FileStream fs = new(filename, FileMode.Open, FileAccess.Read, FileShare.Read,
+                    81920, FileOptions.Asynchronous | FileOptions.SequentialScan);
+                // 获取请求流、复制数据和等待最终确认均走异步网络路径。
+                await using (Stream strm = await reqFTP.GetRequestStreamAsync().ConfigureAwait(false))
                 {
-                    await strm.WriteAsync(buff.AsMemory(0, contentLen), cancellationToken: cancellationToken);
-                    contentLen = await fs.ReadAsync(buff.AsMemory(0, buffLength), cancellationToken: cancellationToken);
+                    await fs.CopyToAsync(strm, 81920, cancellationToken).ConfigureAwait(false);
                 }
-                strm.Close();
-                fs.Close();
-                // 读取最终响应，确认上传完成并释放响应资源。
-                using var uploadResponse = reqFTP.GetResponse();
-                reqFTP = null;
+                using WebResponse response = await reqFTP.GetResponseAsync().ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
                 return true;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex) when (cancellationToken.IsCancellationRequested)
+            {
+                // Abort可能产生WebException，取消仍以调用方的token向上传播。
+                if (ex is WebException webException) webException.Response?.Dispose();
+                throw new OperationCanceledException("FTP操作已取消。", ex, cancellationToken);
             }
             catch (Exception ex)
             {
-                // 协议错误也可能附带响应，必须释放其连接。
                 if (ex is WebException webException) webException.Response?.Dispose();
-                throw new Exception("Ftp Upload Error --> " + ex.Message);
+                throw new Exception("Ftp Upload Error --> " + ex.Message, ex);
             }
         }
         /// <summary>
@@ -190,7 +195,8 @@ namespace M.Simple.Expand.Services
         /// </summary>
         /// <param name="filePath">保存路径</param>
         /// <param name="fileName">文件名称</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">取消网络等待和数据传输的令牌</param>
+        /// <exception cref="OperationCanceledException">操作已取消，异常保留调用方令牌</exception>
         public async Task<bool> FtpDownloadAsync(string filePath, string fileName, CancellationToken cancellationToken)
         {
             string? temporaryPath = null;
@@ -207,12 +213,13 @@ namespace M.Simple.Expand.Services
                 reqFTP.Method = WebRequestMethods.Ftp.DownloadFile;
                 // 取消时中断网络请求，同时保护已有目标文件。
                 using var cancellationRegistration = cancellationToken.Register(reqFTP.Abort);
-                using (FtpWebResponse response = (FtpWebResponse)await reqFTP.GetResponseAsync())
+                using (FtpWebResponse response = (FtpWebResponse)await reqFTP.GetResponseAsync().ConfigureAwait(false))
                 using (Stream ftpStream = response.GetResponseStream())
-                using (FileStream outputStream = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                await using (FileStream outputStream = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
+                    81920, FileOptions.Asynchronous | FileOptions.SequentialScan))
                 {
-                    await ftpStream.CopyToAsync(outputStream, 81920, cancellationToken);
-                    await outputStream.FlushAsync(cancellationToken);
+                    await ftpStream.CopyToAsync(outputStream, 81920, cancellationToken).ConfigureAwait(false);
+                    await outputStream.FlushAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 // 完整传输并成功关闭流后才替换；替换失败也不主动删除原文件。
@@ -220,13 +227,18 @@ namespace M.Simple.Expand.Services
                 File.Move(temporaryPath, targetPath, true);
                 return true;
             }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
             catch (Exception ex) when (cancellationToken.IsCancellationRequested)
             {
-                throw new OperationCanceledException("FTP下载已取消。", ex, cancellationToken);
+                // Abort可能产生WebException，取消仍以调用方的token向上传播。
+                if (ex is WebException webException) webException.Response?.Dispose();
+                throw new OperationCanceledException("FTP操作已取消。", ex, cancellationToken);
             }
             catch (Exception ex)
             {
-                // 协议错误也可能附带响应，必须释放其连接。
                 if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp Download Error --> " + ex.Message, ex);
             }
@@ -278,32 +290,36 @@ namespace M.Simple.Expand.Services
         ///  <para>ftp：删除当前目录下的指定文件</para>
         /// </summary>
         /// <param name="fileName">文件名</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">取消网络等待和数据传输的令牌</param>
+        /// <exception cref="OperationCanceledException">操作已取消，异常保留调用方令牌</exception>
         public async Task<bool> FtpDeleteAsync(string fileName, CancellationToken cancellationToken)
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 FtpWebRequest reqFTP = CreateFtpWebRequest(fileName);
                 reqFTP.Method = WebRequestMethods.Ftp.DeleteFile;
                 reqFTP.UsePassive = false;
-
-                string result = string.Empty;
-                using FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                long size = response.ContentLength;
-                using Stream datastream = response.GetResponseStream();
-                using StreamReader sr = new(datastream);
-                result = await sr.ReadToEndAsync(cancellationToken);
-                sr.Close();
-                datastream.Close();
-                response.Close();
-                reqFTP = null;
+                // 命令响应没有数据正文；异步等待状态确认，取消时直接中断请求。
+                using var cancellationRegistration = cancellationToken.Register(reqFTP.Abort);
+                using WebResponse response = await reqFTP.GetResponseAsync().ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
                 return true;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex) when (cancellationToken.IsCancellationRequested)
+            {
+                // Abort可能产生WebException，取消仍以调用方的token向上传播。
+                if (ex is WebException webException) webException.Response?.Dispose();
+                throw new OperationCanceledException("FTP操作已取消。", ex, cancellationToken);
             }
             catch (Exception ex)
             {
-                // 协议错误也可能附带响应，必须释放其连接。
                 if (ex is WebException webException) webException.Response?.Dispose();
-                throw new Exception("Ftp Delete Error --> " + ex.Message + "  fileName:" + fileName);
+                throw new Exception("Ftp Delete Error --> " + ex.Message + "  fileName:" + fileName, ex);
             }
         }
         /// <summary>
@@ -343,32 +359,36 @@ namespace M.Simple.Expand.Services
         /// <para>删除文件夹</para>
         /// </summary>
         /// <param name="folderName">文件夹名称</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">取消网络等待和数据传输的令牌</param>
+        /// <exception cref="OperationCanceledException">操作已取消，异常保留调用方令牌</exception>
         public async Task<bool> FtpRemoveDirectoryAsync(string folderName, CancellationToken cancellationToken)
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 FtpWebRequest reqFTP = CreateFtpWebRequest(folderName);
                 reqFTP.Method = WebRequestMethods.Ftp.RemoveDirectory;
                 reqFTP.UsePassive = false;
-
-                string result = string.Empty;
-                using FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                long size = response.ContentLength;
-                using Stream datastream = response.GetResponseStream();
-                using StreamReader sr = new(datastream);
-                result = await sr.ReadToEndAsync(cancellationToken);
-                sr.Close();
-                datastream.Close();
-                response.Close();
-                reqFTP = null;
+                // 命令响应没有数据正文；异步等待状态确认，取消时直接中断请求。
+                using var cancellationRegistration = cancellationToken.Register(reqFTP.Abort);
+                using WebResponse response = await reqFTP.GetResponseAsync().ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
                 return true;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex) when (cancellationToken.IsCancellationRequested)
+            {
+                // Abort可能产生WebException，取消仍以调用方的token向上传播。
+                if (ex is WebException webException) webException.Response?.Dispose();
+                throw new OperationCanceledException("FTP操作已取消。", ex, cancellationToken);
             }
             catch (Exception ex)
             {
-                // 协议错误也可能附带响应，必须释放其连接。
                 if (ex is WebException webException) webException.Response?.Dispose();
-                throw new Exception("Ftp Remove Directory Error --> " + ex.Message + "  folderName:" + folderName);
+                throw new Exception("Ftp Remove Directory Error --> " + ex.Message + "  folderName:" + folderName, ex);
             }
         }
         /// <summary>

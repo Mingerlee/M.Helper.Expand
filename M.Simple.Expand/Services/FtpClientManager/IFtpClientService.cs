@@ -22,7 +22,8 @@
         /// <para>ftp：上传文件到当前目录</para>
         /// </summary>
         /// <param name="filename">文件名(绝对路径)</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">取消网络等待和数据传输的令牌</param>
+        /// <exception cref="OperationCanceledException">操作已取消，异常保留调用方令牌</exception>
         Task<bool> FtpUploadAsync(string filename, CancellationToken cancellationToken);
         /// <summary>
         /// <para>M.Simple.Services服务类</para>
@@ -37,7 +38,8 @@
         /// </summary>
         /// <param name="filePath">保存路径</param>
         /// <param name="fileName">文件名称</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">取消网络等待和数据传输的令牌</param>
+        /// <exception cref="OperationCanceledException">操作已取消，异常保留调用方令牌</exception>
         Task<bool> FtpDownloadAsync(string filePath, string fileName, CancellationToken cancellationToken);
         /// <summary>
         /// <para>M.Simple.Services服务类</para>
@@ -50,7 +52,8 @@
         ///  <para>ftp：删除当前目录下的指定文件</para>
         /// </summary>
         /// <param name="fileName">文件名</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">取消网络等待和数据传输的令牌</param>
+        /// <exception cref="OperationCanceledException">操作已取消，异常保留调用方令牌</exception>
         Task<bool> FtpDeleteAsync(string fileName, CancellationToken cancellationToken);
         /// <summary>
         /// <para>M.Simple.Services服务类</para>
@@ -63,7 +66,8 @@
         /// <para>删除文件夹</para>
         /// </summary>
         /// <param name="folderName">文件夹名称</param>
-        /// <param name="cancellationToken"></param>
+        /// <param name="cancellationToken">取消网络等待和数据传输的令牌</param>
+        /// <exception cref="OperationCanceledException">操作已取消，异常保留调用方令牌</exception>
         Task<bool> FtpRemoveDirectoryAsync(string folderName, CancellationToken cancellationToken);
         /// <summary>
         /// <para>M.Simple.Services服务类</para>

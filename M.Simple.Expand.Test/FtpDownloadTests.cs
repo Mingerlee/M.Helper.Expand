@@ -90,7 +90,15 @@ public class FtpDownloadTests
             Task download = DownloadAsync("async", server.Address, directory, cancellation.Token);
             await server.TransferStarted.Task.WaitAsync(TimeSpan.FromSeconds(10));
             cancellation.Cancel();
-            await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => download);
+            bool cancelled = false;
+            try { await download; }
+            catch (OperationCanceledException error)
+            {
+                cancelled = true;
+                Assert.AreEqual(cancellation.Token, error.CancellationToken);
+            }
+            Assert.IsTrue(cancelled); // TaskCanceledException也是有效的取消异常。
+            Assert.IsTrue(download.IsCanceled);
             Assert.AreEqual("original", File.ReadAllText(target));
             Assert.AreEqual(0, Directory.GetFiles(directory, ".ftp-*.tmp").Length);
         }
