@@ -1,0 +1,25 @@
+using M.Simple.Expand;
+using M.Simple.Expand.Attributes;
+using M.Simple.Expand.Services;
+using Microsoft.Extensions.DependencyInjection;
+
+static partial class Demo
+{
+    public static void DependencyInjection()
+    {
+        var services = new ServiceCollection();
+        services.AddAppServices();
+        using var provider = services.BuildServiceProvider();
+        var consumer = new SampleConsumer();
+        provider.GetRequiredService<AutowiredService>().Autowired(consumer);
+        Console.WriteLine(consumer.Greeting.Text);
+        Check(consumer.Greeting.Text == "服务装配成功", "手动属性装配");
+    }
+}
+public interface ISampleGreeting { string Text { get; } }
+[AppService(ServiceType = typeof(ISampleGreeting), Lifetime = ServiceLifetime.Singleton)]
+public class SampleGreeting : ISampleGreeting { public string Text => "服务装配成功"; }
+public class SampleConsumer
+{
+    [Autowired] public ISampleGreeting Greeting { get; set; } = null!;
+}

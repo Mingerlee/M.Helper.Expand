@@ -1,0 +1,20 @@
+using System.Collections;
+using M.Simple.Expand;
+
+static partial class Demo
+{
+    public static void DataTable()
+    {
+        IList rows = new List<SampleRow> { new() { Id = 1, Name = "示例" } };
+        var table = rows.ToDataTable();
+        var restored = table.ToLists<SampleRow>();
+        Console.WriteLine($"列数：{table.Columns.Count}；行数：{table.Rows.Count}");
+        Console.WriteLine($"恢复：{restored[0].Id} / {restored[0].Name}");
+        Check(restored[0].Name == "示例", "DataTable 往返");
+    }
+}
+public class SampleRow
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+}

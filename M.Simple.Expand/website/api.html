@@ -1,0 +1,1345 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="M.Simple 使用文档、API 说明与可运行示例"><title>API 与源码索引 · M.Simple.Expand</title><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/site.css"><script defer src="assets/search-index.js"></script><script defer src="assets/site.js"></script></head>
+<body data-root=""><a class="skip-link" href="#main-content">跳到正文</a><aside class="sidebar" id="sidebar"><a class="brand" href="index.html"><span class="brand-icon">M.</span><span>M.Simple.Expand<small>Expand 原版手册</small></span></a><div class="nav-scroll"><div class="nav-label">开始</div><a class="nav-item " href="index.html">文档首页</a><a class="nav-item " href="quickstart.html">快速开始</a><a class="nav-item " href="samples.html">运行示例</a><a class="nav-item " href="sample-output.html">示例运行结果</a><div class="nav-label">原版功能 · 15</div><a class="nav-item " href="guides/strings.html">字符串</a><a class="nav-item " href="guides/chinese.html">中文与拼音</a><a class="nav-item " href="guides/datetime.html">日期与时间</a><a class="nav-item " href="guides/money.html">金额</a><a class="nav-item " href="guides/collections.html">集合与比较器</a><a class="nav-item " href="guides/dictionary.html">字典</a><a class="nav-item " href="guides/enums.html">枚举</a><a class="nav-item " href="guides/datatable.html">DataTable</a><a class="nav-item " href="guides/comparison.html">实体比较与赋值</a><a class="nav-item " href="guides/crypto.html">加解密与摘要</a><a class="nav-item " href="guides/configuration.html">配置读取</a><a class="nav-item " href="guides/di.html">依赖注入与属性装配</a><a class="nav-item " href="guides/services.html">邮件与 FTP</a><a class="nav-item " href="guides/identifiers.html">GUID 与编码</a><a class="nav-item " href="guides/validation.html">校验特性</a><div class="nav-label">参考</div><a class="nav-item active" href="api.html" aria-current="page">API 与源码索引</a><a class="nav-item " href="publishing.html">本地站点发布</a></div><div class="sidebar-footer"><span class="status-dot"></span>.NET 8 · 1.0.1.8</div></aside><div class="nav-backdrop" hidden></div><div class="workspace"><header class="topbar"><div class="topbar-left"><button class="menu-button" type="button" aria-label="切换导航" aria-controls="sidebar" aria-expanded="false">☰</button><span class="breadcrumb">文档<span>/</span>参考</span></div><div class="topbar-actions"><button class="search-trigger" type="button"><span>搜索文档与 API</span><kbd>Ctrl K</kbd></button><a href="https://github.com/Mingerlee/M.Helper.Expand" target="_blank" rel="noopener" class="repository-link">原版项目 ↗</a></div></header><div class="content-grid"><main id="main-content" class="document"><div class="document-label">参考</div><h1 id="api-与源码索引">API 与源码索引</h1>
+<p>本页根据当前构建程序集反射和编译器 XML 文档生成，仅列出导出的公共类型及其声明的公共成员。继承成员和 internal 辅助类型不列入；属性访问器合并为属性。</p>
+<p>签名中的 Int32、String 等为 CLR 类型名称，泛型参数用反引号或方括号表示。用途描述来自原始 XML 注释；行为差异和边界以功能手册为准。</p>
+<h2 id="msimpleexpandappsetting">M.Simple.Expand.AppSetting</h2>
+<p>M.Simple.Expand扩展 配置文件读取辅助类</p>
+<h3 id="configexist">ConfigExist</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean ConfigExist(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展节点是否存在</p>
+<h3 id="getconfig">GetConfig</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GetConfig(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展读取配置文件value</p>
+<ul><li>name：eg:ConnectionStrings:DefaultConnection</li></ul>
+<h3 id="getconfigboolean">GetConfigBoolean</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean GetConfigBoolean(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展bool</p>
+<h3 id="getconfigint32">GetConfigInt32</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 GetConfigInt32(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展Int32</p>
+<h3 id="getconfigsection">GetConfigSection</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">T GetConfigSection[T](System.String)</code></pre></div>
+<p>M.Simple.Expand扩展获取节点下所有内容</p>
+<h2 id="msimpleexpandattributesappserviceattribute">M.Simple.Expand.Attributes.AppServiceAttribute</h2>
+<p>M.Simple.Expand扩展AppService特性</p>
+<h3 id="appserviceattribute">AppServiceAttribute</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="interfaceservicetype">InterfaceServiceType</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean InterfaceServiceType</code></pre></div>
+<p>是否可以从第一个接口获取服务类型</p>
+<h3 id="lifetime">Lifetime</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Microsoft.Extensions.DependencyInjection.ServiceLifetime Lifetime</code></pre></div>
+<p>生命周期</p>
+<h3 id="servicetype">ServiceType</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Type ServiceType</code></pre></div>
+<p>指定服务类型</p>
+<h2 id="msimpleexpandattributesautowiredattribute">M.Simple.Expand.Attributes.AutowiredAttribute</h2>
+<p>M.Simple.Expand扩展属性注入--自动注入特性</p>
+<h3 id="autowiredattribute">AutowiredAttribute</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandattributesbetweenvalue">M.Simple.Expand.Attributes.BetweenValue</h2>
+<p>M.Simple.Expand扩展两者之间</p>
+<h3 id="betweenvalue">BetweenValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="isequalmaxvalue">IsEqualMaxValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsEqualMaxValue</code></pre></div>
+<p>是否可以等于最大值</p>
+<h3 id="isequalminvalue">IsEqualMinValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsEqualMinValue</code></pre></div>
+<p>是否可以等于最小值</p>
+<h3 id="maxvalue">MaxValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 MaxValue</code></pre></div>
+<p>最大值</p>
+<h3 id="minvalue">MinValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 MinValue</code></pre></div>
+<p>最小值</p>
+<h2 id="msimpleexpandattributescomparevalueattribute">M.Simple.Expand.Attributes.CompareValueAttribute</h2>
+<p>M.Simple.Expand扩展需要对比的属性</p>
+<h3 id="comparevalueattribute">CompareValueAttribute</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandattributesgreaterthanminvalue">M.Simple.Expand.Attributes.GreaterThanMinValue</h2>
+<p>M.Simple.Expand扩展大于最小值</p>
+<h3 id="greaterthanminvalue">GreaterThanMinValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="isequalminvalue-1">IsEqualMinValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsEqualMinValue</code></pre></div>
+<p>是否可以等于最小值</p>
+<h3 id="minvalue-1">MinValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 MinValue</code></pre></div>
+<p>最小值</p>
+<h2 id="msimpleexpandattributesisdatetime">M.Simple.Expand.Attributes.IsDateTime</h2>
+<p>M.Simple.Expand扩展验证是否为日期格式</p>
+<h3 id="isdatetime">IsDateTime</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandattributesisemail">M.Simple.Expand.Attributes.IsEmail</h2>
+<p>M.Simple.Expand扩展验证是否为电子邮件格式：test@example.com</p>
+<h3 id="isemail">IsEmail</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandattributesisidcard">M.Simple.Expand.Attributes.IsIDcard</h2>
+<p>M.Simple.Expand扩展验证是否为身份证号码格式：11010120250101223X</p>
+<h3 id="isidcard">IsIDcard</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandattributesisint">M.Simple.Expand.Attributes.IsInt</h2>
+<p>M.Simple.Expand扩展验证是否为Int类型</p>
+<h3 id="isint">IsInt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandattributesismobile">M.Simple.Expand.Attributes.IsMobile</h2>
+<p>M.Simple.Expand扩展验证是否为手机号码格式：18888888888</p>
+<h3 id="ismobile">IsMobile</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandattributesistelephone">M.Simple.Expand.Attributes.IsTelephone</h2>
+<p>M.Simple.Expand扩展验证是否为电话号码格式：010-12345678</p>
+<h3 id="istelephone">IsTelephone</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandattributesisurl">M.Simple.Expand.Attributes.IsUrl</h2>
+<p>M.Simple.Expand扩展验证是否为网址格式：https://www.baidu.com</p>
+<h3 id="isurl">IsUrl</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandattributeslessthanmaxvalue">M.Simple.Expand.Attributes.LessThanMaxValue</h2>
+<p>M.Simple.Expand扩展小于最大值</p>
+<h3 id="lessthanmaxvalue">LessThanMaxValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="isequalmaxvalue-1">IsEqualMaxValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsEqualMaxValue</code></pre></div>
+<p>是否可以等于最大值</p>
+<h3 id="maxvalue-1">MaxValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 MaxValue</code></pre></div>
+<p>最大值</p>
+<h2 id="msimpleexpandattributesmodifyvalueattribute">M.Simple.Expand.Attributes.ModifyValueAttribute</h2>
+<p>M.Simple.Expand扩展需要修改的属性</p>
+<ul><li>flidName：属性名称</li></ul>
+<h3 id="modifyvalueattribute">ModifyValueAttribute</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展需要修改的属性</p>
+<ul><li>flidName：属性名称</li></ul>
+<h3 id="flidname">FlidName</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FlidName</code></pre></div>
+<p>字段名称</p>
+<h2 id="msimpleexpandattributespassword">M.Simple.Expand.Attributes.Password</h2>
+<p>M.Simple.Expand扩展验证密码格式：必须包含字母(大写或者小写)、数字和特殊符号，长度8~20</p>
+<h3 id="password">Password</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandattributesregexmatch">M.Simple.Expand.Attributes.RegexMatch</h2>
+<p>M.Simple.Expand扩展正则表达式验证</p>
+<h3 id="regexmatch">RegexMatch</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="regexstr">RegexStr</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String RegexStr</code></pre></div>
+<p>正则字符串</p>
+<h2 id="msimpleexpandattributesuserid">M.Simple.Expand.Attributes.UserId</h2>
+<p>M.Simple.Expand扩展验证用户名格式：A123456_B必须以字母开头，长度为4~19，可以包含字母、数字和_</p>
+<h3 id="userid">UserId</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandenumsdiffmonthwayenum">M.Simple.Expand.Enums.DiffMonthWayEnum</h2>
+<h3 id="value__">value__</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 value__</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="简单">简单</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.DiffMonthWayEnum 简单</code></pre></div>
+<p>简单整月差值</p>
+<h3 id="精确">精确</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.DiffMonthWayEnum 精确</code></pre></div>
+<p>精确整月差值</p>
+<h3 id="跨月">跨月</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.DiffMonthWayEnum 跨月</code></pre></div>
+<p>跨月即计为一个月</p>
+<h2 id="msimpleexpandenumsformatmoneyenum">M.Simple.Expand.Enums.FormatMoneyEnum</h2>
+<p>M.Simple.Expand扩展金额格式化枚举</p>
+<h3 id="c0">C0</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C0</code></pre></div>
+<p>eg:10000000.51=&gt;10,000,001eg:10000000.49=&gt;10,000,000</p>
+<h3 id="c0_en_us">C0_en_US</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C0_en_US</code></pre></div>
+<p>eg:10000000.51=&gt;$10,000,001eg:10000000.49=&gt;$10,000,000</p>
+<h3 id="c0_zh_cn">C0_zh_CN</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C0_zh_CN</code></pre></div>
+<p>eg:10000000.51=&gt;￥10,000,001eg:10000000.49=&gt;￥10,000,000</p>
+<h3 id="c1">C1</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C1</code></pre></div>
+<p>eg:10000000.51=&gt;10,000,000.5eg:10000000.49=&gt;10,000,000.5</p>
+<h3 id="c1_en_us">C1_en_US</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C1_en_US</code></pre></div>
+<p>eg:10000000.51=&gt;$10,000,000.5eg:10000000.49=&gt;$10,000,000.5</p>
+<h3 id="c1_zh_cn">C1_zh_CN</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C1_zh_CN</code></pre></div>
+<p>eg:10000000.51=&gt;￥10,000,000.5eg:10000000.49=&gt;￥10,000,000.5</p>
+<h3 id="c2">C2</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C2</code></pre></div>
+<p>eg:10000000.515=&gt;10,000,000.52eg:10000000.511=&gt;10,000,000.51</p>
+<h3 id="c2_en_us">C2_en_US</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C2_en_US</code></pre></div>
+<p>eg:10000000.515=&gt;$10,000,000.52eg:10000000.511=&gt;$10,000,000.51</p>
+<h3 id="c2_zh_cn">C2_zh_CN</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C2_zh_CN</code></pre></div>
+<p>eg:10000000.515=&gt;￥10,000,000.52eg:10000000.511=&gt;￥10,000,000.51</p>
+<h3 id="c3">C3</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C3</code></pre></div>
+<p>eg:10000000.5151=&gt;10,000,000.515eg:10000000.5155=&gt;10,000,000.516</p>
+<h3 id="c3_en_us">C3_en_US</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C3_en_US</code></pre></div>
+<p>eg:10000000.5151=&gt;$10,000,000.515eg:10000000.5155=&gt;$10,000,000.516</p>
+<h3 id="c3_zh_cn">C3_zh_CN</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C3_zh_CN</code></pre></div>
+<p>eg:10000000.5151=&gt;￥10,000,000.515eg:10000000.5155=&gt;￥10,000,000.516</p>
+<h3 id="c4">C4</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C4</code></pre></div>
+<p>eg:10000000.51515=&gt;10,000,000.5152eg:10000000.51511=&gt;10,000,000.5151</p>
+<h3 id="c4_en_us">C4_en_US</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C4_en_US</code></pre></div>
+<p>eg:10000000.51515=&gt;$10,000,000.5152eg:10000000.51511=&gt;$10,000,000.5151</p>
+<h3 id="c4_zh_cn">C4_zh_CN</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.FormatMoneyEnum C4_zh_CN</code></pre></div>
+<p>eg:10000000.51515=&gt;￥10,000,000.5152eg:10000000.51511=&gt;￥10,000,000.5151</p>
+<h3 id="value__-1">value__</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 value__</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandenumslanguageenum">M.Simple.Expand.Enums.LanguageEnum</h2>
+<p>M.Simple.Expand扩展语言</p>
+<h3 id="en_us">en_US</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.LanguageEnum en_US</code></pre></div>
+<p>英文</p>
+<h3 id="value__-2">value__</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 value__</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="zh_cn">zh_CN</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Enums.LanguageEnum zh_CN</code></pre></div>
+<p>中文</p>
+<h2 id="msimpleexpandextensions">M.Simple.Expand.Extensions</h2>
+<h3 id="addappservices">AddAppServices</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void AddAppServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)</code></pre></div>
+<p>M.Simple.Expand扩展 注册应用程序域中所有有AppService特性的服务 使用该属性注入的时候需要注意，Program(Startup)配置中使用 builder.Services.AddAppServices();//注册应用服务 Autofac容器注入时，需要添加.PropertiesAutowired() 允许属性注入</p>
+<h3 id="addemailsetup">AddEMailSetup</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void AddEMailSetup(Microsoft.Extensions.DependencyInjection.IServiceCollection, System.Func`2[System.IServiceProvider,M.Simple.Expand.Services.MailSettings])</code></pre></div>
+<p>注入邮件配置</p>
+<ul><li>mailSettingsFunc：邮件服务器配置</li></ul>
+<h3 id="addftpclientsetup">AddFtpClientSetup</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void AddFtpClientSetup(Microsoft.Extensions.DependencyInjection.IServiceCollection, System.Func`2[System.IServiceProvider,M.Simple.Expand.Services.FtpClientSettings])</code></pre></div>
+<p>注入ftp配置</p>
+<ul><li>ftpClientSettingsFunc：ftp配置</li></ul>
+<h3 id="addjsonfilewithbasepath">AddJsonFileWithBasePath</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Microsoft.Extensions.Configuration.IConfigurationBuilder AddJsonFileWithBasePath(Microsoft.Extensions.Configuration.IConfigurationBuilder, System.String, Boolean, Boolean)</code></pre></div>
+<p>M.Simple.Expand扩展自定义 AddJsonFile 重载，自动使用已设置的基础路径</p>
+<h3 id="aesdecrypt">AesDecrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String AesDecrypt(System.String, Byte[], Byte[])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="aesdecrypt-1">AesDecrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String AesDecrypt(System.String, System.String, System.String)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="aesencrypt">AesEncrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Models.AESEncryptResultModel AesEncrypt(System.String)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="aesencrypt-1">AesEncrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String AesEncrypt(System.String, Byte[], Byte[])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="aesencrypt-2">AesEncrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String AesEncrypt(System.String, System.String, System.String)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="byproperty">ByProperty</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEqualityComparer`1[T] ByProperty[T,TKey](T, System.Func`2[T,TKey], System.Collections.Generic.IEqualityComparer`1[TKey])</code></pre></div>
+<p>创建按属性比较的比较器</p>
+<h3 id="calculateage">CalculateAge</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 CalculateAge(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展依据出生日期计算年龄</p>
+<h3 id="cameltounderline">CamelToUnderline</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String CamelToUnderline(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展驼峰命名转下划线命名（如：userName → user_name）</p>
+<h3 id="ceilingspecial">CeilingSpecial</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Decimal CeilingSpecial(System.Decimal, Int32)</code></pre></div>
+<p>按规则向上取整：保留两位小数，第三位及以后向上进一 212.0001 → 212.00 212.001 → 212.01 212.000 → 212.00</p>
+<h3 id="comparemodel">CompareModel</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.List`1[M.Simple.Expand.Models.ComparesResults] CompareModel[T](T, T, Boolean)</code></pre></div>
+<p>M.Simple.Expand扩展 比较两个实体值是否有修改过，返回修改结果集合</p>
+<ul><li>newModel：新实体</li></ul>
+<ul><li>oldModel：对比的旧实体</li></ul>
+<ul><li>isAttr：是否只比较有CompareValueAttribute特性标记的属性</li></ul>
+<p>返回：修改结果集合</p>
+<h3 id="containsall">ContainsAll</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean ContainsAll(System.String, System.StringComparison, System.String[])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="containsall-1">ContainsAll</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean ContainsAll(System.String, System.String[])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="containsany">ContainsAny</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean ContainsAny(System.String, System.StringComparison, System.String[])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="containsany-1">ContainsAny</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean ContainsAny(System.String, System.String[])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="createbyproperty">CreateByProperty</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEqualityComparer`1[T] CreateByProperty[T,TKey](System.Func`2[T,TKey], System.Collections.Generic.IEqualityComparer`1[TKey])</code></pre></div>
+<p>创建按属性比较的比较器</p>
+<h3 id="defaultempty">DefaultEmpty</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] DefaultEmpty[T](System.Collections.Generic.IEnumerable`1[T])</code></pre></div>
+<p>M.Simple.Expand扩展如果集合为 null，返回空集合（避免空引用异常）</p>
+<h3 id="diffdays">DiffDays</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 DiffDays(System.DateTime, System.DateTime, Boolean)</code></pre></div>
+<p>M.Simple.Expand扩展 计算日期差</p>
+<ul><li>endTime：结束日期</li></ul>
+<ul><li>includeToday：是否包含当天</li></ul>
+<p>返回：天</p>
+<h3 id="diffmonth">DiffMonth</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 DiffMonth(System.DateTime, System.DateTime, M.Simple.Expand.Enums.DiffMonthWayEnum)</code></pre></div>
+<p>M.Simple.Expand扩展 计算月份差</p>
+<ul><li>startTime：结束日期</li></ul>
+<ul><li>diffMonthWay：计算方式：简单、精确、跨月</li></ul>
+<h3 id="exceptitem">ExceptItem</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] ExceptItem[T](System.Collections.Generic.IEnumerable`1[T], T, System.Collections.Generic.IEqualityComparer`1[T])</code></pre></div>
+<p>M.Simple.Expand扩展排除指定元素</p>
+<h3 id="exceptitems">ExceptItems</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] ExceptItems[T](System.Collections.Generic.IEnumerable`1[T], System.Collections.Generic.IEnumerable`1[T], System.Collections.Generic.IEqualityComparer`1[T])</code></pre></div>
+<p>M.Simple.Expand扩展排除指定的多个元素（支持自定义相等比较）</p>
+<ul><li>source：源集合</li></ul>
+<ul><li>itemsToExclude：要排除的元素集合</li></ul>
+<ul><li>comparer：自定义相等比较器</li></ul>
+<h3 id="firstdayofweek">FirstDayOfWeek</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime FirstDayOfWeek(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展取本周的第一天（周一）</p>
+<h3 id="firstlettertoupper">FirstLetterToUpper</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FirstLetterToUpper(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展首字母大写</p>
+<h3 id="flatten">Flatten</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] Flatten[T](System.Collections.Generic.IEnumerable`1[System.Collections.Generic.IEnumerable`1[T]])</code></pre></div>
+<p>M.Simple.Expand扩展扁平化嵌套集合</p>
+<h3 id="getattributeoftype">GetAttributeOfType</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">T GetAttributeOfType[T](System.Enum)</code></pre></div>
+<p>M.Simple.Expand扩展直接获取特性</p>
+<h3 id="getdate">GetDate</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime GetDate(System.Nullable`1[System.DateTime], System.Nullable`1[System.DateTime])</code></pre></div>
+<p>M.Simple.Expand扩展获取日期（不含时分秒）</p>
+<ul><li>defaultDateTime：默认日期</li></ul>
+<h3 id="getdescription">GetDescription</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GetDescription(System.Enum)</code></pre></div>
+<p>M.Simple.Expand扩展获取枚举值的描述信息</p>
+<ul><li>source：枚举值</li></ul>
+<h3 id="getdisplaydescription">GetDisplayDescription</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GetDisplayDescription(System.Enum)</code></pre></div>
+<p>M.Simple.Expand扩展获取特性 (DisplayAttribute) 的说明(Description)</p>
+<p>返回：如果未使用该特性，则返回枚举的名称</p>
+<h3 id="getdisplayname">GetDisplayName</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GetDisplayName(System.Enum)</code></pre></div>
+<p>M.Simple.Expand扩展 获取特性 (DisplayAttribute) 的名称(Name)</p>
+<p>返回：如果未使用该特性，则返回枚举的名称</p>
+<h3 id="getemailaddressarray">GetEMailAddressArray</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String[] GetEMailAddressArray(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展拆分邮件地址</p>
+<h3 id="getencryptsecret">GetEncryptSecret</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GetEncryptSecret(System.Guid)</code></pre></div>
+<p>M.Simple.Expand扩展随机秘钥(Guid)</p>
+<h3 id="getfirstdayofmonth">GetFirstDayOfMonth</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime GetFirstDayOfMonth(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展 获取当月第一天</p>
+<h3 id="getlastdayofmonth">GetLastDayOfMonth</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime GetLastDayOfMonth(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展 获取当月最后一天</p>
+<h3 id="getlisthashcode">GetListHashCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 GetListHashCode(System.Collections.Generic.IEnumerable`1[System.Int32])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="getlisthashcode-1">GetListHashCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 GetListHashCode(System.Collections.Generic.IEnumerable`1[System.Nullable`1[System.Int32]])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="getlisthashcode-2">GetListHashCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 GetListHashCode(System.Collections.Generic.IEnumerable`1[System.String])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="getlisthashcode-3">GetListHashCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 GetListHashCode(System.Collections.Generic.IList`1[System.Int32])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="getlisthashcode-4">GetListHashCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 GetListHashCode(System.Collections.Generic.IList`1[System.Nullable`1[System.Int32]])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="getlisthashcode-5">GetListHashCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 GetListHashCode(System.Collections.Generic.IList`1[System.String])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="getnextguid">GetNextGuid</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Guid GetNextGuid(System.Guid)</code></pre></div>
+<p>M.Simple.Expand扩展获取Guid</p>
+<h3 id="getnohyphenstring">GetNoHyphenString</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GetNoHyphenString(System.Guid)</code></pre></div>
+<p>M.Simple.Expand扩展转换为无横线的GUID字符串</p>
+<h3 id="getreallength">GetRealLength</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 GetRealLength(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展获取字节长度</p>
+<h3 id="getstringvalue">GetStringValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GetStringValue(System.Reflection.PropertyInfo, System.Object)</code></pre></div>
+<p>M.Simple.Expand扩展获取属性的值</p>
+<h3 id="getvalue">GetValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">TValue GetValue[TKey,TValue](System.Collections.Generic.Dictionary`2[TKey,TValue], TKey)</code></pre></div>
+<p>M.Simple.Expand扩展获取Value值</p>
+<h3 id="getvalueordefault">GetValueOrDefault</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GetValueOrDefault(System.String, System.String)</code></pre></div>
+<p>M.Simple.Expand扩展自身值为null或者空字符，则取默认值</p>
+<h3 id="groupbyselectfirst">GroupBySelectFirst</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] GroupBySelectFirst[T,TKey](System.Collections.Generic.IEnumerable`1[T], System.Func`2[T,TKey])</code></pre></div>
+<p>M.Simple.Expand扩展分组后取每组的第一条数据</p>
+<h3 id="groupbythensorttakefirst">GroupByThenSortTakeFirst</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] GroupByThenSortTakeFirst[T,TGroupKey,TSortKey](System.Collections.Generic.IEnumerable`1[T], System.Func`2[T,TGroupKey], System.Func`2[T,TSortKey], Boolean)</code></pre></div>
+<p>M.Simple.Expand扩展分组后排序，取每组排序后的第一条数据</p>
+<ul><li>source：源集合</li></ul>
+<ul><li>groupKeySelector：分组字段选择器（按什么分组）</li></ul>
+<ul><li>sortKeySelector：排序字段选择器（分组内按什么排序）</li></ul>
+<ul><li>isDescending：是否降序排序（默认true）</li></ul>
+<p>返回：每组排序后的第一条数据组成的集合</p>
+<h3 id="hasatleast">HasAtLeast</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean HasAtLeast[T](System.Collections.Generic.IEnumerable`1[T], Int32)</code></pre></div>
+<p>M.Simple.Expand扩展判断集合长度是否 &gt;= 指定值（无需全遍历，性能优化）</p>
+<h3 id="ismodify">IsModify</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsModify[T](T, T, Boolean)</code></pre></div>
+<p>M.Simple.Expand扩展比较两个实体值是否有修改过</p>
+<ul><li>compareModel：对比的model实体</li></ul>
+<ul><li>isAttr：是否有CompareValueAttribute特性标记</li></ul>
+<p>返回：有修改返回true，否则返回false</p>
+<h3 id="isnullorempty">IsNullOrEmpty</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsNullOrEmpty(System.Data.DataTable)</code></pre></div>
+<p>M.Simple.Expand扩展是否为NULL或者为空</p>
+<h3 id="isnullorempty-1">IsNullOrEmpty</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsNullOrEmpty[T](System.Collections.Generic.IEnumerable`1[T])</code></pre></div>
+<p>M.Simple.Expand扩展安全判断集合是否为空（null/无元素）</p>
+<h3 id="isnulloremptyorwhitespace">IsNullOrEmptyOrWhiteSpace</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsNullOrEmptyOrWhiteSpace(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展判断字符串是否为 null/空/空白字符</p>
+<h3 id="isoverlap">IsOverlap</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsOverlap(System.Collections.Generic.List`1[M.Simple.Expand.Models.DatePeriod])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="isoverlap-1">IsOverlap</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsOverlap(System.Collections.Generic.List`1[M.Simple.Expand.Models.DateTimePeriod])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="istoday">IsToday</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsToday(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展 判断是否为今天</p>
+<h3 id="istomorrow">IsTomorrow</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsTomorrow(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展 判断是否为明天</p>
+<h3 id="isweekend">IsWeekend</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsWeekend(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展 判断是否为周末（周六/周日）</p>
+<h3 id="isworkday">IsWorkday</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsWorkday(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展判断是否为工作日（周一至周五）</p>
+<h3 id="isyesterday">IsYesterday</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsYesterday(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展 判断是否为昨天</p>
+<h3 id="lastdayofweek">LastDayOfWeek</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime LastDayOfWeek(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展取本周的最后一天（周日）</p>
+<h3 id="md5encrypt">MD5Encrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String MD5Encrypt(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展MD5加密</p>
+<ul><li>plainText：明文</li></ul>
+<p>返回：密文</p>
+<h3 id="md5saltencrypt">MD5SaltEncrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Models.MD5EncryptResultModel MD5SaltEncrypt(System.String)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="md5saltencrypt-1">MD5SaltEncrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String MD5SaltEncrypt(System.String, System.String)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="md5saltverify">MD5SaltVerify</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean MD5SaltVerify(System.String, System.String, System.String)</code></pre></div>
+<p>M.Simple.Expand扩展MD5验证</p>
+<ul><li>plainText：明文</li></ul>
+<ul><li>cipherText：密文</li></ul>
+<ul><li>encryptSecret：盐值</li></ul>
+<p>返回：bool</p>
+<h3 id="md5verify">MD5Verify</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean MD5Verify(System.String, System.String)</code></pre></div>
+<p>M.Simple.Expand扩展MD5验证</p>
+<ul><li>plainText：明文</li></ul>
+<ul><li>cipherText：密文</li></ul>
+<h3 id="merge">Merge</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.Dictionary`2[TKey,TValue] Merge[TKey,TValue](System.Collections.Generic.Dictionary`2[TKey,TValue], TKey, TValue)</code></pre></div>
+<p>M.Simple.Expand扩展存在时更改,不存在时添加</p>
+<ul><li>dictionary：之前字典</li></ul>
+<ul><li>key：Key</li></ul>
+<ul><li>value：Value</li></ul>
+<p>返回：添加后的字典</p>
+<h3 id="mergeignore">MergeIgnore</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.Dictionary`2[TKey,TValue] MergeIgnore[TKey,TValue](System.Collections.Generic.Dictionary`2[TKey,TValue], TKey, TValue)</code></pre></div>
+<p>M.Simple.Expand扩展存在时忽略,不存在时添加</p>
+<ul><li>dictionary：之前字典</li></ul>
+<ul><li>key：Key</li></ul>
+<ul><li>value：Value</li></ul>
+<p>返回：添加后的字典</p>
+<h3 id="mergeignores">MergeIgnores</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.Dictionary`2[TKey,TValue] MergeIgnores[TKey,TValue](System.Collections.Generic.Dictionary`2[TKey,TValue], System.Collections.Generic.Dictionary`2[TKey,TValue])</code></pre></div>
+<p>M.Simple.Expand扩展存在时忽略,不存在时添加</p>
+<ul><li>targetDictionary：之前字典</li></ul>
+<ul><li>sourceDictionary：Key-Value需要添加的字典</li></ul>
+<p>返回：添加后的字典</p>
+<h3 id="merges">Merges</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.Dictionary`2[TKey,TValue] Merges[TKey,TValue](System.Collections.Generic.Dictionary`2[TKey,TValue], System.Collections.Generic.Dictionary`2[TKey,TValue])</code></pre></div>
+<p>M.Simple.Expand扩展存在时更改,不存在时添加</p>
+<ul><li>targetDictionary：之前字典</li></ul>
+<ul><li>sourceDictionary：Key-Value需要添加的字典</li></ul>
+<p>返回：添加后的字典</p>
+<h3 id="modifyfield">ModifyField</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void ModifyField[T,T2](T, T2, Boolean)</code></pre></div>
+<p>M.Simple.Expand扩展修改实体指定字段</p>
+<h3 id="moneystringtodecimal">MoneyStringToDecimal</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Decimal MoneyStringToDecimal(System.String, Int32)</code></pre></div>
+<p>M.Simple.Expand扩展金额格式字符串转decimal，默认保留两位小数</p>
+<ul><li>input：金额格式字符串</li></ul>
+<ul><li>digits：精度(保留的几位小数)</li></ul>
+<h3 id="nextday">NextDay</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime NextDay(System.DateTime)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="nextday-1">NextDay</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime NextDay(System.Nullable`1[System.DateTime])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="nextday-2">NextDay</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime NextDay(System.Nullable`1[System.DateTime], System.DateTime)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="pervday">PervDay</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime PervDay(System.DateTime)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="pervday-1">PervDay</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime PervDay(System.Nullable`1[System.DateTime])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="pervday-2">PervDay</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime PervDay(System.Nullable`1[System.DateTime], System.DateTime)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="randomtake">RandomTake</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">T RandomTake[T](System.Collections.Generic.IEnumerable`1[T])</code></pre></div>
+<p>M.Simple.Expand扩展随机获取集合中的一个元素</p>
+<h3 id="remove">Remove</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void Remove[TKey,TValue](System.Collections.Generic.Dictionary`2[TKey,TValue], TKey)</code></pre></div>
+<p>M.Simple.Expand扩展删除</p>
+<ul><li>dictionary：字典</li></ul>
+<ul><li>key：Key</li></ul>
+<p>返回：Value</p>
+<h3 id="removepop">RemovePop</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">TValue RemovePop[TKey,TValue](System.Collections.Generic.Dictionary`2[TKey,TValue], TKey)</code></pre></div>
+<p>M.Simple.Expand扩展获取值之后，再删除</p>
+<ul><li>dictionary：字典</li></ul>
+<ul><li>key：Key</li></ul>
+<p>返回：删除的值</p>
+<h3 id="removes">Removes</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void Removes[TKey,TValue](System.Collections.Generic.Dictionary`2[TKey,TValue], System.Collections.Generic.IEnumerable`1[TKey])</code></pre></div>
+<p>M.Simple.Expand扩展批量删除</p>
+<ul><li>dictionary：字典</li></ul>
+<ul><li>keys：Key集合</li></ul>
+<p>返回：Value</p>
+<h3 id="reversestring">ReverseString</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ReverseString(System.String)</code></pre></div>
+<p>字符串反转</p>
+<h3 id="rsadecrypt">RsaDecrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String RsaDecrypt(System.String, System.String)</code></pre></div>
+<p>M.Simple.Expand扩展RSA解密</p>
+<ul><li>cipherText：密文</li></ul>
+<ul><li>privateKey：私钥</li></ul>
+<p>返回：明文</p>
+<h3 id="rsadecryptwithblock">RsaDecryptWithBlock</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String RsaDecryptWithBlock(System.String, System.String)</code></pre></div>
+<p>M.Simple.Expand扩展RSA解密(分段)</p>
+<ul><li>cipherText：密文</li></ul>
+<ul><li>privateKey：私钥</li></ul>
+<p>返回：明文</p>
+<h3 id="rsaencrypt">RsaEncrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Models.RSAEncryptResultModel RsaEncrypt(System.String)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="rsaencrypt-1">RsaEncrypt</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String RsaEncrypt(System.String, System.String)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="rsaencryptwithblock">RsaEncryptWithBlock</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Models.RSAEncryptResultModel RsaEncryptWithBlock(System.String)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="rsaencryptwithblock-1">RsaEncryptWithBlock</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String RsaEncryptWithBlock(System.String, System.String)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="rsasigndata">RsaSignData</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String RsaSignData(System.String, System.String)</code></pre></div>
+<p>M.Simple.Expand扩展RSA生成签名</p>
+<ul><li>plainText：明文</li></ul>
+<ul><li>encryptKey：秘钥</li></ul>
+<p>返回：签名密文</p>
+<h3 id="rsaverifydata">RsaVerifyData</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean RsaVerifyData(System.String, System.String, System.String)</code></pre></div>
+<p>M.Simple.Expand扩展RSA生成签名</p>
+<ul><li>plainText：明文</li></ul>
+<ul><li>autograph：签名密文</li></ul>
+<ul><li>publickey：公钥</li></ul>
+<p>返回：签名密文</p>
+<h3 id="setconfigurationbasepath">SetConfigurationBasePath</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Microsoft.Extensions.Configuration.IConfigurationBuilder SetConfigurationBasePath(Microsoft.Extensions.Configuration.IConfigurationBuilder, System.String)</code></pre></div>
+<p>M.Simple.Expand扩展自定义扩展方法，模拟 SetBasePath 的功能</p>
+<h3 id="setstringvalue">SetStringValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void SetStringValue(System.Reflection.PropertyInfo, System.Object, System.String)</code></pre></div>
+<p>M.Simple.Expand扩展设置属性的值</p>
+<h3 id="shuffle">Shuffle</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] Shuffle[T](System.Collections.Generic.IEnumerable`1[T])</code></pre></div>
+<p>M.Simple.Expand扩展随机打乱集合元素顺序</p>
+<h3 id="splitbatch">SplitBatch</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[System.Collections.Generic.IEnumerable`1[T]] SplitBatch[T](System.Collections.Generic.IEnumerable`1[T], Int32)</code></pre></div>
+<p>M.Simple.Expand扩展按批次处理集合</p>
+<ul><li>batchSize：每批次大小</li></ul>
+<h3 id="swapcase">SwapCase</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String SwapCase(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展大小写字母互转（大写转小写，小写转大写）</p>
+<ul><li>str：任意字符串</li></ul>
+<p>返回：大小写互换后的字符串</p>
+<h3 id="takelast">TakeLast</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] TakeLast[T](System.Collections.Generic.IEnumerable`1[T], Int32)</code></pre></div>
+<p>M.Simple.Expand扩展取集合最后 N 条元素（无需全遍历，性能优化）</p>
+<h3 id="tochinese">ToChinese</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToChinese(System.Decimal)</code></pre></div>
+<p>M.Simple.Expand扩展数据转中文大写：四舍五入后保留两位小数</p>
+<h3 id="tochinesedatestring">ToChineseDateString</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToChineseDateString(System.DateTime)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tochinesedatestring-1">ToChineseDateString</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToChineseDateString(System.Nullable`1[System.DateTime])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tochinesedatestring-2">ToChineseDateString</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToChineseDateString(System.Nullable`1[System.DateTime], System.DateTime)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tochinesedatetimestring">ToChineseDateTimeString</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToChineseDateTimeString(System.DateTime, Boolean)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tochinesedatetimestring-1">ToChineseDateTimeString</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToChineseDateTimeString(System.Nullable`1[System.DateTime], Boolean)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tochinesedatetimestring-2">ToChineseDateTimeString</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToChineseDateTimeString(System.Nullable`1[System.DateTime], System.DateTime, Boolean)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tocomboboxs">ToComboBoxs</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Models.ComboBoxIntViewModel ToComboBoxs[T](M.Simple.Expand.Models.ComboBoxIntViewModel, System.Collections.Generic.IEnumerable`1[System.Int32])</code></pre></div>
+<p>M.Simple.Expand扩展将枚举类转换成下拉列表</p>
+<ul><li>values：指定值集合</li></ul>
+<h3 id="tocover">ToCover</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToCover(System.String, Char)</code></pre></div>
+<p>M.Simple.Expand扩展隐藏部分字符</p>
+<h3 id="todbc">ToDBC</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToDBC(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展全角转半角的函数(DBC case)</p>
+<ul><li>input：任意字符串</li></ul>
+<p>返回：半角字符串</p>
+<h3 id="todatatable">ToDataTable</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Data.DataTable ToDataTable(System.Collections.IList)</code></pre></div>
+<p>M.Simple.Expand扩展将List数据转换为DataTable</p>
+<h3 id="todefaultdate">ToDefaultDate</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToDefaultDate(System.DateTime)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="todefaultdate-1">ToDefaultDate</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToDefaultDate(System.Nullable`1[System.DateTime])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="todefaultdate-2">ToDefaultDate</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToDefaultDate(System.Nullable`1[System.DateTime], System.DateTime)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="todictionarysafe">ToDictionarySafe</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.Dictionary`2[TKey,T] ToDictionarySafe[T,TKey](System.Collections.Generic.IEnumerable`1[T], System.Func`2[T,TKey], System.Collections.Generic.IEqualityComparer`1[TKey])</code></pre></div>
+<p>M.Simple.Expand扩展转换为字典（重复键时取最后一个值）</p>
+<h3 id="todictionarys">ToDictionarys</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.Dictionary`2[TKey,TValue] ToDictionarys[TModel,TKey,TValue](System.Collections.Generic.IEnumerable`1[TModel], System.Func`2[TModel,TKey], System.Func`2[TModel,TValue])</code></pre></div>
+<p>M.Simple.Expand扩展列表转换成字典(自动忽略重复数据)</p>
+<ul><li>list：列表</li></ul>
+<ul><li>keySelector：用于从每个元素中提取键的函数</li></ul>
+<ul><li>elementSelector：用于从每个元素产生结果元素值的转换函数</li></ul>
+<p>返回：Value</p>
+<h3 id="toenum">ToEnum</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">T ToEnum[T](System.String)</code></pre></div>
+<p>M.Simple.Expand扩展根据字符串转成指定枚举值</p>
+<p>返回：返回指定枚举值</p>
+<h3 id="toenumtext">ToEnumText</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToEnumText[T](Int32)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="toenumtext-1">ToEnumText</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToEnumText[T](System.Nullable`1[System.Int32])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tofirstpinyin">ToFirstPinyin</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToFirstPinyin(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展汉字转化为拼音首字母</p>
+<ul><li>chineseStr：汉字</li></ul>
+<p>返回：首字母</p>
+<h3 id="toformatmoney">ToFormatMoney</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToFormatMoney(System.Decimal, M.Simple.Expand.Enums.FormatMoneyEnum)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="toformatmoney-1">ToFormatMoney</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToFormatMoney(System.Nullable`1[System.Decimal], M.Simple.Expand.Enums.FormatMoneyEnum)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tohashcode">ToHashCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 ToHashCode(System.String, System.Object[])</code></pre></div>
+<p>M.Simple.Expand扩展获取hashCode</p>
+<h3 id="toint32">ToInt32</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 ToInt32(System.Enum)</code></pre></div>
+<p>M.Simple.Expand扩展将枚举值转换为Int32</p>
+<ul><li>source：枚举值</li></ul>
+<h3 id="tolists">ToLists</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.List`1[T] ToLists[T](System.Data.DataTable)</code></pre></div>
+<p>M.Simple.Expand扩展将DataTable数据转换成List</p>
+<h3 id="tolunarcalendardate">ToLunarCalendarDate</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToLunarCalendarDate(System.DateTime)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tolunarcalendardate-1">ToLunarCalendarDate</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToLunarCalendarDate(System.Nullable`1[System.DateTime])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tolunarcalendardate-2">ToLunarCalendarDate</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToLunarCalendarDate(System.Nullable`1[System.DateTime], System.DateTime)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="topastcurrenttime">ToPastCurrentTime</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToPastCurrentTime(System.DateTime, System.Nullable`1[System.DateTime], M.Simple.Expand.Enums.LanguageEnum)</code></pre></div>
+<p>M.Simple.Expand扩展距离当前时间过去多久</p>
+<ul><li>language：语言：中文；英文</li></ul>
+<h3 id="topinyin">ToPinYin</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToPinYin(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展汉字转化为拼音</p>
+<ul><li>chineseStr：汉字</li></ul>
+<p>返回：全拼</p>
+<h3 id="toround">ToRound</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Decimal ToRound(System.Decimal, Int32)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="toround-1">ToRound</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Decimal ToRound(System.Nullable`1[System.Decimal], Int32)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="tosbc">ToSBC</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToSBC(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展半角转全角的函数(SBC case)</p>
+<ul><li>input：任意字符串</li></ul>
+<p>返回：全角字符串</p>
+<h3 id="totextdescriptions">ToTextDescriptions</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IDictionary`2[System.String,System.String] ToTextDescriptions(System.Type)</code></pre></div>
+<p>M.Simple.Expand扩展 转成枚举字符串值(Text)及描述值的字典</p>
+<p>返回：枚举字符串值(Text)及描述值的字典</p>
+<h3 id="totimestampcode">ToTimesTampCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToTimesTampCode(System.DateTime)</code></pre></div>
+<p>M.Simple.Expand扩展时间戳编码</p>
+<p>返回：yyyyMMddHHmmssfff</p>
+<h3 id="tovaluedescriptions">ToValueDescriptions</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IDictionary`2[System.Int32,System.String] ToValueDescriptions(System.Type)</code></pre></div>
+<p>M.Simple.Expand扩展转成枚举值(Value)及描述值的字典</p>
+<p>返回：枚举值(Value)及描述值的字典</p>
+<h3 id="trytoenum">TryToEnum</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean TryToEnum[T](System.String, T ByRef)</code></pre></div>
+<p>M.Simple.Expand扩展根据字符串转成指定枚举值</p>
+<p>返回：返回指定枚举值</p>
+<h3 id="underlinetocamel">UnderlineToCamel</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String UnderlineToCamel(System.String)</code></pre></div>
+<p>M.Simple.Expand扩展下划线命名转驼峰命名（如：user_name → userName）</p>
+<h3 id="where">Where</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Data.DataTable Where(System.Data.DataTable, System.Func`2[System.Data.DataRow,System.Boolean])</code></pre></div>
+<p>M.Simple.Expand扩展根据条件筛选DataTable的行（类似Linq的Where）</p>
+<ul><li>dt：源DataTable</li></ul>
+<ul><li>predicate：筛选条件</li></ul>
+<p>返回：筛选后的新DataTable</p>
+<h3 id="wherenotnull">WhereNotNull</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] WhereNotNull[T](System.Collections.Generic.IEnumerable`1[System.Nullable`1[T]])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="wherenotnull-1">WhereNotNull</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[T] WhereNotNull[T](System.Collections.Generic.IEnumerable`1[T])</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandfastallpropertiesequalitycomparer1">M.Simple.Expand.FastAllPropertiesEqualityComparer`1</h2>
+<p>极致优化版：预编译委托获取属性值（替代反射）</p>
+<h3 id="fastallpropertiesequalitycomparer1">FastAllPropertiesEqualityComparer`1</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="equals">Equals</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean Equals(T, T)</code></pre></div>
+<h3 id="gethashcode">GetHashCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 GetHashCode(T)</code></pre></div>
+<h3 id="instance">Instance</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.FastAllPropertiesEqualityComparer`1[T] Instance</code></pre></div>
+<h2 id="msimpleexpandmodelsaesencryptresultmodel">M.Simple.Expand.Models.AESEncryptResultModel</h2>
+<p>AES加密结果模型</p>
+<h3 id="aesencryptresultmodel">AESEncryptResultModel</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="ciphertext">CipherText</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String CipherText</code></pre></div>
+<p>密文</p>
+<h3 id="iv">IV</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Byte[] IV</code></pre></div>
+<p>初始化向量</p>
+<h3 id="key">Key</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Byte[] Key</code></pre></div>
+<p>秘钥</p>
+<h2 id="msimpleexpandmodelscomboboxintmodel">M.Simple.Expand.Models.ComboBoxIntModel</h2>
+<p>M.Simple.Expand扩展下拉框 数值类型选项</p>
+<h3 id="comboboxintmodel">ComboBoxIntModel</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="text">Text</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String Text</code></pre></div>
+<p>文本</p>
+<h3 id="value">Value</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 Value</code></pre></div>
+<p>值</p>
+<h2 id="msimpleexpandmodelscomboboxintviewmodel">M.Simple.Expand.Models.ComboBoxIntViewModel</h2>
+<p>M.Simple.Expand扩展下拉框 数值类型选项</p>
+<h3 id="comboboxintviewmodel">ComboBoxIntViewModel</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="selectoptions">SelectOptions</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[M.Simple.Expand.Models.ComboBoxIntModel] SelectOptions</code></pre></div>
+<p>数值下拉框选项集</p>
+<h2 id="msimpleexpandmodelscomparesresults">M.Simple.Expand.Models.ComparesResults</h2>
+<p>M.Simple.Expand扩展实体对比结果模型</p>
+<h3 id="comparesresults">ComparesResults</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="filedname">FiledName</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FiledName</code></pre></div>
+<p>字段名称</p>
+<h3 id="filednewvalue">FiledNewValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FiledNewValue</code></pre></div>
+<p>修改后的值</p>
+<h3 id="filedoldvalue">FiledOldValue</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FiledOldValue</code></pre></div>
+<p>修改前的值</p>
+<h3 id="isadded">IsAdded</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Nullable`1[System.Boolean] IsAdded</code></pre></div>
+<p>是否新增</p>
+<h3 id="isdelete">IsDelete</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Nullable`1[System.Boolean] IsDelete</code></pre></div>
+<p>是否删除</p>
+<h3 id="ismodify-1">IsModify</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Nullable`1[System.Boolean] IsModify</code></pre></div>
+<p>是否修改</p>
+<h2 id="msimpleexpandmodelsdateperiod">M.Simple.Expand.Models.DatePeriod</h2>
+<p>M.Simple.Expand扩展日期集合</p>
+<h3 id="dateperiod">DatePeriod</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(System.DateTime, System.DateTime)</code></pre></div>
+<p>构造函数</p>
+<ul><li>startDate：开始日期</li></ul>
+<ul><li>endDate：结束日期</li></ul>
+<h3 id="enddate">EndDate</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime EndDate</code></pre></div>
+<p>结束日期</p>
+<h3 id="startdate">StartDate</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime StartDate</code></pre></div>
+<p>开始日期</p>
+<h2 id="msimpleexpandmodelsdatetimeperiod">M.Simple.Expand.Models.DateTimePeriod</h2>
+<p>M.Simple.Expand扩展日期时间集合</p>
+<h3 id="datetimeperiod">DateTimePeriod</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(System.DateTime, System.DateTime)</code></pre></div>
+<p>构造</p>
+<h3 id="endtime">EndTime</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime EndTime</code></pre></div>
+<p>结束时间</p>
+<h3 id="starttime">StartTime</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.DateTime StartTime</code></pre></div>
+<p>开始时间</p>
+<h2 id="msimpleexpandmodelsmd5encryptresultmodel">M.Simple.Expand.Models.MD5EncryptResultModel</h2>
+<p>MD5加密结果模型</p>
+<h3 id="md5encryptresultmodel">MD5EncryptResultModel</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="ciphertext-1">CipherText</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String CipherText</code></pre></div>
+<p>密文</p>
+<h3 id="encryptsecret">EncryptSecret</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String EncryptSecret</code></pre></div>
+<p>秘钥</p>
+<h2 id="msimpleexpandmodelsrsaencryptresultmodel">M.Simple.Expand.Models.RSAEncryptResultModel</h2>
+<p>AES加密结果模型</p>
+<h3 id="rsaencryptresultmodel">RSAEncryptResultModel</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="ciphertext-2">CipherText</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String CipherText</code></pre></div>
+<p>密文</p>
+<h3 id="privatekey">PrivateKey</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String PrivateKey</code></pre></div>
+<p>私钥</p>
+<h3 id="publickey">PublicKey</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String PublicKey</code></pre></div>
+<p>公钥</p>
+<h2 id="msimpleexpandmodelsrsakeymodel">M.Simple.Expand.Models.RSAKeyModel</h2>
+<p>密钥类</p>
+<ul><li>publicKey：共有key</li></ul>
+<ul><li>privateKey：私有key</li></ul>
+<h3 id="rsakeymodel">RSAKeyModel</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(System.String, System.String)</code></pre></div>
+<p>密钥类</p>
+<ul><li>publicKey：共有key</li></ul>
+<ul><li>privateKey：私有key</li></ul>
+<h3 id="privatekey-1">PrivateKey</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String PrivateKey</code></pre></div>
+<p>私有Key--可以加密也可以加密</p>
+<h3 id="publickey-1">PublicKey</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String PublicKey</code></pre></div>
+<p>公有Key---加密key</p>
+<h2 id="msimpleexpandpropertyequalitycomparer2">M.Simple.Expand.PropertyEqualityComparer`2</h2>
+<p>通用按属性比较的比较器（适用于任何类型按指定属性判断相等）</p>
+<h3 id="propertyequalitycomparer2">PropertyEqualityComparer`2</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(System.Func`2[T,TKey], System.Collections.Generic.IEqualityComparer`1[TKey])</code></pre></div>
+<p>构造函数</p>
+<ul><li>keySelector：要比较的属性（如 u =&gt; u.Id）</li></ul>
+<ul><li>keyComparer：属性的比较器（默认EqualityComparer.Default）</li></ul>
+<h3 id="equals-1">Equals</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean Equals(T, T)</code></pre></div>
+<h3 id="gethashcode-1">GetHashCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 GetHashCode(T)</code></pre></div>
+<h2 id="msimpleexpandservicesautowiredservice">M.Simple.Expand.Services.AutowiredService</h2>
+<p>M.Simple.Services服务类从容器装配service</p>
+<h3 id="autowiredservice">AutowiredService</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(System.IServiceProvider)</code></pre></div>
+<p>M.Simple.Services服务类从容器装配service</p>
+<h3 id="autowired">Autowired</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void Autowired(System.Object)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="autowired-1">Autowired</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void Autowired(System.Object, System.IServiceProvider)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandservicesemailservice">M.Simple.Expand.Services.EMailService</h2>
+<p>M.Simple.Services服务类邮件服务</p>
+<h3 id="emailservice">EMailService</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(M.Simple.Expand.Services.MailSettings)</code></pre></div>
+<p>构造</p>
+<h3 id="getsmtpclient">GetSmtpClient</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Net.Mail.SmtpClient GetSmtpClient(M.Simple.Expand.Services.MailSettings)</code></pre></div>
+<p>获取客户端</p>
+<h3 id="sendmail">SendMail</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.MailResult SendMail(M.Simple.Expand.Services.MailContent)</code></pre></div>
+<p>发送邮件</p>
+<h3 id="sendmailasync">SendMailAsync</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Threading.Tasks.Task`1[M.Simple.Expand.Services.MailResult] SendMailAsync(M.Simple.Expand.Services.MailContent)</code></pre></div>
+<p>发送邮件</p>
+<h3 id="settings">Settings</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.MailSettings Settings</code></pre></div>
+<p>邮件服务配置</p>
+<h2 id="msimpleexpandservicesftpclientservice">M.Simple.Expand.Services.FtpClientService</h2>
+<p>M.Simple.Services服务类ftp服务</p>
+<h3 id="ftpclientservice">FtpClientService</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(M.Simple.Expand.Services.FtpClientSettings)</code></pre></div>
+<p>构造</p>
+<h3 id="ftpdelete">FtpDelete</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpDelete(System.String)</code></pre></div>
+<p>M.Simple.Services服务类ftp：删除当前目录下的指定文件</p>
+<ul><li>fileName：文件名</li></ul>
+<h3 id="ftpdeleteasync">FtpDeleteAsync</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Threading.Tasks.Task`1[System.Boolean] FtpDeleteAsync(System.String, System.Threading.CancellationToken)</code></pre></div>
+<p>M.Simple.Services服务类ftp：删除当前目录下的指定文件</p>
+<ul><li>fileName：文件名</li></ul>
+<h3 id="ftpdirectoryexist">FtpDirectoryExist</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpDirectoryExist(System.String)</code></pre></div>
+<p>M.Simple.Services服务类 判断当前目录下指定的子目录是否存在</p>
+<ul><li>RemoteDirectoryName：指定的目录名</li></ul>
+<h3 id="ftpdownload">FtpDownload</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpDownload(System.String, System.String)</code></pre></div>
+<p>M.Simple.Services服务类ftp：下载文件</p>
+<ul><li>filePath：保存路径</li></ul>
+<ul><li>fileName：文件名称</li></ul>
+<h3 id="ftpdownloadasync">FtpDownloadAsync</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Threading.Tasks.Task`1[System.Boolean] FtpDownloadAsync(System.String, System.String, System.Threading.CancellationToken)</code></pre></div>
+<p>M.Simple.Services服务类ftp：下载文件</p>
+<ul><li>filePath：保存路径</li></ul>
+<ul><li>fileName：文件名称</li></ul>
+<h3 id="ftpfileexist">FtpFileExist</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpFileExist(System.String)</code></pre></div>
+<p>M.Simple.Services服务类判断当前目录下指定的文件是否存在</p>
+<ul><li>RemoteFileName：远程文件名</li></ul>
+<h3 id="ftpmakedirectory">FtpMakeDirectory</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpMakeDirectory(System.String)</code></pre></div>
+<p>M.Simple.Services服务类创建文件夹</p>
+<h3 id="ftprename">FtpReName</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpReName(System.String, System.String)</code></pre></div>
+<p>M.Simple.Services服务类重命名</p>
+<ul><li>currentFilename：当前文件名</li></ul>
+<ul><li>newFilename：新文件名</li></ul>
+<h3 id="ftpremovedirectory">FtpRemoveDirectory</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpRemoveDirectory(System.String)</code></pre></div>
+<p>M.Simple.Services服务类删除文件夹</p>
+<ul><li>folderName：文件夹名称</li></ul>
+<h3 id="ftpremovedirectoryasync">FtpRemoveDirectoryAsync</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Threading.Tasks.Task`1[System.Boolean] FtpRemoveDirectoryAsync(System.String, System.Threading.CancellationToken)</code></pre></div>
+<p>M.Simple.Services服务类删除文件夹</p>
+<ul><li>folderName：文件夹名称</li></ul>
+<h3 id="ftpupload">FtpUpload</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpUpload(System.String)</code></pre></div>
+<p>M.Simple.Services服务类ftp：上传文件到当前目录</p>
+<ul><li>filename：文件名(绝对路径)</li></ul>
+<h3 id="ftpuploadasync">FtpUploadAsync</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Threading.Tasks.Task`1[System.Boolean] FtpUploadAsync(System.String, System.Threading.CancellationToken)</code></pre></div>
+<p>M.Simple.Services服务类ftp：上传文件到当前目录</p>
+<ul><li>filename：文件名(绝对路径)</li></ul>
+<h3 id="getftpdirectorylist">GetFtpDirectoryList</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String[] GetFtpDirectoryList()</code></pre></div>
+<p>M.Simple.Services服务类 获取当前目录下所有的文件夹列表(仅文件夹)</p>
+<h3 id="getftpfilelist">GetFtpFileList</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.List`1[System.String] GetFtpFileList(System.String, System.String)</code></pre></div>
+<p>M.Simple.Services服务类获取当前目录下文件列表(仅文件)</p>
+<ul><li>mask：目标文件后缀名：eg:&quot;.xlsx,.xls&quot;</li></ul>
+<ul><li>fileReadingRules：目标文件读取规则：eg:&quot;_cg,_sx,_kc，只读取文件名中包含这些的文件&quot;</li></ul>
+<h3 id="getftpfilesize">GetFtpFileSize</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int64 GetFtpFileSize(System.String)</code></pre></div>
+<p>M.Simple.Services服务类获取指定文件大小</p>
+<h3 id="getftplistdirectorydetails">GetFtpListDirectoryDetails</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String[] GetFtpListDirectoryDetails()</code></pre></div>
+<p>M.Simple.Services服务类获取当前目录下明细(包含文件和文件夹)</p>
+<h3 id="gotoftpdirectory">GotoFtpDirectory</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void GotoFtpDirectory(System.String, Boolean)</code></pre></div>
+<p>M.Simple.Services服务类切换当前目录</p>
+<ul><li>IsRoot：true 绝对路径 false 相对路径</li></ul>
+<h3 id="resetftpclientsettings">ResetFtpClientSettings</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void ResetFtpClientSettings(M.Simple.Expand.Services.FtpClientSettings)</code></pre></div>
+<p>重新设置ftp服务配置</p>
+<h3 id="settings-1">Settings</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.FtpClientSettings Settings</code></pre></div>
+<p>ftp服务配置</p>
+<h2 id="msimpleexpandservicesftpclientsettings">M.Simple.Expand.Services.FtpClientSettings</h2>
+<p>M.Simple.Services服务类ftp配置</p>
+<h3 id="ftpclientsettings">FtpClientSettings</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="ftppassword">FtpPassword</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FtpPassword</code></pre></div>
+<p>ftp密码</p>
+<h3 id="ftpremotepath">FtpRemotePath</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FtpRemotePath</code></pre></div>
+<p>ftp根目录（指定FTP连接成功后的当前目录, 如果不指定即默认为根目录）</p>
+<h3 id="ftpserverip">FtpServerIP</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FtpServerIP</code></pre></div>
+<p>ftp服务地址</p>
+<h3 id="ftpurl">FtpUrl</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FtpUrl</code></pre></div>
+<p>ftpUrl</p>
+<h3 id="ftpuserid">FtpUserID</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FtpUserID</code></pre></div>
+<p>ftp用户名</p>
+<h2 id="msimpleexpandservicesiemailservice">M.Simple.Expand.Services.IEMailService</h2>
+<p>M.Simple.Services服务类邮件服务接口</p>
+<h3 id="getsmtpclient-1">GetSmtpClient</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Net.Mail.SmtpClient GetSmtpClient(M.Simple.Expand.Services.MailSettings)</code></pre></div>
+<p>M.Simple.Services服务类获取邮件服务客户端</p>
+<h3 id="sendmail-1">SendMail</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.MailResult SendMail(M.Simple.Expand.Services.MailContent)</code></pre></div>
+<p>M.Simple.Services服务类发送邮件</p>
+<h3 id="sendmailasync-1">SendMailAsync</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Threading.Tasks.Task`1[M.Simple.Expand.Services.MailResult] SendMailAsync(M.Simple.Expand.Services.MailContent)</code></pre></div>
+<p>M.Simple.Services服务类发送邮件（异步）</p>
+<h2 id="msimpleexpandservicesiftpclientservice">M.Simple.Expand.Services.IFtpClientService</h2>
+<p>M.Simple.Services服务类ftp服务接口</p>
+<h3 id="ftpdelete-1">FtpDelete</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpDelete(System.String)</code></pre></div>
+<p>M.Simple.Services服务类ftp：删除当前目录下的指定文件</p>
+<ul><li>fileName：文件名</li></ul>
+<h3 id="ftpdeleteasync-1">FtpDeleteAsync</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Threading.Tasks.Task`1[System.Boolean] FtpDeleteAsync(System.String, System.Threading.CancellationToken)</code></pre></div>
+<p>M.Simple.Services服务类ftp：删除当前目录下的指定文件</p>
+<ul><li>fileName：文件名</li></ul>
+<h3 id="ftpdirectoryexist-1">FtpDirectoryExist</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpDirectoryExist(System.String)</code></pre></div>
+<p>M.Simple.Services服务类 判断当前目录下指定的子目录是否存在</p>
+<ul><li>RemoteDirectoryName：指定的目录名</li></ul>
+<h3 id="ftpdownload-1">FtpDownload</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpDownload(System.String, System.String)</code></pre></div>
+<p>M.Simple.Services服务类ftp：下载文件</p>
+<ul><li>filePath：保存路径</li></ul>
+<ul><li>fileName：文件名称</li></ul>
+<h3 id="ftpdownloadasync-1">FtpDownloadAsync</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Threading.Tasks.Task`1[System.Boolean] FtpDownloadAsync(System.String, System.String, System.Threading.CancellationToken)</code></pre></div>
+<p>M.Simple.Services服务类ftp：下载文件</p>
+<ul><li>filePath：保存路径</li></ul>
+<ul><li>fileName：文件名称</li></ul>
+<h3 id="ftpfileexist-1">FtpFileExist</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpFileExist(System.String)</code></pre></div>
+<p>M.Simple.Services服务类判断当前目录下指定的文件是否存在</p>
+<ul><li>RemoteFileName：远程文件名</li></ul>
+<h3 id="ftpmakedirectory-1">FtpMakeDirectory</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpMakeDirectory(System.String)</code></pre></div>
+<p>M.Simple.Services服务类创建文件夹</p>
+<h3 id="ftprename-1">FtpReName</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpReName(System.String, System.String)</code></pre></div>
+<p>M.Simple.Services服务类重命名</p>
+<ul><li>currentFilename：当前文件名</li></ul>
+<ul><li>newFilename：新文件名</li></ul>
+<h3 id="ftpremovedirectory-1">FtpRemoveDirectory</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpRemoveDirectory(System.String)</code></pre></div>
+<p>M.Simple.Services服务类删除文件夹</p>
+<ul><li>folderName：文件夹名称</li></ul>
+<h3 id="ftpremovedirectoryasync-1">FtpRemoveDirectoryAsync</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Threading.Tasks.Task`1[System.Boolean] FtpRemoveDirectoryAsync(System.String, System.Threading.CancellationToken)</code></pre></div>
+<p>M.Simple.Services服务类删除文件夹</p>
+<ul><li>folderName：文件夹名称</li></ul>
+<h3 id="ftpupload-1">FtpUpload</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FtpUpload(System.String)</code></pre></div>
+<p>M.Simple.Services服务类ftp：上传文件到当前目录</p>
+<ul><li>filename：文件名(绝对路径)</li></ul>
+<h3 id="ftpuploadasync-1">FtpUploadAsync</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Threading.Tasks.Task`1[System.Boolean] FtpUploadAsync(System.String, System.Threading.CancellationToken)</code></pre></div>
+<p>M.Simple.Services服务类ftp：上传文件到当前目录</p>
+<ul><li>filename：文件名(绝对路径)</li></ul>
+<h3 id="getftpdirectorylist-1">GetFtpDirectoryList</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String[] GetFtpDirectoryList()</code></pre></div>
+<p>M.Simple.Services服务类 获取当前目录下所有的文件夹列表(仅文件夹)</p>
+<h3 id="getftpfilelist-1">GetFtpFileList</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.List`1[System.String] GetFtpFileList(System.String, System.String)</code></pre></div>
+<p>M.Simple.Services服务类获取当前目录下文件列表(仅文件)</p>
+<ul><li>mask：目标文件后缀名：eg:&quot;.xlsx,.xls&quot;</li></ul>
+<ul><li>fileReadingRules：目标文件读取规则：eg:&quot;_cg,_sx,_kc，只读取文件名中包含这些的文件&quot;</li></ul>
+<h3 id="getftpfilesize-1">GetFtpFileSize</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int64 GetFtpFileSize(System.String)</code></pre></div>
+<p>M.Simple.Services服务类获取指定文件大小</p>
+<h3 id="getftplistdirectorydetails-1">GetFtpListDirectoryDetails</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String[] GetFtpListDirectoryDetails()</code></pre></div>
+<p>M.Simple.Services服务类获取当前目录下明细(包含文件和文件夹)</p>
+<h3 id="gotoftpdirectory-1">GotoFtpDirectory</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void GotoFtpDirectory(System.String, Boolean)</code></pre></div>
+<p>M.Simple.Services服务类切换当前目录</p>
+<ul><li>IsRoot：true 绝对路径 false 相对路径</li></ul>
+<h3 id="resetftpclientsettings-1">ResetFtpClientSettings</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void ResetFtpClientSettings(M.Simple.Expand.Services.FtpClientSettings)</code></pre></div>
+<p>重新设置ftp服务配置</p>
+<h2 id="msimpleexpandservicesmailcontent">M.Simple.Expand.Services.MailContent</h2>
+<p>M.Simple.Services服务类邮件内容</p>
+<h3 id="mailcontent">MailContent</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="attachmentpaths">AttachmentPaths</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.List`1[System.String] AttachmentPaths</code></pre></div>
+<p>附件</p>
+<h3 id="bccaddresses">BccAddresses</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String BccAddresses</code></pre></div>
+<p>密送地址</p>
+<h3 id="body">Body</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String Body</code></pre></div>
+<p>内容</p>
+<h3 id="ccaddresses">CcAddresses</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String CcAddresses</code></pre></div>
+<p>抄送地址</p>
+<h3 id="ishtml">IsHTML</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean IsHTML</code></pre></div>
+<p>是否Html格式</p>
+<h3 id="replytoaddresses">ReplyToAddresses</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ReplyToAddresses</code></pre></div>
+<p>ReplyToAddresses</p>
+<h3 id="subject">Subject</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String Subject</code></pre></div>
+<p>主题</p>
+<h3 id="toaddresses">ToAddresses</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ToAddresses</code></pre></div>
+<p>收件人邮件地址</p>
+<h2 id="msimpleexpandservicesmaildeliveryoptions">M.Simple.Expand.Services.MailDeliveryOptions</h2>
+<p>M.Simple.Services服务类邮件发送选项</p>
+<h3 id="specifiedpickupdirectory">SpecifiedPickUpDirectory</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.MailDeliveryOptions SpecifiedPickUpDirectory</code></pre></div>
+<p>指定PickUp目录</p>
+<h3 id="useiispickupdirectory">UseIISPickUpDirectory</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.MailDeliveryOptions UseIISPickUpDirectory</code></pre></div>
+<p>使用IIS目录</p>
+<h3 id="usenetworksmtp">UseNetworkSmtp</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.MailDeliveryOptions UseNetworkSmtp</code></pre></div>
+<p>使用网络Smtp</p>
+<h3 id="value__-3">value__</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 value__</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandservicesmailresult">M.Simple.Expand.Services.MailResult</h2>
+<p>M.Simple.Services服务类邮件发送接口模型</p>
+<h3 id="mailresult">MailResult</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="mailresult-1">MailResult</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(System.String)</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="errormsg">ErrorMsg</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String ErrorMsg</code></pre></div>
+<p>错误消息</p>
+<h3 id="status">Status</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.MailStatus Status</code></pre></div>
+<p>邮件发送状态</p>
+<h2 id="msimpleexpandservicesmailsettings">M.Simple.Expand.Services.MailSettings</h2>
+<p>M.Simple.Services服务类邮件服务配置</p>
+<h3 id="mailsettings">MailSettings</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="deliveryoption">DeliveryOption</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.MailDeliveryOptions DeliveryOption</code></pre></div>
+<p>邮件发送选项</p>
+<h3 id="enablessl">EnableSSL</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean EnableSSL</code></pre></div>
+<p>是否启用SSL验证</p>
+<h3 id="fromaddress">FromAddress</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String FromAddress</code></pre></div>
+<p>发件人邮箱地址</p>
+<h3 id="getcredential">GetCredential</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Net.NetworkCredential GetCredential</code></pre></div>
+<p>获得凭证</p>
+<h3 id="password-1">Password</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String Password</code></pre></div>
+<p>密码</p>
+<h3 id="portnumber">PortNumber</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 PortNumber</code></pre></div>
+<p>端口</p>
+<h3 id="requireauth">RequireAuth</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean RequireAuth</code></pre></div>
+<p>验证授权</p>
+<h3 id="specifiedpickupdirectorypath">SpecifiedPickUpDirectoryPath</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String SpecifiedPickUpDirectoryPath</code></pre></div>
+<p>指定目录路径</p>
+<h3 id="stmphostserver">StmpHostServer</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String StmpHostServer</code></pre></div>
+<p>smtp主机服务器</p>
+<h3 id="username">Username</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String Username</code></pre></div>
+<p>用户名</p>
+<h2 id="msimpleexpandservicesmailstatus">M.Simple.Expand.Services.MailStatus</h2>
+<p>M.Simple.Services服务类邮件状态</p>
+<h3 id="failure">Failure</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.MailStatus Failure</code></pre></div>
+<p>失败</p>
+<h3 id="success">Success</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">M.Simple.Expand.Services.MailStatus Success</code></pre></div>
+<p>成功</p>
+<h3 id="value__-4">value__</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int32 value__</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h2 id="msimpleexpandshortcodegenerator">M.Simple.Expand.ShortCodeGenerator</h2>
+<p>短编码帮助</p>
+<h3 id="generateshortcode">GenerateShortCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GenerateShortCode()</code></pre></div>
+<p>生成Base62短编码（基于雪花ID）</p>
+<p>返回：11位唯一短编码</p>
+<h2 id="msimpleexpandsnowcodegenerator">M.Simple.Expand.SnowCodeGenerator</h2>
+<p>雪花编码帮助</p>
+<h3 id="snowcodegenerator">SnowCodeGenerator</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor()</code></pre></div>
+<p>重载或注释详情请对照功能手册与源码。</p>
+<h3 id="getsnowcode">GetSnowCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int64 GetSnowCode()</code></pre></div>
+<p>生成雪花编码</p>
+<h3 id="gettimestampsnowcode">GetTimeStampSnowCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GetTimeStampSnowCode()</code></pre></div>
+<p>生成雪花编码(包含时间戳)</p>
+<h2 id="msimpleexpandsnowflakeidgenerator">M.Simple.Expand.SnowflakeIdGenerator</h2>
+<h3 id="snowflakeidgenerator">SnowflakeIdGenerator</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(Int64)</code></pre></div>
+<p>初始化雪花算法生成器</p>
+<ul><li>workerId：机器ID（0-1023），分布式环境需保证唯一</li></ul>
+<h3 id="nextid">NextId</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int64 NextId()</code></pre></div>
+<p>生成雪花ID（64位长整型） 性能：单机每秒可生成数百万个ID，线程安全</p>
+<p>返回：唯一雪花ID</p>
+<h3 id="nextidstring">NextIdString</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String NextIdString()</code></pre></div>
+<p>转换雪花ID为字符串（可选）</p>
+<p>返回：字符串格式的雪花ID</p>
+<h2 id="msimpleexpanduniquecodegenerator">M.Simple.Expand.UniqueCodeGenerator</h2>
+<p>唯一编码帮助</p>
+<h3 id="generateguidcode">GenerateGuidCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GenerateGuidCode()</code></pre></div>
+<p>生成高性能唯一编码（Guid优化版） 格式：32位大写无分隔符（如：550E8400E29B41D4A716446655440000） 性能：单机每秒可生成百万级编码</p>
+<p>返回：32位唯一编码</p>
+<h3 id="generatetimestampguidcode">GenerateTimeStampGuidCode</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String GenerateTimeStampGuidCode()</code></pre></div>
+<p>生成带时间戳的唯一编码（可排序） 格式：时间戳(17位)+Guid后8位（如：20260305123045678+A7164466） 优势：可按时间排序，仍保证唯一性</p>
+<p>返回：带时间戳的唯一编码</p>
+<h2 id="msimplehelperftpclient">M.Simple.Helper.FtpClient</h2>
+<p>M.Simple.Helper帮助类FTP 帮助类</p>
+<h3 id="ftpclient">FtpClient</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void .ctor(System.String, System.String, System.String, System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类连接FTP</p>
+<ul><li>FtpServerIP：FTP连接地址</li></ul>
+<ul><li>FtpUserID：FTP用户名</li></ul>
+<ul><li>FtpPassword：FTP密码</li></ul>
+<ul><li>FtpRemotePath：指定FTP连接成功后的当前目录, 如果不指定即默认为根目录</li></ul>
+<h3 id="delete">Delete</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void Delete(System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类FTP：删除当前目录下的指定文件</p>
+<ul><li>fileName：文件名</li></ul>
+<h3 id="directoryexist">DirectoryExist</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean DirectoryExist(System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类 判断当前目录下指定的子目录是否存在</p>
+<ul><li>RemoteDirectoryName：指定的目录名</li></ul>
+<h3 id="download">Download</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void Download(System.String, System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类FTP：下载文件</p>
+<ul><li>filePath：保存路径</li></ul>
+<ul><li>fileName：文件名称</li></ul>
+<h3 id="fileexist">FileExist</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Boolean FileExist(System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类判断当前目录下指定的文件是否存在</p>
+<ul><li>RemoteFileName：远程文件名</li></ul>
+<h3 id="getdirectorylist">GetDirectoryList</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String[] GetDirectoryList()</code></pre></div>
+<p>M.Simple.Helper帮助类 获取当前目录下所有的文件夹列表(仅文件夹)</p>
+<h3 id="getfilelist">GetFileList</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.Collections.Generic.IEnumerable`1[System.String] GetFileList(System.String, System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类获取当前目录下文件列表(仅文件)</p>
+<ul><li>mask：目标文件后缀名：eg:&quot;.xlsx,.xls&quot;</li></ul>
+<ul><li>fileReadingRules：目标文件读取规则：eg:&quot;_cg,_sx,_kc，只读取文件名中包含这些的文件&quot;</li></ul>
+<h3 id="getfilesize">GetFileSize</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Int64 GetFileSize(System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类获取指定文件大小</p>
+<h3 id="getfilesdetaillist">GetFilesDetailList</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">System.String[] GetFilesDetailList()</code></pre></div>
+<p>M.Simple.Helper帮助类获取当前目录下明细(包含文件和文件夹)</p>
+<h3 id="gotodirectory">GotoDirectory</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void GotoDirectory(System.String, Boolean)</code></pre></div>
+<p>M.Simple.Helper帮助类切换当前目录</p>
+<ul><li>IsRoot：true 绝对路径 false 相对路径</li></ul>
+<h3 id="makedir">MakeDir</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void MakeDir(System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类创建文件夹</p>
+<h3 id="moviefile">MovieFile</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void MovieFile(System.String, System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类移动文件</p>
+<h3 id="rename">ReName</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void ReName(System.String, System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类重命名</p>
+<h3 id="removedirectory">RemoveDirectory</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void RemoveDirectory(System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类删除文件夹</p>
+<ul><li>folderName：文件夹名称</li></ul>
+<h3 id="upload">Upload</h3>
+<div class="code-block"><div class="code-toolbar"><span>text</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="text">Void Upload(System.String)</code></pre></div>
+<p>M.Simple.Helper帮助类FTP：上传文件到当前目录</p>
+<ul><li>filename：文件名</li></ul>
+<h2 id="源码目录索引">源码目录索引</h2>
+<h3 id="extensions">Extensions</h3>
+<ul><li><code>Extensions/Extensions.ConfigurationBuilder.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.DataTable.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.DateTime.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.Dictionary.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.Encrypt.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.EntityCompare.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.Enum.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.Guid.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.IList.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.Money.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.PropertyInjection.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.String.cs</code></li></ul>
+<ul><li><code>Extensions/Extensions.cs</code></li></ul>
+<h3 id="attributes">Attributes</h3>
+<ul><li><code>Attributes/AppServiceAttribute.cs</code></li></ul>
+<ul><li><code>Attributes/AutowiredAttribute.cs</code></li></ul>
+<ul><li><code>Attributes/CompareValueAttribute.cs</code></li></ul>
+<ul><li><code>Attributes/ModifyValueAttribute.cs</code></li></ul>
+<ul><li><code>Attributes/MyValidationAttribute.cs</code></li></ul>
+<h3 id="comparers">Comparers</h3>
+<ul><li><code>Comparers/FastAllPropertiesEqualityComparer.cs</code></li></ul>
+<ul><li><code>Comparers/PropertyEqualityComparer.cs</code></li></ul>
+<h3 id="models">Models</h3>
+<ul><li><code>Models/AESEncryptResultModel.cs</code></li></ul>
+<ul><li><code>Models/ComboBoxIntModel.cs</code></li></ul>
+<ul><li><code>Models/ComparesResults.cs</code></li></ul>
+<ul><li><code>Models/DateTimePeriod.cs</code></li></ul>
+<h3 id="services">Services</h3>
+<ul><li><code>Services/AutowiredService.cs</code></li></ul>
+<ul><li><code>Services/EMailManager/EMailService.cs</code></li></ul>
+<ul><li><code>Services/EMailManager/IEMailService.cs</code></li></ul>
+<ul><li><code>Services/EMailManager/MailContent.cs</code></li></ul>
+<ul><li><code>Services/EMailManager/MailEnum.cs</code></li></ul>
+<ul><li><code>Services/EMailManager/MailResult.cs</code></li></ul>
+<ul><li><code>Services/EMailManager/MailSettings.cs</code></li></ul>
+<ul><li><code>Services/FtpClientManager/FtpClientService.cs</code></li></ul>
+<ul><li><code>Services/FtpClientManager/FtpClientSettings.cs</code></li></ul>
+<ul><li><code>Services/FtpClientManager/IFtpClientService.cs</code></li></ul>
+<h3 id="helper">Helper</h3>
+<ul><li><code>Helper/ChineseCalendarHelper.cs</code></li></ul>
+<ul><li><code>Helper/EncryptHelper.cs</code></li></ul>
+<ul><li><code>Helper/FtpClient.cs</code></li></ul>
+<ul><li><code>Helper/Public/AppSetting.cs</code></li></ul>
+<ul><li><code>Helper/Public/SnowCodeGenerator.cs</code></li></ul><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#msimpleexpandappsetting">M.Simple.Expand.AppSetting</a><a class="toc-level-3" href="#configexist">ConfigExist</a><a class="toc-level-3" href="#getconfig">GetConfig</a><a class="toc-level-3" href="#getconfigboolean">GetConfigBoolean</a><a class="toc-level-3" href="#getconfigint32">GetConfigInt32</a><a class="toc-level-3" href="#getconfigsection">GetConfigSection</a><a class="toc-level-2" href="#msimpleexpandattributesappserviceattribute">M.Simple.Expand.Attributes.AppServiceAttribute</a><a class="toc-level-3" href="#appserviceattribute">AppServiceAttribute</a><a class="toc-level-3" href="#interfaceservicetype">InterfaceServiceType</a><a class="toc-level-3" href="#lifetime">Lifetime</a><a class="toc-level-3" href="#servicetype">ServiceType</a><a class="toc-level-2" href="#msimpleexpandattributesautowiredattribute">M.Simple.Expand.Attributes.AutowiredAttribute</a><a class="toc-level-3" href="#autowiredattribute">AutowiredAttribute</a><a class="toc-level-2" href="#msimpleexpandattributesbetweenvalue">M.Simple.Expand.Attributes.BetweenValue</a><a class="toc-level-3" href="#betweenvalue">BetweenValue</a><a class="toc-level-3" href="#isequalmaxvalue">IsEqualMaxValue</a><a class="toc-level-3" href="#isequalminvalue">IsEqualMinValue</a><a class="toc-level-3" href="#maxvalue">MaxValue</a><a class="toc-level-3" href="#minvalue">MinValue</a><a class="toc-level-2" href="#msimpleexpandattributescomparevalueattribute">M.Simple.Expand.Attributes.CompareValueAttribute</a><a class="toc-level-3" href="#comparevalueattribute">CompareValueAttribute</a><a class="toc-level-2" href="#msimpleexpandattributesgreaterthanminvalue">M.Simple.Expand.Attributes.GreaterThanMinValue</a><a class="toc-level-3" href="#greaterthanminvalue">GreaterThanMinValue</a><a class="toc-level-3" href="#isequalminvalue-1">IsEqualMinValue</a><a class="toc-level-3" href="#minvalue-1">MinValue</a><a class="toc-level-2" href="#msimpleexpandattributesisdatetime">M.Simple.Expand.Attributes.IsDateTime</a><a class="toc-level-3" href="#isdatetime">IsDateTime</a><a class="toc-level-2" href="#msimpleexpandattributesisemail">M.Simple.Expand.Attributes.IsEmail</a><a class="toc-level-3" href="#isemail">IsEmail</a><a class="toc-level-2" href="#msimpleexpandattributesisidcard">M.Simple.Expand.Attributes.IsIDcard</a><a class="toc-level-3" href="#isidcard">IsIDcard</a><a class="toc-level-2" href="#msimpleexpandattributesisint">M.Simple.Expand.Attributes.IsInt</a><a class="toc-level-3" href="#isint">IsInt</a><a class="toc-level-2" href="#msimpleexpandattributesismobile">M.Simple.Expand.Attributes.IsMobile</a><a class="toc-level-3" href="#ismobile">IsMobile</a><a class="toc-level-2" href="#msimpleexpandattributesistelephone">M.Simple.Expand.Attributes.IsTelephone</a><a class="toc-level-3" href="#istelephone">IsTelephone</a><a class="toc-level-2" href="#msimpleexpandattributesisurl">M.Simple.Expand.Attributes.IsUrl</a><a class="toc-level-3" href="#isurl">IsUrl</a><a class="toc-level-2" href="#msimpleexpandattributeslessthanmaxvalue">M.Simple.Expand.Attributes.LessThanMaxValue</a><a class="toc-level-3" href="#lessthanmaxvalue">LessThanMaxValue</a><a class="toc-level-3" href="#isequalmaxvalue-1">IsEqualMaxValue</a><a class="toc-level-3" href="#maxvalue-1">MaxValue</a><a class="toc-level-2" href="#msimpleexpandattributesmodifyvalueattribute">M.Simple.Expand.Attributes.ModifyValueAttribute</a><a class="toc-level-3" href="#modifyvalueattribute">ModifyValueAttribute</a><a class="toc-level-3" href="#flidname">FlidName</a><a class="toc-level-2" href="#msimpleexpandattributespassword">M.Simple.Expand.Attributes.Password</a><a class="toc-level-3" href="#password">Password</a><a class="toc-level-2" href="#msimpleexpandattributesregexmatch">M.Simple.Expand.Attributes.RegexMatch</a><a class="toc-level-3" href="#regexmatch">RegexMatch</a><a class="toc-level-3" href="#regexstr">RegexStr</a><a class="toc-level-2" href="#msimpleexpandattributesuserid">M.Simple.Expand.Attributes.UserId</a><a class="toc-level-3" href="#userid">UserId</a><a class="toc-level-2" href="#msimpleexpandenumsdiffmonthwayenum">M.Simple.Expand.Enums.DiffMonthWayEnum</a><a class="toc-level-3" href="#value__">value__</a><a class="toc-level-3" href="#简单">简单</a><a class="toc-level-3" href="#精确">精确</a><a class="toc-level-3" href="#跨月">跨月</a><a class="toc-level-2" href="#msimpleexpandenumsformatmoneyenum">M.Simple.Expand.Enums.FormatMoneyEnum</a><a class="toc-level-3" href="#c0">C0</a><a class="toc-level-3" href="#c0_en_us">C0_en_US</a><a class="toc-level-3" href="#c0_zh_cn">C0_zh_CN</a><a class="toc-level-3" href="#c1">C1</a><a class="toc-level-3" href="#c1_en_us">C1_en_US</a><a class="toc-level-3" href="#c1_zh_cn">C1_zh_CN</a><a class="toc-level-3" href="#c2">C2</a><a class="toc-level-3" href="#c2_en_us">C2_en_US</a><a class="toc-level-3" href="#c2_zh_cn">C2_zh_CN</a><a class="toc-level-3" href="#c3">C3</a><a class="toc-level-3" href="#c3_en_us">C3_en_US</a><a class="toc-level-3" href="#c3_zh_cn">C3_zh_CN</a><a class="toc-level-3" href="#c4">C4</a><a class="toc-level-3" href="#c4_en_us">C4_en_US</a><a class="toc-level-3" href="#c4_zh_cn">C4_zh_CN</a><a class="toc-level-3" href="#value__-1">value__</a><a class="toc-level-2" href="#msimpleexpandenumslanguageenum">M.Simple.Expand.Enums.LanguageEnum</a><a class="toc-level-3" href="#en_us">en_US</a><a class="toc-level-3" href="#value__-2">value__</a><a class="toc-level-3" href="#zh_cn">zh_CN</a><a class="toc-level-2" href="#msimpleexpandextensions">M.Simple.Expand.Extensions</a><a class="toc-level-3" href="#addappservices">AddAppServices</a><a class="toc-level-3" href="#addemailsetup">AddEMailSetup</a><a class="toc-level-3" href="#addftpclientsetup">AddFtpClientSetup</a><a class="toc-level-3" href="#addjsonfilewithbasepath">AddJsonFileWithBasePath</a><a class="toc-level-3" href="#aesdecrypt">AesDecrypt</a><a class="toc-level-3" href="#aesdecrypt-1">AesDecrypt</a><a class="toc-level-3" href="#aesencrypt">AesEncrypt</a><a class="toc-level-3" href="#aesencrypt-1">AesEncrypt</a><a class="toc-level-3" href="#aesencrypt-2">AesEncrypt</a><a class="toc-level-3" href="#byproperty">ByProperty</a><a class="toc-level-3" href="#calculateage">CalculateAge</a><a class="toc-level-3" href="#cameltounderline">CamelToUnderline</a><a class="toc-level-3" href="#ceilingspecial">CeilingSpecial</a><a class="toc-level-3" href="#comparemodel">CompareModel</a><a class="toc-level-3" href="#containsall">ContainsAll</a><a class="toc-level-3" href="#containsall-1">ContainsAll</a><a class="toc-level-3" href="#containsany">ContainsAny</a><a class="toc-level-3" href="#containsany-1">ContainsAny</a><a class="toc-level-3" href="#createbyproperty">CreateByProperty</a><a class="toc-level-3" href="#defaultempty">DefaultEmpty</a><a class="toc-level-3" href="#diffdays">DiffDays</a><a class="toc-level-3" href="#diffmonth">DiffMonth</a><a class="toc-level-3" href="#exceptitem">ExceptItem</a><a class="toc-level-3" href="#exceptitems">ExceptItems</a><a class="toc-level-3" href="#firstdayofweek">FirstDayOfWeek</a><a class="toc-level-3" href="#firstlettertoupper">FirstLetterToUpper</a><a class="toc-level-3" href="#flatten">Flatten</a><a class="toc-level-3" href="#getattributeoftype">GetAttributeOfType</a><a class="toc-level-3" href="#getdate">GetDate</a><a class="toc-level-3" href="#getdescription">GetDescription</a><a class="toc-level-3" href="#getdisplaydescription">GetDisplayDescription</a><a class="toc-level-3" href="#getdisplayname">GetDisplayName</a><a class="toc-level-3" href="#getemailaddressarray">GetEMailAddressArray</a><a class="toc-level-3" href="#getencryptsecret">GetEncryptSecret</a><a class="toc-level-3" href="#getfirstdayofmonth">GetFirstDayOfMonth</a><a class="toc-level-3" href="#getlastdayofmonth">GetLastDayOfMonth</a><a class="toc-level-3" href="#getlisthashcode">GetListHashCode</a><a class="toc-level-3" href="#getlisthashcode-1">GetListHashCode</a><a class="toc-level-3" href="#getlisthashcode-2">GetListHashCode</a><a class="toc-level-3" href="#getlisthashcode-3">GetListHashCode</a><a class="toc-level-3" href="#getlisthashcode-4">GetListHashCode</a><a class="toc-level-3" href="#getlisthashcode-5">GetListHashCode</a><a class="toc-level-3" href="#getnextguid">GetNextGuid</a><a class="toc-level-3" href="#getnohyphenstring">GetNoHyphenString</a><a class="toc-level-3" href="#getreallength">GetRealLength</a><a class="toc-level-3" href="#getstringvalue">GetStringValue</a><a class="toc-level-3" href="#getvalue">GetValue</a><a class="toc-level-3" href="#getvalueordefault">GetValueOrDefault</a><a class="toc-level-3" href="#groupbyselectfirst">GroupBySelectFirst</a><a class="toc-level-3" href="#groupbythensorttakefirst">GroupByThenSortTakeFirst</a><a class="toc-level-3" href="#hasatleast">HasAtLeast</a><a class="toc-level-3" href="#ismodify">IsModify</a><a class="toc-level-3" href="#isnullorempty">IsNullOrEmpty</a><a class="toc-level-3" href="#isnullorempty-1">IsNullOrEmpty</a><a class="toc-level-3" href="#isnulloremptyorwhitespace">IsNullOrEmptyOrWhiteSpace</a><a class="toc-level-3" href="#isoverlap">IsOverlap</a><a class="toc-level-3" href="#isoverlap-1">IsOverlap</a><a class="toc-level-3" href="#istoday">IsToday</a><a class="toc-level-3" href="#istomorrow">IsTomorrow</a><a class="toc-level-3" href="#isweekend">IsWeekend</a><a class="toc-level-3" href="#isworkday">IsWorkday</a><a class="toc-level-3" href="#isyesterday">IsYesterday</a><a class="toc-level-3" href="#lastdayofweek">LastDayOfWeek</a><a class="toc-level-3" href="#md5encrypt">MD5Encrypt</a><a class="toc-level-3" href="#md5saltencrypt">MD5SaltEncrypt</a><a class="toc-level-3" href="#md5saltencrypt-1">MD5SaltEncrypt</a><a class="toc-level-3" href="#md5saltverify">MD5SaltVerify</a><a class="toc-level-3" href="#md5verify">MD5Verify</a><a class="toc-level-3" href="#merge">Merge</a><a class="toc-level-3" href="#mergeignore">MergeIgnore</a><a class="toc-level-3" href="#mergeignores">MergeIgnores</a><a class="toc-level-3" href="#merges">Merges</a><a class="toc-level-3" href="#modifyfield">ModifyField</a><a class="toc-level-3" href="#moneystringtodecimal">MoneyStringToDecimal</a><a class="toc-level-3" href="#nextday">NextDay</a><a class="toc-level-3" href="#nextday-1">NextDay</a><a class="toc-level-3" href="#nextday-2">NextDay</a><a class="toc-level-3" href="#pervday">PervDay</a><a class="toc-level-3" href="#pervday-1">PervDay</a><a class="toc-level-3" href="#pervday-2">PervDay</a><a class="toc-level-3" href="#randomtake">RandomTake</a><a class="toc-level-3" href="#remove">Remove</a><a class="toc-level-3" href="#removepop">RemovePop</a><a class="toc-level-3" href="#removes">Removes</a><a class="toc-level-3" href="#reversestring">ReverseString</a><a class="toc-level-3" href="#rsadecrypt">RsaDecrypt</a><a class="toc-level-3" href="#rsadecryptwithblock">RsaDecryptWithBlock</a><a class="toc-level-3" href="#rsaencrypt">RsaEncrypt</a><a class="toc-level-3" href="#rsaencrypt-1">RsaEncrypt</a><a class="toc-level-3" href="#rsaencryptwithblock">RsaEncryptWithBlock</a><a class="toc-level-3" href="#rsaencryptwithblock-1">RsaEncryptWithBlock</a><a class="toc-level-3" href="#rsasigndata">RsaSignData</a><a class="toc-level-3" href="#rsaverifydata">RsaVerifyData</a><a class="toc-level-3" href="#setconfigurationbasepath">SetConfigurationBasePath</a><a class="toc-level-3" href="#setstringvalue">SetStringValue</a><a class="toc-level-3" href="#shuffle">Shuffle</a><a class="toc-level-3" href="#splitbatch">SplitBatch</a><a class="toc-level-3" href="#swapcase">SwapCase</a><a class="toc-level-3" href="#takelast">TakeLast</a><a class="toc-level-3" href="#tochinese">ToChinese</a><a class="toc-level-3" href="#tochinesedatestring">ToChineseDateString</a><a class="toc-level-3" href="#tochinesedatestring-1">ToChineseDateString</a><a class="toc-level-3" href="#tochinesedatestring-2">ToChineseDateString</a><a class="toc-level-3" href="#tochinesedatetimestring">ToChineseDateTimeString</a><a class="toc-level-3" href="#tochinesedatetimestring-1">ToChineseDateTimeString</a><a class="toc-level-3" href="#tochinesedatetimestring-2">ToChineseDateTimeString</a><a class="toc-level-3" href="#tocomboboxs">ToComboBoxs</a><a class="toc-level-3" href="#tocover">ToCover</a><a class="toc-level-3" href="#todbc">ToDBC</a><a class="toc-level-3" href="#todatatable">ToDataTable</a><a class="toc-level-3" href="#todefaultdate">ToDefaultDate</a><a class="toc-level-3" href="#todefaultdate-1">ToDefaultDate</a><a class="toc-level-3" href="#todefaultdate-2">ToDefaultDate</a><a class="toc-level-3" href="#todictionarysafe">ToDictionarySafe</a><a class="toc-level-3" href="#todictionarys">ToDictionarys</a><a class="toc-level-3" href="#toenum">ToEnum</a><a class="toc-level-3" href="#toenumtext">ToEnumText</a><a class="toc-level-3" href="#toenumtext-1">ToEnumText</a><a class="toc-level-3" href="#tofirstpinyin">ToFirstPinyin</a><a class="toc-level-3" href="#toformatmoney">ToFormatMoney</a><a class="toc-level-3" href="#toformatmoney-1">ToFormatMoney</a><a class="toc-level-3" href="#tohashcode">ToHashCode</a><a class="toc-level-3" href="#toint32">ToInt32</a><a class="toc-level-3" href="#tolists">ToLists</a><a class="toc-level-3" href="#tolunarcalendardate">ToLunarCalendarDate</a><a class="toc-level-3" href="#tolunarcalendardate-1">ToLunarCalendarDate</a><a class="toc-level-3" href="#tolunarcalendardate-2">ToLunarCalendarDate</a><a class="toc-level-3" href="#topastcurrenttime">ToPastCurrentTime</a><a class="toc-level-3" href="#topinyin">ToPinYin</a><a class="toc-level-3" href="#toround">ToRound</a><a class="toc-level-3" href="#toround-1">ToRound</a><a class="toc-level-3" href="#tosbc">ToSBC</a><a class="toc-level-3" href="#totextdescriptions">ToTextDescriptions</a><a class="toc-level-3" href="#totimestampcode">ToTimesTampCode</a><a class="toc-level-3" href="#tovaluedescriptions">ToValueDescriptions</a><a class="toc-level-3" href="#trytoenum">TryToEnum</a><a class="toc-level-3" href="#underlinetocamel">UnderlineToCamel</a><a class="toc-level-3" href="#where">Where</a><a class="toc-level-3" href="#wherenotnull">WhereNotNull</a><a class="toc-level-3" href="#wherenotnull-1">WhereNotNull</a><a class="toc-level-2" href="#msimpleexpandfastallpropertiesequalitycomparer1">M.Simple.Expand.FastAllPropertiesEqualityComparer1</a><a class="toc-level-3" href="#fastallpropertiesequalitycomparer1">FastAllPropertiesEqualityComparer1</a><a class="toc-level-3" href="#equals">Equals</a><a class="toc-level-3" href="#gethashcode">GetHashCode</a><a class="toc-level-3" href="#instance">Instance</a><a class="toc-level-2" href="#msimpleexpandmodelsaesencryptresultmodel">M.Simple.Expand.Models.AESEncryptResultModel</a><a class="toc-level-3" href="#aesencryptresultmodel">AESEncryptResultModel</a><a class="toc-level-3" href="#ciphertext">CipherText</a><a class="toc-level-3" href="#iv">IV</a><a class="toc-level-3" href="#key">Key</a><a class="toc-level-2" href="#msimpleexpandmodelscomboboxintmodel">M.Simple.Expand.Models.ComboBoxIntModel</a><a class="toc-level-3" href="#comboboxintmodel">ComboBoxIntModel</a><a class="toc-level-3" href="#text">Text</a><a class="toc-level-3" href="#value">Value</a><a class="toc-level-2" href="#msimpleexpandmodelscomboboxintviewmodel">M.Simple.Expand.Models.ComboBoxIntViewModel</a><a class="toc-level-3" href="#comboboxintviewmodel">ComboBoxIntViewModel</a><a class="toc-level-3" href="#selectoptions">SelectOptions</a><a class="toc-level-2" href="#msimpleexpandmodelscomparesresults">M.Simple.Expand.Models.ComparesResults</a><a class="toc-level-3" href="#comparesresults">ComparesResults</a><a class="toc-level-3" href="#filedname">FiledName</a><a class="toc-level-3" href="#filednewvalue">FiledNewValue</a><a class="toc-level-3" href="#filedoldvalue">FiledOldValue</a><a class="toc-level-3" href="#isadded">IsAdded</a><a class="toc-level-3" href="#isdelete">IsDelete</a><a class="toc-level-3" href="#ismodify-1">IsModify</a><a class="toc-level-2" href="#msimpleexpandmodelsdateperiod">M.Simple.Expand.Models.DatePeriod</a><a class="toc-level-3" href="#dateperiod">DatePeriod</a><a class="toc-level-3" href="#enddate">EndDate</a><a class="toc-level-3" href="#startdate">StartDate</a><a class="toc-level-2" href="#msimpleexpandmodelsdatetimeperiod">M.Simple.Expand.Models.DateTimePeriod</a><a class="toc-level-3" href="#datetimeperiod">DateTimePeriod</a><a class="toc-level-3" href="#endtime">EndTime</a><a class="toc-level-3" href="#starttime">StartTime</a><a class="toc-level-2" href="#msimpleexpandmodelsmd5encryptresultmodel">M.Simple.Expand.Models.MD5EncryptResultModel</a><a class="toc-level-3" href="#md5encryptresultmodel">MD5EncryptResultModel</a><a class="toc-level-3" href="#ciphertext-1">CipherText</a><a class="toc-level-3" href="#encryptsecret">EncryptSecret</a><a class="toc-level-2" href="#msimpleexpandmodelsrsaencryptresultmodel">M.Simple.Expand.Models.RSAEncryptResultModel</a><a class="toc-level-3" href="#rsaencryptresultmodel">RSAEncryptResultModel</a><a class="toc-level-3" href="#ciphertext-2">CipherText</a><a class="toc-level-3" href="#privatekey">PrivateKey</a><a class="toc-level-3" href="#publickey">PublicKey</a><a class="toc-level-2" href="#msimpleexpandmodelsrsakeymodel">M.Simple.Expand.Models.RSAKeyModel</a><a class="toc-level-3" href="#rsakeymodel">RSAKeyModel</a><a class="toc-level-3" href="#privatekey-1">PrivateKey</a><a class="toc-level-3" href="#publickey-1">PublicKey</a><a class="toc-level-2" href="#msimpleexpandpropertyequalitycomparer2">M.Simple.Expand.PropertyEqualityComparer2</a><a class="toc-level-3" href="#propertyequalitycomparer2">PropertyEqualityComparer2</a><a class="toc-level-3" href="#equals-1">Equals</a><a class="toc-level-3" href="#gethashcode-1">GetHashCode</a><a class="toc-level-2" href="#msimpleexpandservicesautowiredservice">M.Simple.Expand.Services.AutowiredService</a><a class="toc-level-3" href="#autowiredservice">AutowiredService</a><a class="toc-level-3" href="#autowired">Autowired</a><a class="toc-level-3" href="#autowired-1">Autowired</a><a class="toc-level-2" href="#msimpleexpandservicesemailservice">M.Simple.Expand.Services.EMailService</a><a class="toc-level-3" href="#emailservice">EMailService</a><a class="toc-level-3" href="#getsmtpclient">GetSmtpClient</a><a class="toc-level-3" href="#sendmail">SendMail</a><a class="toc-level-3" href="#sendmailasync">SendMailAsync</a><a class="toc-level-3" href="#settings">Settings</a><a class="toc-level-2" href="#msimpleexpandservicesftpclientservice">M.Simple.Expand.Services.FtpClientService</a><a class="toc-level-3" href="#ftpclientservice">FtpClientService</a><a class="toc-level-3" href="#ftpdelete">FtpDelete</a><a class="toc-level-3" href="#ftpdeleteasync">FtpDeleteAsync</a><a class="toc-level-3" href="#ftpdirectoryexist">FtpDirectoryExist</a><a class="toc-level-3" href="#ftpdownload">FtpDownload</a><a class="toc-level-3" href="#ftpdownloadasync">FtpDownloadAsync</a><a class="toc-level-3" href="#ftpfileexist">FtpFileExist</a><a class="toc-level-3" href="#ftpmakedirectory">FtpMakeDirectory</a><a class="toc-level-3" href="#ftprename">FtpReName</a><a class="toc-level-3" href="#ftpremovedirectory">FtpRemoveDirectory</a><a class="toc-level-3" href="#ftpremovedirectoryasync">FtpRemoveDirectoryAsync</a><a class="toc-level-3" href="#ftpupload">FtpUpload</a><a class="toc-level-3" href="#ftpuploadasync">FtpUploadAsync</a><a class="toc-level-3" href="#getftpdirectorylist">GetFtpDirectoryList</a><a class="toc-level-3" href="#getftpfilelist">GetFtpFileList</a><a class="toc-level-3" href="#getftpfilesize">GetFtpFileSize</a><a class="toc-level-3" href="#getftplistdirectorydetails">GetFtpListDirectoryDetails</a><a class="toc-level-3" href="#gotoftpdirectory">GotoFtpDirectory</a><a class="toc-level-3" href="#resetftpclientsettings">ResetFtpClientSettings</a><a class="toc-level-3" href="#settings-1">Settings</a><a class="toc-level-2" href="#msimpleexpandservicesftpclientsettings">M.Simple.Expand.Services.FtpClientSettings</a><a class="toc-level-3" href="#ftpclientsettings">FtpClientSettings</a><a class="toc-level-3" href="#ftppassword">FtpPassword</a><a class="toc-level-3" href="#ftpremotepath">FtpRemotePath</a><a class="toc-level-3" href="#ftpserverip">FtpServerIP</a><a class="toc-level-3" href="#ftpurl">FtpUrl</a><a class="toc-level-3" href="#ftpuserid">FtpUserID</a><a class="toc-level-2" href="#msimpleexpandservicesiemailservice">M.Simple.Expand.Services.IEMailService</a><a class="toc-level-3" href="#getsmtpclient-1">GetSmtpClient</a><a class="toc-level-3" href="#sendmail-1">SendMail</a><a class="toc-level-3" href="#sendmailasync-1">SendMailAsync</a><a class="toc-level-2" href="#msimpleexpandservicesiftpclientservice">M.Simple.Expand.Services.IFtpClientService</a><a class="toc-level-3" href="#ftpdelete-1">FtpDelete</a><a class="toc-level-3" href="#ftpdeleteasync-1">FtpDeleteAsync</a><a class="toc-level-3" href="#ftpdirectoryexist-1">FtpDirectoryExist</a><a class="toc-level-3" href="#ftpdownload-1">FtpDownload</a><a class="toc-level-3" href="#ftpdownloadasync-1">FtpDownloadAsync</a><a class="toc-level-3" href="#ftpfileexist-1">FtpFileExist</a><a class="toc-level-3" href="#ftpmakedirectory-1">FtpMakeDirectory</a><a class="toc-level-3" href="#ftprename-1">FtpReName</a><a class="toc-level-3" href="#ftpremovedirectory-1">FtpRemoveDirectory</a><a class="toc-level-3" href="#ftpremovedirectoryasync-1">FtpRemoveDirectoryAsync</a><a class="toc-level-3" href="#ftpupload-1">FtpUpload</a><a class="toc-level-3" href="#ftpuploadasync-1">FtpUploadAsync</a><a class="toc-level-3" href="#getftpdirectorylist-1">GetFtpDirectoryList</a><a class="toc-level-3" href="#getftpfilelist-1">GetFtpFileList</a><a class="toc-level-3" href="#getftpfilesize-1">GetFtpFileSize</a><a class="toc-level-3" href="#getftplistdirectorydetails-1">GetFtpListDirectoryDetails</a><a class="toc-level-3" href="#gotoftpdirectory-1">GotoFtpDirectory</a><a class="toc-level-3" href="#resetftpclientsettings-1">ResetFtpClientSettings</a><a class="toc-level-2" href="#msimpleexpandservicesmailcontent">M.Simple.Expand.Services.MailContent</a><a class="toc-level-3" href="#mailcontent">MailContent</a><a class="toc-level-3" href="#attachmentpaths">AttachmentPaths</a><a class="toc-level-3" href="#bccaddresses">BccAddresses</a><a class="toc-level-3" href="#body">Body</a><a class="toc-level-3" href="#ccaddresses">CcAddresses</a><a class="toc-level-3" href="#ishtml">IsHTML</a><a class="toc-level-3" href="#replytoaddresses">ReplyToAddresses</a><a class="toc-level-3" href="#subject">Subject</a><a class="toc-level-3" href="#toaddresses">ToAddresses</a><a class="toc-level-2" href="#msimpleexpandservicesmaildeliveryoptions">M.Simple.Expand.Services.MailDeliveryOptions</a><a class="toc-level-3" href="#specifiedpickupdirectory">SpecifiedPickUpDirectory</a><a class="toc-level-3" href="#useiispickupdirectory">UseIISPickUpDirectory</a><a class="toc-level-3" href="#usenetworksmtp">UseNetworkSmtp</a><a class="toc-level-3" href="#value__-3">value__</a><a class="toc-level-2" href="#msimpleexpandservicesmailresult">M.Simple.Expand.Services.MailResult</a><a class="toc-level-3" href="#mailresult">MailResult</a><a class="toc-level-3" href="#mailresult-1">MailResult</a><a class="toc-level-3" href="#errormsg">ErrorMsg</a><a class="toc-level-3" href="#status">Status</a><a class="toc-level-2" href="#msimpleexpandservicesmailsettings">M.Simple.Expand.Services.MailSettings</a><a class="toc-level-3" href="#mailsettings">MailSettings</a><a class="toc-level-3" href="#deliveryoption">DeliveryOption</a><a class="toc-level-3" href="#enablessl">EnableSSL</a><a class="toc-level-3" href="#fromaddress">FromAddress</a><a class="toc-level-3" href="#getcredential">GetCredential</a><a class="toc-level-3" href="#password-1">Password</a><a class="toc-level-3" href="#portnumber">PortNumber</a><a class="toc-level-3" href="#requireauth">RequireAuth</a><a class="toc-level-3" href="#specifiedpickupdirectorypath">SpecifiedPickUpDirectoryPath</a><a class="toc-level-3" href="#stmphostserver">StmpHostServer</a><a class="toc-level-3" href="#username">Username</a><a class="toc-level-2" href="#msimpleexpandservicesmailstatus">M.Simple.Expand.Services.MailStatus</a><a class="toc-level-3" href="#failure">Failure</a><a class="toc-level-3" href="#success">Success</a><a class="toc-level-3" href="#value__-4">value__</a><a class="toc-level-2" href="#msimpleexpandshortcodegenerator">M.Simple.Expand.ShortCodeGenerator</a><a class="toc-level-3" href="#generateshortcode">GenerateShortCode</a><a class="toc-level-2" href="#msimpleexpandsnowcodegenerator">M.Simple.Expand.SnowCodeGenerator</a><a class="toc-level-3" href="#snowcodegenerator">SnowCodeGenerator</a><a class="toc-level-3" href="#getsnowcode">GetSnowCode</a><a class="toc-level-3" href="#gettimestampsnowcode">GetTimeStampSnowCode</a><a class="toc-level-2" href="#msimpleexpandsnowflakeidgenerator">M.Simple.Expand.SnowflakeIdGenerator</a><a class="toc-level-3" href="#snowflakeidgenerator">SnowflakeIdGenerator</a><a class="toc-level-3" href="#nextid">NextId</a><a class="toc-level-3" href="#nextidstring">NextIdString</a><a class="toc-level-2" href="#msimpleexpanduniquecodegenerator">M.Simple.Expand.UniqueCodeGenerator</a><a class="toc-level-3" href="#generateguidcode">GenerateGuidCode</a><a class="toc-level-3" href="#generatetimestampguidcode">GenerateTimeStampGuidCode</a><a class="toc-level-2" href="#msimplehelperftpclient">M.Simple.Helper.FtpClient</a><a class="toc-level-3" href="#ftpclient">FtpClient</a><a class="toc-level-3" href="#delete">Delete</a><a class="toc-level-3" href="#directoryexist">DirectoryExist</a><a class="toc-level-3" href="#download">Download</a><a class="toc-level-3" href="#fileexist">FileExist</a><a class="toc-level-3" href="#getdirectorylist">GetDirectoryList</a><a class="toc-level-3" href="#getfilelist">GetFileList</a><a class="toc-level-3" href="#getfilesize">GetFileSize</a><a class="toc-level-3" href="#getfilesdetaillist">GetFilesDetailList</a><a class="toc-level-3" href="#gotodirectory">GotoDirectory</a><a class="toc-level-3" href="#makedir">MakeDir</a><a class="toc-level-3" href="#moviefile">MovieFile</a><a class="toc-level-3" href="#rename">ReName</a><a class="toc-level-3" href="#removedirectory">RemoveDirectory</a><a class="toc-level-3" href="#upload">Upload</a><a class="toc-level-2" href="#源码目录索引">源码目录索引</a><a class="toc-level-3" href="#extensions">Extensions</a><a class="toc-level-3" href="#attributes">Attributes</a><a class="toc-level-3" href="#comparers">Comparers</a><a class="toc-level-3" href="#models">Models</a><a class="toc-level-3" href="#services">Services</a><a class="toc-level-3" href="#helper">Helper</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

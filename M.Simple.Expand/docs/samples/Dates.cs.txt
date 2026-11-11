@@ -1,0 +1,22 @@
+using M.Simple.Expand;
+using M.Simple.Expand.Models;
+
+static partial class Demo
+{
+    public static void Dates()
+    {
+        var date = new DateTime(2026, 11, 11, 10, 30, 0);
+        Console.WriteLine(date.ToDefaultDate());
+        Console.WriteLine(date.GetFirstDayOfMonth().ToString("yyyy-MM-dd"));
+        Console.WriteLine(date.GetLastDayOfMonth().ToString("yyyy-MM-dd"));
+        Console.WriteLine(date.NextDay().ToDefaultDate());
+        Console.WriteLine($"相差天数：{date.DiffDays(date.AddDays(3))}");
+        var periods = new List<DateTimePeriod>
+        {
+            new(date, date.AddHours(2)),
+            new(date.AddHours(1), date.AddHours(3))
+        };
+        Check(periods.IsOverlap(), "时间区间重叠");
+        Check(date.GetLastDayOfMonth().Day == 30, "月末");
+    }
+}

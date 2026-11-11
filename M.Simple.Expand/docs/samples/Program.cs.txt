@@ -1,0 +1,48 @@
+using System.Globalization;
+
+CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("zh-CN");
+if (args.FirstOrDefault() == "--write-api")
+{
+    ApiReference.Write(args[1]);
+    return 0;
+}
+var scenes = new Dictionary<string, Action>
+{
+    ["strings"] = Demo.Strings,
+    ["chinese"] = Demo.Chinese,
+    ["datetime"] = Demo.Dates,
+    ["money"] = Demo.Money,
+    ["collections"] = Demo.Collections,
+    ["dictionary"] = Demo.Dictionary,
+    ["enums"] = Demo.Enums,
+    ["datatable"] = Demo.DataTable,
+    ["comparison"] = Demo.Comparison,
+    ["crypto"] = Demo.Crypto,
+    ["configuration"] = Demo.Configuration,
+    ["di"] = Demo.DependencyInjection,
+    ["services"] = Demo.Services,
+    ["identifiers"] = Demo.Identifiers,
+    ["validation"] = Demo.Validation
+};
+var selected = args.FirstOrDefault() ?? "all";
+if (selected != "all" && !scenes.ContainsKey(selected))
+{
+    Console.Error.WriteLine("可选场景：all | " + string.Join(" | ", scenes.Keys));
+    return 1;
+}
+foreach (var (name, action) in scenes)
+{
+    if (selected != "all" && selected != name) continue;
+    Console.WriteLine($"\n[{name}]");
+    action();
+}
+Console.WriteLine("\n示例执行完成；未发送邮件、连接 FTP 或访问业务数据库。");
+return 0;
+
+static partial class Demo
+{
+    private static void Check(bool result, string message)
+    {
+        if (!result) throw new InvalidOperationException("示例断言失败：" + message);
+    }
+}

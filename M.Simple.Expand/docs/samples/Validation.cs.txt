@@ -1,0 +1,18 @@
+using System.ComponentModel.DataAnnotations;
+using M.Simple.Expand.Attributes;
+
+static partial class Demo
+{
+    public static void Validation()
+    {
+        var model = new SampleContact { Email = "reader@example.com", Mobile = "13812345678" };
+        var errors = new List<ValidationResult>();
+        Check(Validator.TryValidateObject(model, new ValidationContext(model), errors, true), "数据注解校验");
+        Console.WriteLine("邮箱与手机号 DataAnnotations 校验通过");
+    }
+}
+public class SampleContact
+{
+    [Required, IsEmail] public string Email { get; set; } = "";
+    [Required, IsMobile] public string Mobile { get; set; } = "";
+}

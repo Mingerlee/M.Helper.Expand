@@ -1,0 +1,15 @@
+using M.Simple.Expand;
+using M.Simple.Expand.Enums;
+
+static partial class Demo
+{
+    public static void Money()
+    {
+        Console.WriteLine(1234.56m.ToChinese());
+        Console.WriteLine(1234.56m.ToFormatMoney(FormatMoneyEnum.C2_zh_CN));
+        Console.WriteLine($"四舍五入：{1.235m.ToRound(2)}");
+        Console.WriteLine($"向上取整：{1.231m.CeilingSpecial(2)}");
+        Check(1.235m.ToRound(2) == 1.24m, "AwayFromZero 舍入");
+        Check(((decimal?)null).ToRound(2) == 0, "可空金额");
+    }
+}

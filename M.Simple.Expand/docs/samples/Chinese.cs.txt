@@ -1,0 +1,13 @@
+using M.Simple.Expand;
+
+static partial class Demo
+{
+    public static void Chinese()
+    {
+        Console.WriteLine("中国".ToPinYin());
+        Console.WriteLine("中国".ToFirstPinyin());
+        Console.WriteLine(new DateTime(2026, 11, 11).ToChineseDateString());
+        Console.WriteLine(new DateTime(2026, 11, 11).ToLunarCalendarDate());
+        Check(!string.IsNullOrWhiteSpace("中国".ToPinYin()), "拼音转换");
+    }
+}

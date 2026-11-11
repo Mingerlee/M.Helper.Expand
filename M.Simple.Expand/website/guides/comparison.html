@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="M.Simple 使用文档、API 说明与可运行示例"><title>实体比较与赋值 · M.Simple.Expand</title><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/site.css"><script defer src="../assets/search-index.js"></script><script defer src="../assets/site.js"></script></head>
+<body data-root="../"><a class="skip-link" href="#main-content">跳到正文</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-icon">M.</span><span>M.Simple.Expand<small>Expand 原版手册</small></span></a><div class="nav-scroll"><div class="nav-label">开始</div><a class="nav-item " href="../index.html">文档首页</a><a class="nav-item " href="../quickstart.html">快速开始</a><a class="nav-item " href="../samples.html">运行示例</a><a class="nav-item " href="../sample-output.html">示例运行结果</a><div class="nav-label">原版功能 · 15</div><a class="nav-item " href="../guides/strings.html">字符串</a><a class="nav-item " href="../guides/chinese.html">中文与拼音</a><a class="nav-item " href="../guides/datetime.html">日期与时间</a><a class="nav-item " href="../guides/money.html">金额</a><a class="nav-item " href="../guides/collections.html">集合与比较器</a><a class="nav-item " href="../guides/dictionary.html">字典</a><a class="nav-item " href="../guides/enums.html">枚举</a><a class="nav-item " href="../guides/datatable.html">DataTable</a><a class="nav-item active" href="../guides/comparison.html" aria-current="page">实体比较与赋值</a><a class="nav-item " href="../guides/crypto.html">加解密与摘要</a><a class="nav-item " href="../guides/configuration.html">配置读取</a><a class="nav-item " href="../guides/di.html">依赖注入与属性装配</a><a class="nav-item " href="../guides/services.html">邮件与 FTP</a><a class="nav-item " href="../guides/identifiers.html">GUID 与编码</a><a class="nav-item " href="../guides/validation.html">校验特性</a><div class="nav-label">参考</div><a class="nav-item " href="../api.html">API 与源码索引</a><a class="nav-item " href="../publishing.html">本地站点发布</a></div><div class="sidebar-footer"><span class="status-dot"></span>.NET 8 · 1.0.1.8</div></aside><div class="nav-backdrop" hidden></div><div class="workspace"><header class="topbar"><div class="topbar-left"><button class="menu-button" type="button" aria-label="切换导航" aria-controls="sidebar" aria-expanded="false">☰</button><span class="breadcrumb">文档<span>/</span>M.Simple.Expand</span></div><div class="topbar-actions"><button class="search-trigger" type="button"><span>搜索文档与 API</span><kbd>Ctrl K</kbd></button><a href="https://github.com/Mingerlee/M.Helper.Expand" target="_blank" rel="noopener" class="repository-link">原版项目 ↗</a></div></header><div class="content-grid"><main id="main-content" class="document"><div class="document-label">M.Simple.Expand</div><h1 id="实体比较与赋值">实体比较与赋值</h1>
+<p>新旧字段差异、特性筛选与属性赋值。适用 M.Simple.Expand 1.0.1.8 / .NET 8。</p>
+<h2 id="可运行示例">可运行示例</h2>
+<div class="code-block"><div class="code-toolbar"><span>powershell</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="powershell">dotnet run --project docs/samples/M.Simple.Expand.Samples.csproj --configuration Release -- comparison</code></pre></div>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Expand;
+using M.Simple.Expand.Attributes;
+
+static partial class Demo
+{
+    public static void Comparison()
+    {
+        var before = new CompareItem { Name = &quot;旧名称&quot;, Amount = 100m };
+        var after = new CompareItem { Name = &quot;新名称&quot;, Amount = 120m };
+        // 接收者是新模型，参数是旧模型；true 表示只比较有 CompareValue 标记的属性。
+        var differences = after.CompareModel(before, isAttr: true);
+        foreach (var diff in differences)
+            Console.WriteLine($&quot;{diff.FiledName}: {diff.FiledOldValue} → {diff.FiledNewValue}&quot;);
+        Check(differences.Count == 2 &amp;&amp; after.IsModify(before, true), &quot;字段差异&quot;);
+    }
+}
+public class CompareItem
+{
+    [CompareValue] public string Name { get; set; } = &quot;&quot;;
+    [CompareValue] public decimal Amount { get; set; }
+}</code></pre></div>
+<p>示例与其他文件共享 Demo.Check 和辅助模型；完整上下文见<a href="../samples.html">示例项目</a>。</p>
+<h2 id="使用规则与边界">使用规则与边界</h2>
+<ul><li>调用方向为 newModel.CompareModel(oldModel)，不要颠倒。结果为 ComparesResults，属性沿用 FiledName、FiledOldValue、FiledNewValue 的历史拼写。</li></ul>
+<ul><li>isAttr=true 时只处理 CompareValue 标记的字段；默认比较值类型和 string 属性，以 ToString 文本比较，不是深比较。声明为 object 的属性会被过滤；null 属性值与空文本可能被视为一致。</li></ul>
+<ul><li>新对象为 null 时返回空差异；旧对象为 null 时将可比较字段标记为新增。IsModify 只根据差异条数判断。</li></ul>
+<ul><li>ModifyField 会直接修改接收对象，isAttr 可结合 ModifyValueAttribute 选择及映射属性；它不会自动持久化。</li></ul>
+<ul><li>SetStringValue、GetStringValue 是历史反射转换函数，可空类型及 float/double 存在实现边界；不要把它当作任意类型的序列化器。</li></ul>
+<h2 id="api-查询">API 查询</h2>
+<p><a href="../api.html">API 与源码索引</a>列出实际声明及 XML 注释。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="../index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#可运行示例">可运行示例</a><a class="toc-level-2" href="#使用规则与边界">使用规则与边界</a><a class="toc-level-2" href="#api-查询">API 查询</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

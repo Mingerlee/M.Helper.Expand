@@ -1,0 +1,14 @@
+using M.Simple.Expand;
+
+static partial class Demo
+{
+    public static void Dictionary()
+    {
+        var values = new Dictionary<string, int> { ["A"] = 1 };
+        values.Merge("A", 2).Merge("B", 3);
+        values.MergeIgnore("A", 99);
+        Console.WriteLine($"覆盖后 A={values.GetValue("A")}");
+        Console.WriteLine($"弹出 B={values.RemovePop("B")}");
+        Check(values["A"] == 2 && !values.ContainsKey("B"), "覆盖、忽略与弹出");
+    }
+}

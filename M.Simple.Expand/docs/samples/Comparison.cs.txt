@@ -1,0 +1,21 @@
+using M.Simple.Expand;
+using M.Simple.Expand.Attributes;
+
+static partial class Demo
+{
+    public static void Comparison()
+    {
+        var before = new CompareItem { Name = "旧名称", Amount = 100m };
+        var after = new CompareItem { Name = "新名称", Amount = 120m };
+        // 接收者是新模型，参数是旧模型；true 表示只比较有 CompareValue 标记的属性。
+        var differences = after.CompareModel(before, isAttr: true);
+        foreach (var diff in differences)
+            Console.WriteLine($"{diff.FiledName}: {diff.FiledOldValue} → {diff.FiledNewValue}");
+        Check(differences.Count == 2 && after.IsModify(before, true), "字段差异");
+    }
+}
+public class CompareItem
+{
+    [CompareValue] public string Name { get; set; } = "";
+    [CompareValue] public decimal Amount { get; set; }
+}

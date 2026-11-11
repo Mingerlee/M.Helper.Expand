@@ -1,0 +1,15 @@
+using M.Simple.Expand;
+
+static partial class Demo
+{
+    public static void Strings()
+    {
+        Console.WriteLine("13812345678".ToCover());
+        Console.WriteLine("user_name".UnderlineToCamel());
+        Console.WriteLine("UserName".CamelToUnderline());
+        Console.WriteLine("ＡＢＣ１２３".ToDBC());
+        Console.WriteLine("abc".ReverseString());
+        Check("13812345678".ToCover() == "138****5678", "手机号遮盖");
+        Check("".GetValueOrDefault("默认") == "默认", "空值替代");
+    }
+}

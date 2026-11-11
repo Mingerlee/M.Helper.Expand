@@ -1,0 +1,15 @@
+using M.Simple.Expand;
+using Microsoft.Extensions.Configuration;
+
+static partial class Demo
+{
+    public static void Configuration()
+    {
+        var config = new ConfigurationBuilder()
+            .SetConfigurationBasePath(AppContext.BaseDirectory)
+            .AddJsonFileWithBasePath("sample-settings.json", optional: false)
+            .Build();
+        Console.WriteLine($"配置：{config["Demo:Name"]}");
+        Check(config["Demo:Name"] == "M.Simple.Expand", "基础路径配置");
+    }
+}

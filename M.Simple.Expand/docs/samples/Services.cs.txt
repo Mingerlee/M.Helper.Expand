@@ -1,0 +1,28 @@
+using M.Simple.Expand;
+using M.Simple.Expand.Services;
+using Microsoft.Extensions.DependencyInjection;
+
+static partial class Demo
+{
+    public static void Services()
+    {
+        var services = new ServiceCollection();
+        services.AddEMailSetup(_ => new MailSettings
+        {
+            StmpHostServer = "smtp.example.invalid",
+            FromAddress = "sender@example.invalid",
+            PortNumber = 587,
+            EnableSSL = true,
+            RequireAuth = false
+        });
+        services.AddFtpClientSetup(_ => new FtpClientSettings
+        {
+            FtpServerIP = "ftp.example.invalid",
+            FtpRemotePath = "samples"
+        });
+        using var provider = services.BuildServiceProvider();
+        Check(provider.GetRequiredService<IEMailService>() is EMailService, "邮件服务注册");
+        Check(provider.GetRequiredService<IFtpClientService>() is FtpClientService, "FTP 服务注册");
+        Console.WriteLine("邮件与 FTP 服务解析成功；仅演示注册，不建立网络连接。");
+    }
+}

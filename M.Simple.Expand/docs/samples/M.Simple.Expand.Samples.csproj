@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 使用 .cs.txt 避免被上层库项目的默认 C# 通配符纳入编译。 -->
+    <Compile Include="*.cs.txt" />
+    <None Update="sample-settings.json" CopyToOutputDirectory="PreserveNewest" />
+    <ProjectReference Include="../../M.Simple.Expand.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.2" />
+  </ItemGroup>
+</Project>

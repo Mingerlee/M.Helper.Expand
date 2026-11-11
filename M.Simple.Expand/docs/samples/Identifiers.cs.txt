@@ -1,0 +1,16 @@
+using M.Simple.Expand;
+
+static partial class Demo
+{
+    public static void Identifiers()
+    {
+        var guid = Guid.NewGuid();
+        Check(guid.GetNoHyphenString().Length == 32, "无连接符 GUID");
+        // 同一进程复用生成器；不同节点需分配不同 workerId。
+        var generator = new SnowflakeIdGenerator(workerId: 1);
+        var first = generator.NextId();
+        var second = generator.NextId();
+        Check(first != second, "雪花 ID 连续生成");
+        Console.WriteLine("GUID 格式与复用雪花生成器验证通过（ID 不作为固定输出展示）");
+    }
+}

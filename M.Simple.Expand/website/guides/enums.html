@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="M.Simple 使用文档、API 说明与可运行示例"><title>枚举 · M.Simple.Expand</title><link rel="icon" href="../assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/site.css"><script defer src="../assets/search-index.js"></script><script defer src="../assets/site.js"></script></head>
+<body data-root="../"><a class="skip-link" href="#main-content">跳到正文</a><aside class="sidebar" id="sidebar"><a class="brand" href="../index.html"><span class="brand-icon">M.</span><span>M.Simple.Expand<small>Expand 原版手册</small></span></a><div class="nav-scroll"><div class="nav-label">开始</div><a class="nav-item " href="../index.html">文档首页</a><a class="nav-item " href="../quickstart.html">快速开始</a><a class="nav-item " href="../samples.html">运行示例</a><a class="nav-item " href="../sample-output.html">示例运行结果</a><div class="nav-label">原版功能 · 15</div><a class="nav-item " href="../guides/strings.html">字符串</a><a class="nav-item " href="../guides/chinese.html">中文与拼音</a><a class="nav-item " href="../guides/datetime.html">日期与时间</a><a class="nav-item " href="../guides/money.html">金额</a><a class="nav-item " href="../guides/collections.html">集合与比较器</a><a class="nav-item " href="../guides/dictionary.html">字典</a><a class="nav-item active" href="../guides/enums.html" aria-current="page">枚举</a><a class="nav-item " href="../guides/datatable.html">DataTable</a><a class="nav-item " href="../guides/comparison.html">实体比较与赋值</a><a class="nav-item " href="../guides/crypto.html">加解密与摘要</a><a class="nav-item " href="../guides/configuration.html">配置读取</a><a class="nav-item " href="../guides/di.html">依赖注入与属性装配</a><a class="nav-item " href="../guides/services.html">邮件与 FTP</a><a class="nav-item " href="../guides/identifiers.html">GUID 与编码</a><a class="nav-item " href="../guides/validation.html">校验特性</a><div class="nav-label">参考</div><a class="nav-item " href="../api.html">API 与源码索引</a><a class="nav-item " href="../publishing.html">本地站点发布</a></div><div class="sidebar-footer"><span class="status-dot"></span>.NET 8 · 1.0.1.8</div></aside><div class="nav-backdrop" hidden></div><div class="workspace"><header class="topbar"><div class="topbar-left"><button class="menu-button" type="button" aria-label="切换导航" aria-controls="sidebar" aria-expanded="false">☰</button><span class="breadcrumb">文档<span>/</span>M.Simple.Expand</span></div><div class="topbar-actions"><button class="search-trigger" type="button"><span>搜索文档与 API</span><kbd>Ctrl K</kbd></button><a href="https://github.com/Mingerlee/M.Helper.Expand" target="_blank" rel="noopener" class="repository-link">原版项目 ↗</a></div></header><div class="content-grid"><main id="main-content" class="document"><div class="document-label">M.Simple.Expand</div><h1 id="枚举">枚举</h1>
+<p>描述、Display、解析与下拉选项。适用 M.Simple.Expand 1.0.1.8 / .NET 8。</p>
+<h2 id="可运行示例">可运行示例</h2>
+<div class="code-block"><div class="code-toolbar"><span>powershell</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="powershell">dotnet run --project docs/samples/M.Simple.Expand.Samples.csproj --configuration Release -- enums</code></pre></div>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using M.Simple.Expand;
+using M.Simple.Expand.Models;
+
+static partial class Demo
+{
+    public static void Enums()
+    {
+        Console.WriteLine(SampleStatus.Approved.GetDescription());
+        Console.WriteLine(SampleStatus.Approved.GetDisplayName());
+        var options = new ComboBoxIntViewModel().ToComboBoxs&lt;SampleStatus&gt;();
+        foreach (var option in options.SelectOptions) Console.WriteLine($&quot;{option.Value}: {option.Text}&quot;);
+        Check(&quot;Approved&quot;.ToEnum&lt;SampleStatus&gt;() == SampleStatus.Approved, &quot;名称解析&quot;);
+        Check(SampleStatus.Approved.GetDescription() == &quot;已通过&quot;, &quot;描述读取&quot;);
+    }
+}
+enum SampleStatus
+{
+    [Description(&quot;待审核&quot;)] Pending = 0,
+    [Description(&quot;已通过&quot;), Display(Name = &quot;审核通过&quot;, Description = &quot;审核已经通过&quot;)] Approved = 1
+}</code></pre></div>
+<p>示例与其他文件共享 Demo.Check 和辅助模型；完整上下文见<a href="../samples.html">示例项目</a>。</p>
+<h2 id="使用规则与边界">使用规则与边界</h2>
+<ul><li>GetDescription 读取 DescriptionAttribute；GetDisplayName、GetDisplayDescription 读取 DisplayAttribute。当前实现未标记特性时返回空串，和部分原始 XML 注释中的名称回退描述不同。</li></ul>
+<ul><li>ToComboBoxs&lt;T&gt; 返回 ComboBoxIntViewModel，SelectOptions 的 Text 使用枚举名称，不是 Description，Value 使用 Int32。values 为非空集合时才启用过滤。</li></ul>
+<ul><li>ToInt32 和下拉模型将枚举值转为 int，大整数枚举可能溢出。ToEnum 解析失败返回 default，且 Enum.TryParse 可能接受没有声明的数值；需要限制范围时额外使用 Enum.IsDefined。</li></ul>
+<ul><li>GetAttributeOfType 在未定义枚举值上可能因找不到成员而异常；不要将未验证的用户输入直接用于特性读取。</li></ul>
+<h2 id="api-查询">API 查询</h2>
+<p><a href="../api.html">API 与源码索引</a>列出实际声明及 XML 注释。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="../index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#可运行示例">可运行示例</a><a class="toc-level-2" href="#使用规则与边界">使用规则与边界</a><a class="toc-level-2" href="#api-查询">API 查询</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

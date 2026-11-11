@@ -1,0 +1,68 @@
+using System.Reflection;
+using System.Text;
+using System.Xml.Linq;
+
+static class ApiReference
+{
+    public static void Write(string output)
+    {
+        var assembly = typeof(M.Simple.Expand.Extensions).Assembly;
+        var xml = XDocument.Load(Path.ChangeExtension(assembly.Location, ".xml"));
+        var entries = xml.Descendants("member").ToArray();
+        var text = new StringBuilder("# API 与源码索引\n\n本页根据当前构建程序集反射和编译器 XML 文档生成，仅列出导出的公共类型及其声明的公共成员。继承成员和 internal 辅助类型不列入；属性访问器合并为属性。\n\n签名中的 Int32、String 等为 CLR 类型名称，泛型参数用反引号或方括号表示。用途描述来自原始 XML 注释；行为差异和边界以功能手册为准。\n\n");
+        foreach (var type in assembly.GetExportedTypes().OrderBy(type => type.FullName, StringComparer.Ordinal))
+        {
+            text.AppendLine("## " + type.FullName).AppendLine();
+            AppendDescription(text, entries, "T:" + type.FullName);
+            var members = type.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
+                .Where(member => member is ConstructorInfo or PropertyInfo or FieldInfo
+                    || member is MethodInfo method && !method.IsSpecialName)
+                .OrderBy(member => member.Name, StringComparer.Ordinal).ThenBy(member => member.ToString(), StringComparer.Ordinal);
+            foreach (var member in members)
+            {
+                text.AppendLine("### " + (member is ConstructorInfo ? type.Name : member.Name)).AppendLine();
+                text.AppendLine("```text").AppendLine(member.ToString()).AppendLine("```").AppendLine();
+                var prefix = member switch { PropertyInfo => "P:", FieldInfo => "F:", _ => "M:" };
+                var name = member is ConstructorInfo ? "#ctor" : member.Name;
+                var key = prefix + type.FullName + "." + name;
+                if (member is MethodInfo mi && mi.IsGenericMethodDefinition) key += "``" + mi.GetGenericArguments().Length;
+                // 重载说明仅使用精确 XML ID；找不到匹配项时保留签名，不推断参数语义。
+                var exact = entries.Where(entry => (string?)entry.Attribute("name") == key
+                    || ((string?)entry.Attribute("name"))?.StartsWith(key + "(", StringComparison.Ordinal) == true).ToArray();
+                if (exact.Length == 1) AppendXml(text, exact[0]);
+                else text.AppendLine("重载或注释详情请对照功能手册与源码。\n");
+            }
+        }
+        text.AppendLine("## 源码目录索引").AppendLine();
+        var projectRoot = Directory.GetParent(Path.GetDirectoryName(Path.GetFullPath(output))!)!.FullName;
+        foreach (var directory in new[] { "Extensions", "Attributes", "Comparers", "Models", "Services", "Helper" })
+        {
+            text.AppendLine("### " + directory).AppendLine();
+            foreach (var file in Directory.GetFiles(Path.Combine(projectRoot, directory), "*.cs", SearchOption.AllDirectories)
+                         .OrderBy(file => file, StringComparer.Ordinal))
+                text.AppendLine("- `" + Path.GetRelativePath(projectRoot, file).Replace('\\', '/') + "`").AppendLine();
+        }
+        File.WriteAllText(output, text.ToString().TrimEnd() + "\n", new UTF8Encoding(false));
+        Console.WriteLine("API reference: " + output);
+    }
+
+    private static void AppendDescription(StringBuilder text, XElement[] entries, string id)
+    {
+        var entry = entries.FirstOrDefault(item => (string?)item.Attribute("name") == id);
+        if (entry is not null) AppendXml(text, entry);
+    }
+
+    private static void AppendXml(StringBuilder text, XElement entry)
+    {
+        static string Clean(string value) => System.Text.RegularExpressions.Regex.Replace(value, @"\s+", " ").Trim();
+        var summary = Clean(entry.Element("summary")?.Value ?? "");
+        if (summary.Length > 0) text.AppendLine(summary).AppendLine();
+        foreach (var parameter in entry.Elements("param"))
+        {
+            var description = Clean(parameter.Value);
+            if (description.Length > 0) text.AppendLine("- " + parameter.Attribute("name")?.Value + "：" + description).AppendLine();
+        }
+        var returns = Clean(entry.Element("returns")?.Value ?? "");
+        if (returns.Length > 0) text.AppendLine("返回：" + returns).AppendLine();
+    }
+}

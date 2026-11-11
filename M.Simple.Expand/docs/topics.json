@@ -1,0 +1,107 @@
+[
+  [
+    "strings",
+    "Strings",
+    "字符串",
+    "遮盖、命名转换、全半角、匹配",
+    "Strings"
+  ],
+  [
+    "chinese",
+    "Chinese",
+    "中文与拼音",
+    "拼音、首字母、中文日期与农历",
+    "Chinese"
+  ],
+  [
+    "datetime",
+    "DateTime",
+    "日期与时间",
+    "格式、月份边界、日期差与区间",
+    "Dates"
+  ],
+  [
+    "money",
+    "Money",
+    "金额",
+    "金额大写、舍入、格式化",
+    "Money"
+  ],
+  [
+    "collections",
+    "Collections",
+    "集合与比较器",
+    "批次、排除、分组与按属性去重",
+    "Collections"
+  ],
+  [
+    "dictionary",
+    "Dictionary",
+    "字典",
+    "覆盖合并、忽略合并、弹出与删除",
+    "Dictionary"
+  ],
+  [
+    "enums",
+    "Enums",
+    "枚举",
+    "描述、Display、解析与下拉选项",
+    "Enums"
+  ],
+  [
+    "datatable",
+    "DataTable",
+    "DataTable",
+    "列表转表、表转模型与筛选",
+    "DataTable"
+  ],
+  [
+    "comparison",
+    "Comparison",
+    "实体比较与赋值",
+    "新旧字段差异、特性筛选与属性赋值",
+    "Comparison"
+  ],
+  [
+    "crypto",
+    "Cryptography",
+    "加解密与摘要",
+    "AES、RSA 加解密及签名",
+    "Crypto"
+  ],
+  [
+    "configuration",
+    "Configuration",
+    "配置读取",
+    "配置基准路径与 AppSetting",
+    "Configuration"
+  ],
+  [
+    "di",
+    "DependencyInjection",
+    "依赖注入与属性装配",
+    "AppService 扫描和 Autowired",
+    "DependencyInjection"
+  ],
+  [
+    "services",
+    "Services",
+    "邮件与 FTP",
+    "配置、服务注册与实际调用入口",
+    "Services"
+  ],
+  [
+    "identifiers",
+    "Identifiers",
+    "GUID 与编码",
+    "GUID 格式、雪花 ID 与短码",
+    "Identifiers"
+  ],
+  [
+    "validation",
+    "Validation",
+    "校验特性",
+    "手机号、邮箱与 DataAnnotations",
+    "Validation"
+  ]
+]

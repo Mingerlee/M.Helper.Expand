@@ -1,0 +1,22 @@
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+using M.Simple.Expand;
+using M.Simple.Expand.Models;
+
+static partial class Demo
+{
+    public static void Enums()
+    {
+        Console.WriteLine(SampleStatus.Approved.GetDescription());
+        Console.WriteLine(SampleStatus.Approved.GetDisplayName());
+        var options = new ComboBoxIntViewModel().ToComboBoxs<SampleStatus>();
+        foreach (var option in options.SelectOptions) Console.WriteLine($"{option.Value}: {option.Text}");
+        Check("Approved".ToEnum<SampleStatus>() == SampleStatus.Approved, "名称解析");
+        Check(SampleStatus.Approved.GetDescription() == "已通过", "描述读取");
+    }
+}
+enum SampleStatus
+{
+    [Description("待审核")] Pending = 0,
+    [Description("已通过"), Display(Name = "审核通过", Description = "审核已经通过")] Approved = 1
+}
