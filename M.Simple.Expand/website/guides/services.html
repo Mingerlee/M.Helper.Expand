@@ -39,6 +39,8 @@ static partial class Demo
 <ul><li>邮件内容使用 MailContent：ToAddresses、Subject、Body、IsHTML、AttachmentPaths。SendMail 和 SendMailAsync 返回 MailResult，状态字段见 API 参考。</li></ul>
 <ul><li>邮件地址分别设置 ToAddresses（收件人）、CcAddresses（抄送）、BccAddresses（密送）、ReplyToAddresses（回复地址），各列表独立读取，支持逗号或分号分隔多个地址。可选地址为 null 或空字符串时不添加对应地址；回归测试只检查内存中的地址转换，不发送邮件。</li></ul>
 <ul><li>FTP 的 FtpServerIP 传主机或主机:端口，不带 ftp://；FtpRemotePath 为目录，FtpUrl 属性负责拼接地址。常用方法为 FtpUpload、FtpDownload、GetFtpFileList、GotoFtpDirectory。</li></ul>
+<ul><li>FtpClient.Download、FtpClientService.FtpDownload 和 FtpDownloadAsync 先写入目标目录的临时文件，完整下载并成功关闭流后才替换目标文件。连接失败、远端拒绝、传输失败或异步取消时保留已有文件；目标原本不存在时不留下不完整的目标文件。正常失败路径会清理临时文件，清理被文件系统拒绝时可能残留 <code>.ftp-*.tmp</code>；进程被强制终止时也可能残留。</li></ul>
+<ul><li>FtpDownloadAsync 的 CancellationToken 同时用于中断网络请求及数据复制，取消通过 OperationCanceledException 返回。下载成功仍覆盖同名文件，空文件下载成功也会正常替换。</li></ul>
 <ul><li>默认示例只解析服务，不发送邮件、不连接 FTP。异步 FTP 上传下载需传 CancellationToken。FTP 使用传统协议，账号和网络边界由使用方配置。</li></ul>
 <ul><li>GetFtpListDirectoryDetails、FtpDelete、FtpReName、FtpMakeDirectory 等会实际访问远程服务。先准备专用测试目录，再显式调用；不要直接把示例当作生产操作脚本。</li></ul>
 <h2 id="api-查询">API 查询</h2>

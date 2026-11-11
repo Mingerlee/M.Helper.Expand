@@ -53,6 +53,10 @@ static partial class Demo
 
 - FTP 的 FtpServerIP 传主机或主机:端口，不带 ftp://；FtpRemotePath 为目录，FtpUrl 属性负责拼接地址。常用方法为 FtpUpload、FtpDownload、GetFtpFileList、GotoFtpDirectory。
 
+- FtpClient.Download、FtpClientService.FtpDownload 和 FtpDownloadAsync 先写入目标目录的临时文件，完整下载并成功关闭流后才替换目标文件。连接失败、远端拒绝、传输失败或异步取消时保留已有文件；目标原本不存在时不留下不完整的目标文件。正常失败路径会清理临时文件，清理被文件系统拒绝时可能残留 `.ftp-*.tmp`；进程被强制终止时也可能残留。
+
+- FtpDownloadAsync 的 CancellationToken 同时用于中断网络请求及数据复制，取消通过 OperationCanceledException 返回。下载成功仍覆盖同名文件，空文件下载成功也会正常替换。
+
 - 默认示例只解析服务，不发送邮件、不连接 FTP。异步 FTP 上传下载需传 CancellationToken。FTP 使用传统协议，账号和网络边界由使用方配置。
 
 - GetFtpListDirectoryDetails、FtpDelete、FtpReName、FtpMakeDirectory 等会实际访问远程服务。先准备专用测试目录，再显式调用；不要直接把示例当作生产操作脚本。

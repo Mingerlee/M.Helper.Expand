@@ -12,8 +12,8 @@ static partial class Demo
     {
         var values = new[] { 1, 2, 3, 4, 5 };
         Console.WriteLine(&quot;分批：&quot; + string.Join(&quot; / &quot;, values.SplitBatch(2).Select(batch =&gt; string.Join(&quot;,&quot;, batch))));
-        // 基础值类型显式使用默认相等比较器，避免全属性比较器没有可比较属性。
-        var remaining = values.ExceptItems(new[] { 2, 4 }, EqualityComparer&lt;int&gt;.Default).ToArray();
+        // 基础类型按值比较，实体默认比较全部公共可读属性；保留结果顺序和重复项。
+        var remaining = values.ExceptItems(new[] { 2, 4 }).ToArray();
         Console.WriteLine(&quot;排除：&quot; + string.Join(&quot;,&quot;, remaining));
         Check(remaining.SequenceEqual(new[] { 1, 3, 5 }), &quot;基础类型排除比较器&quot;);
         // 与 LINQ 的 TakeLast 同名时，使用完整静态类型避免歧义。
@@ -27,8 +27,10 @@ static partial class Demo
 <p>示例与其他文件共享 Demo.Check 和辅助模型；完整上下文见<a href="../samples.html">示例项目</a>。</p>
 <h2 id="使用规则与边界">使用规则与边界</h2>
 <ul><li>SplitBatch 按 batchSize 分批并保留尾批；batchSize &lt; 1 或空来源直接返回空结果，不抛非法批次异常。它是延迟执行方法，结果枚举时才处理输入。</li></ul>
-<ul><li>ExceptItem、ExceptItems 默认使用全属性比较器，不是 EqualityComparer&lt;T&gt;.Default。对 int 等没有公共属性的类型会把不同值视为相等；请像示例一样显式传 EqualityComparer&lt;int&gt;.Default。GroupBySelectFirst、GroupByThenSortTakeFirst 处理分组取首条；WhereNotNull、Flatten 处理过滤及扁平化。</li></ul>
-<ul><li>CreateByProperty&lt;T,TKey&gt; 创建基于键的比较器，可用于 Distinct；FastAllPropertiesEqualityComparer&lt;T&gt;.Instance 比较全部公共实例属性，包含表达式预编译，不递归深比较引用对象。</li></ul>
+<ul><li>ExceptItem、ExceptItems 默认保留实体全属性比较：全部公共可读非索引属性相等才排除，Id 相同但其他字段不同时保留。值类型（含可空值类型）、字符串使用 EqualityComparer&lt;T&gt;.Default；字符串默认区分大小写。没有可比较属性的类也回退自身相等规则。自定义比较器可显式传入，例如 StringComparer.OrdinalIgnoreCase、CreateByProperty 或 ReferenceEqualityComparer.Instance。</li></ul>
+<ul><li>排除方法保留未排除元素的顺序和重复项，不执行去重。来源为 null 或空集合时返回空结果；批量排除集合为 null 或空集合时保留来源全部元素。方法延迟执行，批量排除不再使用 Any 预读，每次结果枚举时来源与排除集合各最多枚举一次。</li></ul>
+<ul><li>GroupBySelectFirst、GroupByThenSortTakeFirst 处理分组取首条；WhereNotNull、Flatten 处理过滤及扁平化。</li></ul>
+<ul><li>CreateByProperty&lt;T,TKey&gt; 创建基于键的比较器，可用于 Distinct；FastAllPropertiesEqualityComparer&lt;T&gt;.Instance 比较全部公共可读非索引实例属性，包含表达式预编译，不递归深比较引用对象；值类型、字符串及无可比较属性的类回退自身相等规则。</li></ul>
 <ul><li>TakeLast 与 System.Linq.Enumerable.TakeLast 同名，示例使用 M.Simple.Expand.Extensions.TakeLast 显式调用。</li></ul>
 <ul><li>Shuffle、RandomTake 为随机行为，不承诺加密强度。ToDictionarySafe 重复键取最后一个值，ToDictionarys 重复键保留第一个值；这些规则不能当作数据库唯一约束。</li></ul>
 <h2 id="api-查询">API 查询</h2>

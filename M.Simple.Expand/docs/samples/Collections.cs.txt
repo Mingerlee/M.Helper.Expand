@@ -6,8 +6,8 @@ static partial class Demo
     {
         var values = new[] { 1, 2, 3, 4, 5 };
         Console.WriteLine("分批：" + string.Join(" / ", values.SplitBatch(2).Select(batch => string.Join(",", batch))));
-        // 基础值类型显式使用默认相等比较器，避免全属性比较器没有可比较属性。
-        var remaining = values.ExceptItems(new[] { 2, 4 }, EqualityComparer<int>.Default).ToArray();
+        // 基础类型按值比较，实体默认比较全部公共可读属性；保留结果顺序和重复项。
+        var remaining = values.ExceptItems(new[] { 2, 4 }).ToArray();
         Console.WriteLine("排除：" + string.Join(",", remaining));
         Check(remaining.SequenceEqual(new[] { 1, 3, 5 }), "基础类型排除比较器");
         // 与 LINQ 的 TakeLast 同名时，使用完整静态类型避免歧义。

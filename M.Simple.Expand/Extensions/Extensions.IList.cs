@@ -171,11 +171,11 @@ namespace M.Simple.Expand
         ///     <para>M.Simple.Expand扩展</para>
         ///     <para>排除指定元素</para>
         /// </summary>
-        /// <remarks>支持自定义相等比较</remarks>
+        /// <remarks>默认全属性比较实体，值类型和字符串按自身规则比较；支持自定义比较器，保留结果顺序和重复项。</remarks>
         public static IEnumerable<T> ExceptItem<T>(this IEnumerable<T> source, T item, IEqualityComparer<T>? comparer = null)
         {
             if (source == null) yield break;
-            // 初始化比较器，默认使用全属性比较器
+            // 保留实体默认全属性比较，由比较器对基础类型和字符串使用安全的相等规则。
             comparer ??= FastAllPropertiesEqualityComparer<T>.Instance;
             foreach (var element in source)
             {
@@ -189,17 +189,18 @@ namespace M.Simple.Expand
         /// <param name="source">源集合</param>
         /// <param name="itemsToExclude">要排除的元素集合</param>
         /// <param name="comparer">自定义相等比较器</param>
+        /// <remarks>默认全属性比较实体，值类型和字符串按自身规则比较；来源与排除集合各最多枚举一次，保留结果顺序和重复项。</remarks>
         public static IEnumerable<T> ExceptItems<T>(this IEnumerable<T> source, IEnumerable<T> itemsToExclude, IEqualityComparer<T>? comparer = null)
         {
-            // 空值安全处理：源集合为空则返回空集合；排除集合为空则返回源集合
-            if (source.IsNullOrEmpty()) yield break;
-            if (itemsToExclude.IsNullOrEmpty())
+            // 只判断null，不使用Any预读，避免一次性数据源被重复枚举。
+            if (source == null) yield break;
+            if (itemsToExclude == null)
             {
                 foreach (var item in source) yield return item;
                 yield break;
             }
 
-            // 初始化比较器，默认使用全属性比较器
+            // 实体按全部公共可读属性比较，Equals与GetHashCode使用一致的比较范围。
             comparer ??= FastAllPropertiesEqualityComparer<T>.Instance;
 
             // 将排除集合转为HashSet，提升查找性能（O(1)）

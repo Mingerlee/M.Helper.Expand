@@ -111,38 +111,42 @@ namespace M.Simple.Expand.Services
         /// <param name="fileName">文件名称</param>
         public bool FtpDownload(string filePath, string fileName)
         {
+            string? temporaryPath = null;
             try
             {
                 if (!Directory.Exists(filePath))
                     Directory.CreateDirectory(filePath);
 
-                FileStream outputStream = new(filePath + "\\" + fileName, FileMode.Create);
-
+                string targetPath = Path.GetFullPath(Path.Combine(filePath, fileName));
+                // 临时文件与目标文件位于同一目录，下载成功前不打开或清空目标文件。
+                temporaryPath = Path.Combine(Path.GetDirectoryName(targetPath)!, ".ftp-" + Guid.NewGuid().ToString("N") + ".tmp");
                 FtpWebRequest reqFTP = CreateFtpWebRequest(fileName);
                 reqFTP.Method = WebRequestMethods.Ftp.DownloadFile;
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                Stream ftpStream = response.GetResponseStream();
-                long cl = response.ContentLength;
-                int bufferSize = 2048;
-                int readCount;
-                byte[] buffer = new byte[bufferSize];
-
-                readCount = ftpStream.Read(buffer, 0, bufferSize);
-                while (readCount > 0)
+                using (FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse())
+                using (Stream ftpStream = response.GetResponseStream())
+                using (FileStream outputStream = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
-                    outputStream.Write(buffer, 0, readCount);
-                    readCount = ftpStream.Read(buffer, 0, bufferSize);
+                    ftpStream.CopyTo(outputStream);
+                    outputStream.Flush();
                 }
 
-                ftpStream.Close();
-                outputStream.Close();
-                response.Close();
-                reqFTP = null;
+                // 完整传输并成功关闭流后才替换；替换失败也不主动删除原文件。
+                File.Move(temporaryPath, targetPath, true);
                 return true;
             }
             catch (Exception ex)
             {
-                throw new Exception("Ftp Download Error --> " + ex.Message);
+                throw new Exception("Ftp Download Error --> " + ex.Message, ex);
+            }
+            finally
+            {
+                // 清理未完成的下载；清理失败不覆盖原始下载异常。
+                if (temporaryPath != null)
+                {
+                    try { File.Delete(temporaryPath); }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
             }
         }
         /// <summary>
@@ -154,38 +158,50 @@ namespace M.Simple.Expand.Services
         /// <param name="cancellationToken"></param>
         public async Task<bool> FtpDownloadAsync(string filePath, string fileName, CancellationToken cancellationToken)
         {
+            string? temporaryPath = null;
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!Directory.Exists(filePath))
                     Directory.CreateDirectory(filePath);
 
-                FileStream outputStream = new(filePath + "\\" + fileName, FileMode.Create);
-
+                string targetPath = Path.GetFullPath(Path.Combine(filePath, fileName));
+                // 临时文件与目标文件位于同一目录，下载成功前不打开或清空目标文件。
+                temporaryPath = Path.Combine(Path.GetDirectoryName(targetPath)!, ".ftp-" + Guid.NewGuid().ToString("N") + ".tmp");
                 FtpWebRequest reqFTP = CreateFtpWebRequest(fileName);
                 reqFTP.Method = WebRequestMethods.Ftp.DownloadFile;
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                Stream ftpStream = response.GetResponseStream();
-                long cl = response.ContentLength;
-                int bufferSize = 2048;
-                int readCount;
-                byte[] buffer = new byte[bufferSize];
-
-                readCount = await ftpStream.ReadAsync(buffer.AsMemory(0, bufferSize), cancellationToken);
-                while (readCount > 0)
+                // 取消时中断网络请求，同时保护已有目标文件。
+                using var cancellationRegistration = cancellationToken.Register(reqFTP.Abort);
+                using (FtpWebResponse response = (FtpWebResponse)await reqFTP.GetResponseAsync())
+                using (Stream ftpStream = response.GetResponseStream())
+                using (FileStream outputStream = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
-                    await outputStream.WriteAsync(buffer.AsMemory(0, readCount), cancellationToken);
-                    readCount = await ftpStream.ReadAsync(buffer.AsMemory(0, bufferSize), cancellationToken);
+                    await ftpStream.CopyToAsync(outputStream, 81920, cancellationToken);
+                    await outputStream.FlushAsync(cancellationToken);
                 }
 
-                ftpStream.Close();
-                outputStream.Close();
-                response.Close();
-                reqFTP = null;
+                // 完整传输并成功关闭流后才替换；替换失败也不主动删除原文件。
+                cancellationToken.ThrowIfCancellationRequested();
+                File.Move(temporaryPath, targetPath, true);
                 return true;
+            }
+            catch (Exception ex) when (cancellationToken.IsCancellationRequested)
+            {
+                throw new OperationCanceledException("FTP下载已取消。", ex, cancellationToken);
             }
             catch (Exception ex)
             {
-                throw new Exception("Ftp Download Error --> " + ex.Message);
+                throw new Exception("Ftp Download Error --> " + ex.Message, ex);
+            }
+            finally
+            {
+                // 清理未完成的下载；清理失败不覆盖原始下载异常。
+                if (temporaryPath != null)
+                {
+                    try { File.Delete(temporaryPath); }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
             }
         }
         /// <summary>

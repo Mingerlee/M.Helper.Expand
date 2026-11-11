@@ -91,44 +91,44 @@ namespace M.Simple.Helper
         /// <param name="fileName">文件名称</param>
         public void Download(string filePath, string fileName)
         {
-            FtpWebRequest reqFTP;
+            string? temporaryPath = null;
             try
             {
                 if (!Directory.Exists(filePath))
                     Directory.CreateDirectory(filePath);
 
-                FileStream outputStream = new FileStream(filePath + "\\" + fileName, FileMode.Create);
-
-                reqFTP = (FtpWebRequest)WebRequest.Create(ftpURI + fileName);
-                reqFTP.Method = WebRequestMethods.Ftp.DownloadFile;
-                //reqFTP.UseBinary = true;
-                //reqFTP.UsePassive = false;
+                string targetPath = Path.GetFullPath(Path.Combine(filePath, fileName));
+                // 临时文件与目标文件位于同一目录，下载成功前不打开或清空目标文件。
+                temporaryPath = Path.Combine(Path.GetDirectoryName(targetPath)!, ".ftp-" + Guid.NewGuid().ToString("N") + ".tmp");
+                FtpWebRequest reqFTP = (FtpWebRequest)WebRequest.Create(ftpURI + fileName);
                 reqFTP.Credentials = new NetworkCredential(ftpUserID, ftpPassword);
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                Stream ftpStream = response.GetResponseStream();
-                long cl = response.ContentLength;
-                int bufferSize = 2048;
-                int readCount;
-                byte[] buffer = new byte[bufferSize];
-
-                readCount = ftpStream.Read(buffer, 0, bufferSize);
-                while (readCount > 0)
+                reqFTP.Method = WebRequestMethods.Ftp.DownloadFile;
+                using (FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse())
+                using (Stream ftpStream = response.GetResponseStream())
+                using (FileStream outputStream = new(temporaryPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
-                    outputStream.Write(buffer, 0, readCount);
-                    readCount = ftpStream.Read(buffer, 0, bufferSize);
+                    ftpStream.CopyTo(outputStream);
+                    outputStream.Flush();
                 }
 
-                ftpStream.Close();
-                outputStream.Close();
-                response.Close();
-
+                // 完整传输并成功关闭流后才替换；替换失败也不主动删除原文件。
+                File.Move(temporaryPath, targetPath, true);
             }
             catch (Exception ex)
             {
-                throw new Exception("FtpHelper Download Error --> " + ex.Message);
+                throw new Exception("FtpHelper Download Error --> " + ex.Message, ex);
+            }
+            finally
+            {
+                // 清理未完成的下载；清理失败不覆盖原始下载异常。
+                if (temporaryPath != null)
+                {
+                    try { File.Delete(temporaryPath); }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
             }
         }
-
         /// <summary>
         /// <para>M.Simple.Helper帮助类</para>
         ///  <para>FTP：删除当前目录下的指定文件</para>

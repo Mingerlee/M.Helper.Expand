@@ -198,132 +198,143 @@ namespace M.Simple.Expand.Test
                 //Console.WriteLine();
             }
         }
-        //[TestMethod]
-        //public void TestGetModelChanges()
-        //{
-        //    var person = new TestCompareModel()
-        //    {
-        //        Id = 1,
-        //        Name = "张三",
-        //        Age = 18,
-        //        Code = "C0001",
-        //        CreartDate = DateTime.Now,
-        //        CreartUser = "U00001",
-        //        Title = "Teacher",
-        //        UpdateDate = DateTime.Now,
-        //        Vaild = 1,
-        //        BoolFiled = true,
-        //        BoolFiled2 = false,
-        //        BoolFiled4 = true,
-        //        BoolFiled5 = false,
-        //        BoolFiled6 = true,
-        //        CreartUser1 = "CreartUser1",
-        //        CreartUser5 = "",
-        //        CreartUser6 = "",
-        //        DecimalFiled = 0.33M,
-        //        DecimalFiled2 = 1,
-        //        DecimalFiled3 = 1,
-        //        DecimalFiled5 = 1,
-        //        DecimalFiled6 = 1,
-        //        PersonEnumFiled = PersonEnum.Teacher,
-        //        PersonEnumFiled2 = PersonEnum.Professor,
-        //        PersonEnumFiled3 = PersonEnum.Professor,
-        //        PersonEnumFiled4 = PersonEnum.Professor,
-        //        PersonEnumFiled5 = PersonEnum.Professor,
-        //        Students = [new Student { Id = 1, Age = 18, Name = "ZhangSan", StudentCode = "S0001" }],
-        //        Vaild2 = 1,
-        //        Vaild5 = 1,
-        //        Vaild6 = 1,
-        //    };
-        //    var person1 = new TestCompareModel()
-        //    {
-        //        Id = 1,
-        //        Name = "张三",
-        //        Age = 19,
-        //        Code = "C0001",
-        //        CreartDate = DateTime.Now,
-        //        CreartUser = "U00002",
-        //        Title = "Teacher",
-        //        UpdateDate = DateTime.Now,
-        //        Vaild = 1,
-        //        BoolFiled = true,
-        //        BoolFiled2 = false,
-        //        BoolFiled4 = true,
-        //        BoolFiled5 = false,
-        //        BoolFiled6 = true,
-        //        CreartUser1 = "CreartUser1",
-        //        CreartUser5 = "CreartUser4",
-        //        CreartUser6 = "CreartUser3",
-        //        DecimalFiled = 0.33M,
-        //        DecimalFiled2 = 1,
-        //        DecimalFiled3 = 1,
-        //        DecimalFiled5 = 1,
-        //        DecimalFiled6 = 1,
-        //        PersonEnumFiled = PersonEnum.Professor,
-        //        PersonEnumFiled2 = PersonEnum.Teacher,
-        //        PersonEnumFiled3 = PersonEnum.Student,
-        //        PersonEnumFiled4 = PersonEnum.Professor,
-        //        PersonEnumFiled5 = PersonEnum.Student,
-        //        Students = [new Student { Id = 1, Age = 18, Name = "ZhangSan", StudentCode = "S0001" }],
-        //        Vaild2 = 1,
-        //        Vaild5 = 1,
-        //        Vaild6 = 1,
-        //    };
-        //    var person2 = new TestCompareModel()
-        //    {
-        //        Id = 1,
-        //        Name = "李四",
-        //        Age = 20,
-        //        Code = "C0002",
-        //        CreartDate = DateTime.Now,
-        //        CreartUser = "U00002",
-        //        Title = "Professor",
-        //        UpdateDate = DateTime.Now,
-        //        Vaild = 2,
-        //        BoolFiled = false,
-        //        BoolFiled2 = true,
-        //        BoolFiled4 = false,
-        //        BoolFiled5 = true,
-        //        BoolFiled6 = false,
-        //        CreartUser1 = "CreartUser2",
-        //        CreartUser5 = "CreartUser5",
-        //        CreartUser6 = "CreartUser6",
-        //        DecimalFiled = 0.333M,
-        //        DecimalFiled2 = 0.334M,
-        //        DecimalFiled3 = 0.3324M,
-        //        DecimalFiled5 = 0.3334M,
-        //        DecimalFiled6 = 0.3344M,
-        //        PersonEnumFiled = PersonEnum.Student,
-        //        PersonEnumFiled2 = PersonEnum.Professor,
-        //        PersonEnumFiled3 = PersonEnum.Teacher,
-        //        PersonEnumFiled4 = PersonEnum.Student,
-        //        PersonEnumFiled5 = PersonEnum.Teacher,
-        //        Students = [new Student { Id = 2, Age = 20, Name = "LiSi", StudentCode = "S0002" }],
-        //        Vaild2 = 3,
-        //        Vaild5 = 4,
-        //        Vaild6 = 5,
-        //    };
 
-        //    for (int i = 0; i < 10000; i++)
-        //    {
-        //        var resultss = person.GetModelChanges(person1, true);
-        //        //Console.WriteLine(JsonConvert.SerializeObject(resultss));
-        //        //Console.WriteLine();
-
-        //        var results11 = person1.GetModelChanges(person2, true);
-        //        //Console.WriteLine(JsonConvert.SerializeObject(results11));
-        //        //Console.WriteLine();
-
-        //        var results22 = person.GetModelChanges(person1);
-        //        //Console.WriteLine(JsonConvert.SerializeObject(results22));
-        //        //Console.WriteLine();
-
-        //        var results33 = person1.GetModelChanges(person2);
-        //        //Console.WriteLine(JsonConvert.SerializeObject(results33));
-        //        //Console.WriteLine();
-        //    }
-        //}
         [TestMethod]
+        public void Collections()
+        {
+            var values = new[] { 1, 2, 3, 4, 5 };
+            Console.WriteLine("分批：" + string.Join(" / ", values.SplitBatch(2).Select(batch => string.Join(",", batch))));
+            // 默认按类型自身的相等规则比较，保留结果的原始顺序和重复项。
+            var remaining = values.ExceptItems(new[] { 2, 4 }).ToArray();
+            Console.WriteLine("排除：" + string.Join(",", remaining));
+
+        }
+    //[TestMethod]
+    //public void TestGetModelChanges()
+    //{
+    //    var person = new TestCompareModel()
+    //    {
+    //        Id = 1,
+    //        Name = "张三",
+    //        Age = 18,
+    //        Code = "C0001",
+    //        CreartDate = DateTime.Now,
+    //        CreartUser = "U00001",
+    //        Title = "Teacher",
+    //        UpdateDate = DateTime.Now,
+    //        Vaild = 1,
+    //        BoolFiled = true,
+    //        BoolFiled2 = false,
+    //        BoolFiled4 = true,
+    //        BoolFiled5 = false,
+    //        BoolFiled6 = true,
+    //        CreartUser1 = "CreartUser1",
+    //        CreartUser5 = "",
+    //        CreartUser6 = "",
+    //        DecimalFiled = 0.33M,
+    //        DecimalFiled2 = 1,
+    //        DecimalFiled3 = 1,
+    //        DecimalFiled5 = 1,
+    //        DecimalFiled6 = 1,
+    //        PersonEnumFiled = PersonEnum.Teacher,
+    //        PersonEnumFiled2 = PersonEnum.Professor,
+    //        PersonEnumFiled3 = PersonEnum.Professor,
+    //        PersonEnumFiled4 = PersonEnum.Professor,
+    //        PersonEnumFiled5 = PersonEnum.Professor,
+    //        Students = [new Student { Id = 1, Age = 18, Name = "ZhangSan", StudentCode = "S0001" }],
+    //        Vaild2 = 1,
+    //        Vaild5 = 1,
+    //        Vaild6 = 1,
+    //    };
+    //    var person1 = new TestCompareModel()
+    //    {
+    //        Id = 1,
+    //        Name = "张三",
+    //        Age = 19,
+    //        Code = "C0001",
+    //        CreartDate = DateTime.Now,
+    //        CreartUser = "U00002",
+    //        Title = "Teacher",
+    //        UpdateDate = DateTime.Now,
+    //        Vaild = 1,
+    //        BoolFiled = true,
+    //        BoolFiled2 = false,
+    //        BoolFiled4 = true,
+    //        BoolFiled5 = false,
+    //        BoolFiled6 = true,
+    //        CreartUser1 = "CreartUser1",
+    //        CreartUser5 = "CreartUser4",
+    //        CreartUser6 = "CreartUser3",
+    //        DecimalFiled = 0.33M,
+    //        DecimalFiled2 = 1,
+    //        DecimalFiled3 = 1,
+    //        DecimalFiled5 = 1,
+    //        DecimalFiled6 = 1,
+    //        PersonEnumFiled = PersonEnum.Professor,
+    //        PersonEnumFiled2 = PersonEnum.Teacher,
+    //        PersonEnumFiled3 = PersonEnum.Student,
+    //        PersonEnumFiled4 = PersonEnum.Professor,
+    //        PersonEnumFiled5 = PersonEnum.Student,
+    //        Students = [new Student { Id = 1, Age = 18, Name = "ZhangSan", StudentCode = "S0001" }],
+    //        Vaild2 = 1,
+    //        Vaild5 = 1,
+    //        Vaild6 = 1,
+    //    };
+    //    var person2 = new TestCompareModel()
+    //    {
+    //        Id = 1,
+    //        Name = "李四",
+    //        Age = 20,
+    //        Code = "C0002",
+    //        CreartDate = DateTime.Now,
+    //        CreartUser = "U00002",
+    //        Title = "Professor",
+    //        UpdateDate = DateTime.Now,
+    //        Vaild = 2,
+    //        BoolFiled = false,
+    //        BoolFiled2 = true,
+    //        BoolFiled4 = false,
+    //        BoolFiled5 = true,
+    //        BoolFiled6 = false,
+    //        CreartUser1 = "CreartUser2",
+    //        CreartUser5 = "CreartUser5",
+    //        CreartUser6 = "CreartUser6",
+    //        DecimalFiled = 0.333M,
+    //        DecimalFiled2 = 0.334M,
+    //        DecimalFiled3 = 0.3324M,
+    //        DecimalFiled5 = 0.3334M,
+    //        DecimalFiled6 = 0.3344M,
+    //        PersonEnumFiled = PersonEnum.Student,
+    //        PersonEnumFiled2 = PersonEnum.Professor,
+    //        PersonEnumFiled3 = PersonEnum.Teacher,
+    //        PersonEnumFiled4 = PersonEnum.Student,
+    //        PersonEnumFiled5 = PersonEnum.Teacher,
+    //        Students = [new Student { Id = 2, Age = 20, Name = "LiSi", StudentCode = "S0002" }],
+    //        Vaild2 = 3,
+    //        Vaild5 = 4,
+    //        Vaild6 = 5,
+    //    };
+
+    //    for (int i = 0; i < 10000; i++)
+    //    {
+    //        var resultss = person.GetModelChanges(person1, true);
+    //        //Console.WriteLine(JsonConvert.SerializeObject(resultss));
+    //        //Console.WriteLine();
+
+    //        var results11 = person1.GetModelChanges(person2, true);
+    //        //Console.WriteLine(JsonConvert.SerializeObject(results11));
+    //        //Console.WriteLine();
+
+    //        var results22 = person.GetModelChanges(person1);
+    //        //Console.WriteLine(JsonConvert.SerializeObject(results22));
+    //        //Console.WriteLine();
+
+    //        var results33 = person1.GetModelChanges(person2);
+    //        //Console.WriteLine(JsonConvert.SerializeObject(results33));
+    //        //Console.WriteLine();
+    //    }
+    //}
+    [TestMethod]
         public void TestModifyField()
         {
             var person = new Person()

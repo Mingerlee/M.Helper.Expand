@@ -325,7 +325,9 @@ namespace M.Simple.Expand.Attributes
             if (value == null) return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
             try
             {
-                _ = decimal.TryParse(value.ToString() ?? "", out decimal result);
+                // 解析失败直接返回校验错误，不能使用失败时的默认值0继续判断范围。
+                if (!decimal.TryParse(value.ToString() ?? "", out decimal result))
+                    return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
                 if (IsEqualMinValue && result < MinValue)
                 {
                     return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
@@ -370,7 +372,9 @@ namespace M.Simple.Expand.Attributes
             if (value == null) return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
             try
             {
-                _ = decimal.TryParse(value.ToString() ?? "", out decimal result);
+                // 非数字及超出decimal范围的输入不参与数值边界判断。
+                if (!decimal.TryParse(value.ToString() ?? "", out decimal result))
+                    return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
 
                 if (IsEqualMaxValue && result > MaxValue)
                 {
@@ -425,7 +429,9 @@ namespace M.Simple.Expand.Attributes
             if (value == null) return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
             try
             {
-                _ = decimal.TryParse(value.ToString() ?? "", out decimal result);
+                // 先确保输入可解析，避免非法文本被当作0落入合法区间。
+                if (!decimal.TryParse(value.ToString() ?? "", out decimal result))
+                    return new ValidationResult(FormatErrorMessage(validationContext.DisplayName));
 
                 if (IsEqualMinValue && !IsEqualMaxValue && !(result >= MinValue && result < MaxValue))
                 {

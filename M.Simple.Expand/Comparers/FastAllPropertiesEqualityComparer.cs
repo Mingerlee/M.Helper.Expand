@@ -4,13 +4,18 @@ using System.Reflection;
 namespace M.Simple.Expand
 {
     /// <summary>
-    /// 极致优化版：预编译委托获取属性值（替代反射）
+    /// 通过预编译委托比较实体的全部公共可读非索引属性；值类型、字符串及无可比较属性的类型使用自身相等规则。
     /// </summary>
     public class FastAllPropertiesEqualityComparer<T> : IEqualityComparer<T>
     {
         // 缓存：属性 → 获取属性值的委托
         private static readonly Dictionary<PropertyInfo, Func<T, object>> _propertyGetters = [];
-        private static readonly PropertyInfo[] _properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        // 值类型和字符串按自身规则比较；实体仅比较公共可读的非索引属性。
+        private static readonly PropertyInfo[] _properties = typeof(T).IsValueType || typeof(T) == typeof(string)
+            ? []
+            : typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(property => property.GetMethod?.IsPublic == true && property.GetIndexParameters().Length == 0)
+                .ToArray();
 
         static FastAllPropertiesEqualityComparer()
         {
@@ -32,6 +37,8 @@ namespace M.Simple.Expand
         /// <returns></returns>
         public bool Equals(T? x, T? y)
         {
+            // 无可比较属性时回退类型自身的相等规则，避免把不同基础值或空实体误判为相等。
+            if (_properties.Length == 0) return EqualityComparer<T>.Default.Equals(x, y);
             if (x == null && y == null) return true;
             if (x == null || y == null) return false;
             if (ReferenceEquals(x, y)) return true;
@@ -56,6 +63,8 @@ namespace M.Simple.Expand
         public int GetHashCode(T obj)
         {
             if (obj == null) return 0;
+            // 哈希规则必须与Equals的回退规则保持一致。
+            if (_properties.Length == 0) return EqualityComparer<T>.Default.GetHashCode(obj);
 
             // 组合所有属性的哈希码（避免哈希冲突）
             int hash = 17;

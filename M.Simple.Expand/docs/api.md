@@ -1876,7 +1876,7 @@ System.Collections.Generic.IEnumerable`1[T] WhereNotNull[T](System.Collections.G
 
 ## M.Simple.Expand.FastAllPropertiesEqualityComparer`1
 
-极致优化版：预编译委托获取属性值（替代反射）
+通过预编译委托比较实体的全部公共可读非索引属性；值类型、字符串及无可比较属性的类型使用自身相等规则。
 
 ### FastAllPropertiesEqualityComparer`1
 

@@ -26,6 +26,8 @@ public class SampleContact
 <h2 id="使用规则与边界">使用规则与边界</h2>
 <ul><li>使用 System.ComponentModel.DataAnnotations.Validator.TryValidateObject 执行校验；给属性标记特性不会自动运行验证逻辑。ASP.NET Core 模型验证可按宿主约定使用。</li></ul>
 <ul><li>常用特性包括 IsTelephone、IsMobile、IsIDcard、IsEmail、IsUrl、IsDateTime、IsInt、RegexMatch、UserId、Password。范围校验包括 GreaterThanMinValue、LessThanMaxValue、BetweenValue。</li></ul>
+<ul><li>三个范围特性在数值解析失败时直接返回校验错误，不再将非法文本当作0。空串、纯空白、非数字、超出 decimal 范围的输入均失败；null 继续按原规则失败。合法的0仍按配置的区间判断，不会被一律拒绝。</li></ul>
+<ul><li>范围解析沿用 decimal.TryParse 的当前文化规则；边界仍通过 IsEqualMinValue、IsEqualMaxValue 控制是否包含端点，校验错误沿用 ErrorMessage 配置。</li></ul>
 <ul><li>必填约束请单独标记 Required。格式与范围规则沿用该版本源码的正则及转换方式，不保证覆盖所有国际号码、合法邮箱格式或证件规则。</li></ul>
 <h2 id="api-查询">API 查询</h2>
 <p><a href="../api.html">API 与源码索引</a>列出实际声明及 XML 注释。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="../index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#可运行示例">可运行示例</a><a class="toc-level-2" href="#使用规则与边界">使用规则与边界</a><a class="toc-level-2" href="#api-查询">API 查询</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
