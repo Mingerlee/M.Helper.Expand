@@ -46,10 +46,10 @@ namespace M.Simple.Expand.Services
             int buffLength = 2048;
             byte[] buff = new byte[buffLength];
             int contentLen;
-            FileStream fs = fileInf.OpenRead();
+            using FileStream fs = fileInf.OpenRead();
             try
             {
-                Stream strm = reqFTP.GetRequestStream();
+                using Stream strm = reqFTP.GetRequestStream();
                 contentLen = fs.Read(buff, 0, buffLength);
                 while (contentLen != 0)
                 {
@@ -58,11 +58,15 @@ namespace M.Simple.Expand.Services
                 }
                 strm.Close();
                 fs.Close();
+                // 读取最终响应，确认上传完成并释放响应资源。
+                using var uploadResponse = reqFTP.GetResponse();
                 reqFTP = null;
                 return true;
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp Upload Error --> " + ex.Message);
             }
         }
@@ -83,10 +87,10 @@ namespace M.Simple.Expand.Services
             int buffLength = 2048;
             byte[] buff = new byte[buffLength];
             int contentLen;
-            FileStream fs = fileInf.OpenRead();
+            using FileStream fs = fileInf.OpenRead();
             try
             {
-                Stream strm = reqFTP.GetRequestStream();
+                using Stream strm = reqFTP.GetRequestStream();
                 contentLen = await fs.ReadAsync(buff.AsMemory(0, buffLength), cancellationToken: cancellationToken);
                 while (contentLen != 0)
                 {
@@ -95,11 +99,15 @@ namespace M.Simple.Expand.Services
                 }
                 strm.Close();
                 fs.Close();
+                // 读取最终响应，确认上传完成并释放响应资源。
+                using var uploadResponse = reqFTP.GetResponse();
                 reqFTP = null;
                 return true;
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp Upload Error --> " + ex.Message);
             }
         }
@@ -136,6 +144,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp Download Error --> " + ex.Message, ex);
             }
             finally
@@ -191,6 +201,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp Download Error --> " + ex.Message, ex);
             }
             finally
@@ -218,10 +230,10 @@ namespace M.Simple.Expand.Services
                 reqFTP.UsePassive = false;
 
                 string result = string.Empty;
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
+                using FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
                 long size = response.ContentLength;
-                Stream datastream = response.GetResponseStream();
-                StreamReader sr = new(datastream);
+                using Stream datastream = response.GetResponseStream();
+                using StreamReader sr = new(datastream);
                 result = sr.ReadToEnd();
                 sr.Close();
                 datastream.Close();
@@ -231,6 +243,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp Delete Error --> " + ex.Message + "  fileName:" + fileName);
             }
         }
@@ -249,10 +263,10 @@ namespace M.Simple.Expand.Services
                 reqFTP.UsePassive = false;
 
                 string result = string.Empty;
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
+                using FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
                 long size = response.ContentLength;
-                Stream datastream = response.GetResponseStream();
-                StreamReader sr = new(datastream);
+                using Stream datastream = response.GetResponseStream();
+                using StreamReader sr = new(datastream);
                 result = await sr.ReadToEndAsync(cancellationToken);
                 sr.Close();
                 datastream.Close();
@@ -262,6 +276,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp Delete Error --> " + ex.Message + "  fileName:" + fileName);
             }
         }
@@ -279,10 +295,10 @@ namespace M.Simple.Expand.Services
                 reqFTP.UsePassive = false;
 
                 string result = string.Empty;
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
+                using FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
                 long size = response.ContentLength;
-                Stream datastream = response.GetResponseStream();
-                StreamReader sr = new(datastream);
+                using Stream datastream = response.GetResponseStream();
+                using StreamReader sr = new(datastream);
                 result = sr.ReadToEnd();
                 sr.Close();
                 datastream.Close();
@@ -292,6 +308,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp Remove Directory Error --> " + ex.Message + "  folderName:" + folderName);
             }
         }
@@ -310,10 +328,10 @@ namespace M.Simple.Expand.Services
                 reqFTP.UsePassive = false;
 
                 string result = string.Empty;
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
+                using FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
                 long size = response.ContentLength;
-                Stream datastream = response.GetResponseStream();
-                StreamReader sr = new(datastream);
+                using Stream datastream = response.GetResponseStream();
+                using StreamReader sr = new(datastream);
                 result = await sr.ReadToEndAsync(cancellationToken);
                 sr.Close();
                 datastream.Close();
@@ -323,6 +341,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp Remove Directory Error --> " + ex.Message + "  folderName:" + folderName);
             }
         }
@@ -339,8 +359,8 @@ namespace M.Simple.Expand.Services
                 FtpWebRequest reqFTP = CreateFtpWebRequest();
                 reqFTP.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
                 reqFTP.UsePassive = false;
-                WebResponse response = reqFTP.GetResponse();
-                StreamReader reader = new(response.GetResponseStream(), Encoding.Default);
+                using WebResponse response = reqFTP.GetResponse();
+                using StreamReader reader = new(response.GetResponseStream(), Encoding.Default);
 
                 string line = reader.ReadLine();
 
@@ -350,7 +370,8 @@ namespace M.Simple.Expand.Services
                     result.Append('\n');
                     line = reader.ReadLine();
                 }
-                result.Remove(result.ToString().LastIndexOf('\n'), 1);
+                if (result.Length == 0) return Array.Empty<string>();
+                result.Remove(result.Length - 1, 1);
                 reader.Close();
                 response.Close();
                 reqFTP = null;
@@ -358,6 +379,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp Get List Directory Details Error --> " + ex.Message);
             }
         }
@@ -375,8 +398,8 @@ namespace M.Simple.Expand.Services
             {
                 FtpWebRequest reqFTP = CreateFtpWebRequest();
                 reqFTP.Method = WebRequestMethods.Ftp.ListDirectory;
-                WebResponse response = reqFTP.GetResponse();
-                StreamReader reader = new(response.GetResponseStream(), Encoding.Default);
+                using WebResponse response = reqFTP.GetResponse();
+                using StreamReader reader = new(response.GetResponseStream(), Encoding.Default);
 
                 string[] masks = mask.Split(',');
                 string[] fileRules = fileReadingRules.ToUpper().Split(',');
@@ -417,6 +440,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 if (ex.Message.Trim() != "远程服务器返回错误: (550) 文件不可用(例如，未找到文件，无法访问文件)。")
                 {
                     throw new Exception("Ftp GetFileList Error --> " + ex.Message.ToString());
@@ -441,7 +466,7 @@ namespace M.Simple.Expand.Services
                     /*判断 Windows 风格*/
                     m += str.Substring(dirPos + 5).Trim() + "\n";
                 }
-                else if (str.Trim().Substring(0, 1).ToUpper() == "D")
+                else if (str.Trim().StartsWith("D", StringComparison.OrdinalIgnoreCase))
                 {
                     /*判断 Unix 风格*/
                     string dir = str.Substring(54).Trim();
@@ -502,8 +527,8 @@ namespace M.Simple.Expand.Services
                 reqFTP.Method = WebRequestMethods.Ftp.MakeDirectory;
                 reqFTP.UseBinary = true;
                 reqFTP.UsePassive = false;
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                Stream ftpStream = response.GetResponseStream();
+                using FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
+                using Stream ftpStream = response.GetResponseStream();
 
                 ftpStream.Close();
                 response.Close();
@@ -512,6 +537,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("FtpHelper MakeDir Error --> " + ex.Message);
             }
         }
@@ -529,8 +556,8 @@ namespace M.Simple.Expand.Services
                 reqFTP.Method = WebRequestMethods.Ftp.GetFileSize;
                 reqFTP.UseBinary = true;
                 reqFTP.UsePassive = false;
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                Stream ftpStream = response.GetResponseStream();
+                using FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
+                using Stream ftpStream = response.GetResponseStream();
                 long fileSize = response.ContentLength;
 
                 ftpStream.Close();
@@ -540,6 +567,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp GetFileSize Error --> " + ex.Message);
             }
         }
@@ -558,8 +587,8 @@ namespace M.Simple.Expand.Services
                 reqFTP.RenameTo = newFilename;
                 reqFTP.UseBinary = true;
                 reqFTP.UsePassive = false;
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                Stream ftpStream = response.GetResponseStream();
+                using FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
+                using Stream ftpStream = response.GetResponseStream();
 
                 ftpStream.Close();
                 response.Close();
@@ -569,6 +598,8 @@ namespace M.Simple.Expand.Services
             }
             catch (Exception ex)
             {
+                // 协议错误也可能附带响应，必须释放其连接。
+                if (ex is WebException webException) webException.Response?.Dispose();
                 throw new Exception("Ftp ReName Error --> " + ex.Message);
             }
         }

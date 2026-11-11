@@ -84,70 +84,24 @@ namespace M.Simple.Expand
         public static List<ComparesResults> CompareModel<T>(this T newModel, T oldModel, bool isAttr = false)
         {
             var results = new List<ComparesResults>();
-
-            // 空值快速返回
             if (newModel == null && oldModel == null) return results;
-            if (newModel == null) return results; // 旧模型非空但新模型为空，按原有逻辑不处理
-            if (oldModel == null)
+            // 比较真实属性值，避免文本格式、类型过滤或空文本掩盖变化。
+            Type type = typeof(T);
+            foreach (var prop in GetProperties(type, isAttr))
             {
-                // 旧模型为空，所有有效属性都标记为新增
-                var properties = GetProperties(typeof(T), isAttr);
-                foreach (var prop in properties)
+                object? oldValue = oldModel == null ? null : prop.GetValue(oldModel);
+                object? newValue = newModel == null ? null : prop.GetValue(newModel);
+                if (newModel != null && oldModel != null && Equals(oldValue, newValue)) continue;
+                results.Add(new ComparesResults
                 {
-                    var value = prop.GetValue(newModel)?.ToString() ?? string.Empty;
-                    results.Add(new ComparesResults
-                    {
-                        FiledName = prop.Name,
-                        FiledNewValue = value,
-                        IsAdded = true
-                    });
-                }
-                return results;
+                    FiledName = prop.Name,
+                    FiledOldValue = oldValue?.ToString(),
+                    FiledNewValue = newValue?.ToString(),
+                    IsAdded = oldModel == null,
+                    IsDelete = newModel == null,
+                    IsModify = newModel != null && oldModel != null
+                });
             }
-
-            var type = typeof(T);
-            var propertiesToCompare = GetProperties(type,isAttr);
-
-            // 预构建旧模型的属性值字典（一次性遍历）
-            var oldValueDict = new Dictionary<string, string>(propertiesToCompare.Count);
-            foreach (var prop in propertiesToCompare)
-            {
-                var value = prop.GetValue(oldModel)?.ToString() ?? string.Empty;
-                oldValueDict[prop.Name] = value;
-            }
-
-            // 对比新模型属性
-            foreach (var prop in propertiesToCompare)
-            {
-                var propName = prop.Name;
-                var newValue = prop.GetValue(newModel)?.ToString() ?? string.Empty;
-
-                if (oldValueDict.TryGetValue(propName, out var oldValue))
-                {
-                    // 存在旧值，判断是否修改
-                    if (!string.Equals(oldValue, newValue, StringComparison.Ordinal))
-                    {
-                        results.Add(new ComparesResults
-                        {
-                            FiledName = propName,
-                            FiledOldValue = oldValue,
-                            FiledNewValue = newValue,
-                            IsModify = true
-                        });
-                    }
-                }
-                else
-                {
-                    // 无旧值，标记为新增
-                    results.Add(new ComparesResults
-                    {
-                        FiledName = propName,
-                        FiledNewValue = newValue,
-                        IsAdded = true
-                    });
-                }
-            }
-
             return results;
         }
         /// <summary>
@@ -178,13 +132,15 @@ namespace M.Simple.Expand
             {
                 return;
             }
-            PropertyInfo[] newProperties = t.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            PropertyInfo[] oldProperties = modifyModel.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            PropertyInfo[] newProperties = t.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Where(p => p.GetMethod?.IsPublic == true && p.SetMethod?.IsPublic == true && p.GetIndexParameters().Length == 0).ToArray();
+            PropertyInfo[] oldProperties = modifyModel.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Where(p => p.GetMethod?.IsPublic == true && p.GetIndexParameters().Length == 0).ToArray();
             if (newProperties.Length <= 0 || oldProperties.Length <= 0)
             {
                 return;
             }
-            var oldFieldLst = new Dictionary<string, string>();
+            var oldFieldLst = new Dictionary<string, object?>();
             foreach (PropertyInfo item in oldProperties)
             {
                 if (isAttr)
@@ -205,7 +161,7 @@ namespace M.Simple.Expand
                     }
                 }
                 name = string.IsNullOrEmpty(name) ? item.Name : name;
-                string value = item.GetValue(modifyModel, null)?.ToString() ?? "";//该字段的值
+                object? value = item.GetValue(modifyModel, null);//保留null，避免清空属性时被空串掩盖
                 if (item.PropertyType.IsValueType || item.PropertyType.Name.StartsWith("String"))
                 {
                     oldFieldLst.Add(name, value);//在此可转换value的类型
@@ -232,14 +188,14 @@ namespace M.Simple.Expand
                     }
                 }
                 filedName = string.IsNullOrEmpty(filedName) ? item.Name : filedName;
-                string value = item.GetValue(t, null)?.ToString() ?? "";//该字段的值
+                object? value = item.GetValue(t, null);//该字段的值
 
                 if (oldFieldLst.ContainsKey(filedName))
                 {
-                    string olddata = oldFieldLst[filedName];
-                    if (olddata != value)
+                    object? olddata = oldFieldLst[filedName];
+                    if (!Equals(olddata, value))
                     {
-                        item.SetStringValue(t, olddata);
+                        item.SetStringValue(t, olddata?.ToString());
                     }
                 }
             }
@@ -251,63 +207,36 @@ namespace M.Simple.Expand
         /// <param name="property"></param>
         /// <param name="obj"></param>
         /// <param name="value"></param>
-        public static void SetStringValue(this PropertyInfo property, object? obj, string value)
+        public static void SetStringValue(this PropertyInfo property, object? obj, string? value)
         {
-            switch (property.PropertyType.FullName)
+            ArgumentNullException.ThrowIfNull(property);
+            if (property.SetMethod?.IsPublic != true || property.GetIndexParameters().Length != 0)
+                throw new ArgumentException("属性必须可公开写入且不能是索引器。", nameof(property));
+            Type? underlyingType = Nullable.GetUnderlyingType(property.PropertyType);
+            Type valueType = underlyingType ?? property.PropertyType;
+            // 可空值类型的空文本表示清空；字符串保持原值，不把空串变成null。
+            if (valueType == typeof(string))
             {
-                case "System.String":
-                    property.SetValue(obj, value, null);
-                    break;
-                case "System.DateTime":
-                    if (DateTime.TryParse(value, out DateTime dt))
-                        property.SetValue(obj, dt, null);
-                    else
-                        property.SetValue(obj, DateTime.Now, null);
-                    break;
-                case "System.Boolean": //布尔型
-                    if (bool.TryParse(value, out bool b))
-                        property.SetValue(obj, b, null);
-                    else
-                        property.SetValue(obj, false, null);
-                    break;
-                case "System.Int16": //整型
-                case "System.Int32":
-                case "System.Byte":
-                    if (int.TryParse(value, out int i))
-                        property.SetValue(obj, i, null);
-                    else
-                        property.SetValue(obj, 0, null);
-                    break;
-                case "System.Int64":
-                    if (long.TryParse(value, out long l))
-                        property.SetValue(obj, l, null);
-                    else
-                        property.SetValue(obj, 0, null);
-                    break;
-                case "System.Decimal": //浮点型
-                    if (decimal.TryParse(value, out decimal d))
-                        property.SetValue(obj, d, null);
-                    else
-                        property.SetValue(obj, 0, null);
-                    break;
-                case "System.Single":
-                    if (float.TryParse(value, out float f))
-                        property.SetValue(obj, f, null);
-                    else
-                        property.SetValue(obj, 0, null);
-                    break;
-                case "System.Double":
-                    if (double.TryParse(value, out double du))
-                        property.SetValue(obj, du, null);
-                    else
-                        property.SetValue(obj, 0, null);
-                    break;
-                case "System.DBNull": //空值处理
-                    property.SetValue(obj, null, null);
-                    break;
-                default:
-                    break;
+                property.SetValue(obj, value);
+                return;
             }
+            if (value == null || (underlyingType != null && string.IsNullOrWhiteSpace(value)))
+            {
+                if (!property.PropertyType.IsValueType || underlyingType != null)
+                {
+                    property.SetValue(obj, null);
+                    return;
+                }
+                throw new FormatException("非可空属性不能赋null。");
+            }
+            if (string.IsNullOrWhiteSpace(value))
+                throw new FormatException("非可空属性不能赋空白文本。");
+            // 按实际目标类型转换，避免byte/short收到装箱int，非法输入不再静默覆盖原值。
+            var converter = System.ComponentModel.TypeDescriptor.GetConverter(valueType);
+            if (!converter.CanConvertFrom(typeof(string)))
+                throw new NotSupportedException($"不支持将字符串转换为{valueType.FullName}。");
+            object? converted = converter.ConvertFromString(null, System.Globalization.CultureInfo.CurrentCulture, value);
+            property.SetValue(obj, converted);
         }
         /// <summary>
         ///    <para>M.Simple.Expand扩展</para> 
@@ -337,7 +266,7 @@ namespace M.Simple.Expand
             }
             else if (property.PropertyType == typeof(decimal) || property.PropertyType == typeof(decimal?) || property.PropertyType == typeof(float) || property.PropertyType == typeof(float?) || property.PropertyType == typeof(double) || property.PropertyType == typeof(double?))
             {
-                result = ((decimal)value).ToString("0.0000");
+                result = ((IFormattable)value).ToString("0.0000", System.Globalization.CultureInfo.CurrentCulture);
             }
             else if (property.PropertyType == typeof(string))
             {
@@ -354,17 +283,11 @@ namespace M.Simple.Expand
         /// <returns></returns>
         private static List<PropertyInfo> GetProperties(Type type, bool isAttr)
         {
-            var allProperties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            var valueTypeProperties = allProperties.Where(p =>
-                p.PropertyType.IsValueType || p.PropertyType == typeof(string)).ToList();
-
-            var attrProperties = valueTypeProperties
-                .Where(p => p.IsDefined(typeof(CompareValueAttribute), inherit: false))
+            // object及其他引用类型属性也参与比较；引用对象沿用自身Equals，不递归遍历。
+            return type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Where(p => p.GetMethod?.IsPublic == true && p.GetIndexParameters().Length == 0)
+                .Where(p => !isAttr || p.IsDefined(typeof(CompareValueAttribute), inherit: false))
                 .ToList();
-
-            var nonAttrProperties = valueTypeProperties.Except(attrProperties).ToList();
-
-            return isAttr ? attrProperties : valueTypeProperties;
         }
     }
     //internal static class PropertyCache

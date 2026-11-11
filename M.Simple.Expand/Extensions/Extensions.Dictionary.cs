@@ -42,6 +42,8 @@
                 return targetDictionary;
             }
 
+            // 空目标只初始化一次，确保每次合并结果保留在返回字典中。
+            targetDictionary ??= new Dictionary<TKey, TValue>(sourceDictionary.Comparer);
             foreach (var keyValuePair in sourceDictionary)
             {
                 targetDictionary.Merge(keyValuePair.Key, keyValuePair.Value);
@@ -83,6 +85,8 @@
                 return targetDictionary;
             }
 
+            // 空目标只初始化一次，确保每次合并结果保留在返回字典中。
+            targetDictionary ??= new Dictionary<TKey, TValue>(sourceDictionary.Comparer);
             foreach (var keyValuePair in sourceDictionary)
             {
                 targetDictionary.MergeIgnore(keyValuePair.Key, keyValuePair.Value);

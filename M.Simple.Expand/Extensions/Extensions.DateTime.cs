@@ -223,6 +223,9 @@ namespace M.Simple.Expand
         /// <returns>有重合返回true，否则返回false</returns>
         public static bool IsOverlap(this List<DateTimePeriod> periods)
         {
+            // 不足两个时间段不可能重叠。
+            if (periods == null || periods.Count < 2) return false;
+
             periods.Sort((x, y) => x.StartTime.CompareTo(y.StartTime));
 
             DateTime farthestEnd = periods[0].EndTime;
@@ -247,6 +250,9 @@ namespace M.Simple.Expand
         /// <returns>有重合返回true，否则返回false</returns>
         public static bool IsOverlap(this List<DatePeriod> periods)
         {
+            // 不足两个时间段不可能重叠。
+            if (periods == null || periods.Count < 2) return false;
+
             periods.Sort((x, y) => x.StartDate.CompareTo(y.StartDate));
 
             DateTime farthestEnd = periods[0].EndDate;

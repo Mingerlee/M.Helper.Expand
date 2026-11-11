@@ -24,6 +24,6 @@ static partial class Demo
 <ul><li>SetConfigurationBasePath 记录基础路径；AddJsonFileWithBasePath 按路径组合后调用标准 AddJsonFile。示例将 sample-settings.json 复制到输出目录并从 AppContext.BaseDirectory 读取。</li></ul>
 <ul><li>AppSetting 静态入口首次访问时从 Directory.GetCurrentDirectory() 读取必需的 appsettings.json 并启用 reloadOnChange；当前工作目录和程序目录不一定相同。</li></ul>
 <ul><li>AppSetting 提供 GetConfig、GetConfigInt32、GetConfigBoolean 和 GetConfigSection&lt;T&gt;。缺值和转换异常请按方法实现处理，不假设均有默认值。</li></ul>
-<ul><li>ConfigExist 只判断取配置过程是否抛异常，即使节点不存在也可能返回 true；需要准确判断时使用 IConfiguration.GetSection(...).Exists()。</li></ul>
+<ul><li>ConfigExist 使用 IConfiguration.GetSection(...).Exists() 判断节点存在性：缺失节点返回 false，有值节点（包括空串）或包含子节点的父节点返回 true；读取配置发生异常仍返回 false。</li></ul>
 <h2 id="api-查询">API 查询</h2>
 <p><a href="../api.html">API 与源码索引</a>列出实际声明及 XML 注释。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="../index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#可运行示例">可运行示例</a><a class="toc-level-2" href="#使用规则与边界">使用规则与边界</a><a class="toc-level-2" href="#api-查询">API 查询</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

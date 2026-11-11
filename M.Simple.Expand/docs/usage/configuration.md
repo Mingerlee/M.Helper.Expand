@@ -36,7 +36,7 @@ static partial class Demo
 
 - AppSetting 提供 GetConfig、GetConfigInt32、GetConfigBoolean 和 GetConfigSection<T>。缺值和转换异常请按方法实现处理，不假设均有默认值。
 
-- ConfigExist 只判断取配置过程是否抛异常，即使节点不存在也可能返回 true；需要准确判断时使用 IConfiguration.GetSection(...).Exists()。
+- ConfigExist 使用 IConfiguration.GetSection(...).Exists() 判断节点存在性：缺失节点返回 false，有值节点（包括空串）或包含子节点的父节点返回 true；读取配置发生异常仍返回 false。
 
 ## API 查询
 

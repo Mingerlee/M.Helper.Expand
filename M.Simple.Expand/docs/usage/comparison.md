@@ -38,13 +38,15 @@ public class CompareItem
 
 - 调用方向为 newModel.CompareModel(oldModel)，不要颠倒。结果为 ComparesResults，属性沿用 FiledName、FiledOldValue、FiledNewValue 的历史拼写。
 
-- isAttr=true 时只处理 CompareValue 标记的字段；默认比较值类型和 string 属性，以 ToString 文本比较，不是深比较。声明为 object 的属性会被过滤；null 属性值与空文本可能被视为一致。
+- isAttr=true 时只处理 CompareValue 标记的属性；默认比较泛型 T 声明的所有公共可读实例属性，跳过索引器。直接按属性值的 Equals 判断，包含 object 属性，区分 null 与空字符串，也能检测 DateTime 的细微精度变化。引用类型沿用其 Equals（未重写时按引用比较），不递归比较对象图或集合内容；返回值文本仅用于展示，不作为相等判断依据。
 
-- 新对象为 null 时返回空差异；旧对象为 null 时将可比较字段标记为新增。IsModify 只根据差异条数判断。
+- 新对象为 null、旧对象非 null 时将字段标记为删除（IsDelete）；旧对象为 null 时标记为新增（IsAdded）；两者都为 null 时无差异。IsModify 方法只根据差异条数判断，因此新增、删除也返回 true。
 
 - ModifyField 会直接修改接收对象，isAttr 可结合 ModifyValueAttribute 选择及映射属性；它不会自动持久化。
 
-- SetStringValue、GetStringValue 是历史反射转换函数，可空类型及 float/double 存在实现边界；不要把它当作任意类型的序列化器。
+- SetStringValue 按实际目标类型及当前文化转换，支持基础数值、bool、DateTime、枚举、Guid、TimeSpan 及其可空形式。可空值类型的 null/空白文本用于清空；字符串区分 null 和空串。非法或溢出输入抛出转换异常且不覆盖原值，不能写入的属性、不支持的类型也显式报错；不再将非法输入静默替换成0或当前日期。
+
+- GetStringValue 对 decimal、float、double（含可空类型）按各自类型格式化为四位小数，避免装箱类型强转异常；null 仍返回空串。它是展示函数，不是可逆序列化器。ModifyField 跳过只读属性和索引器，支持可空值赋值及清空。
 
 ## API 查询
 

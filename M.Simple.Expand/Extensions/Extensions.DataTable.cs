@@ -1,4 +1,6 @@
-﻿using System.Data;
+﻿using System.ComponentModel;
+using System.Globalization;
+using System.Data;
 using System.Reflection;
 
 namespace M.Simple.Expand
@@ -14,25 +16,45 @@ namespace M.Simple.Expand
         /// <returns></returns>
         public static List<T> ToLists<T>(this DataTable dt) where T : class, new()
         {
-            //创建一个属性的列表
-            List<PropertyInfo> prlist = [];
-            //获取TResult的类型实例  反射的入口
-            Type t = typeof(T);
-            //获得TResult 的所有的Public 属性 并找出TResult属性和DataTable的列名称相同的属性(PropertyInfo) 并加入到属性列表
-            Array.ForEach(t.GetProperties(), p => { if (dt.Columns.IndexOf(p.Name) != -1) prlist.Add(p); });
-            //创建返回的集合
-            List<T> oblist = [];
-
+            List<T> result = [];
+            if (dt == null) return result;
+            var mappings = new List<(PropertyInfo Property, DataColumn Column)>();
+            foreach (var property in typeof(T).GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Where(p => p.SetMethod?.IsPublic == true && p.GetIndexParameters().Length == 0))
+            {
+                // 优先读取原属性映射，兼容普通属性名列和手工创建的DisplayName列。
+                var columns = dt.Columns.Cast<DataColumn>();
+                var column = columns.FirstOrDefault(c => Equals(c.ExtendedProperties["M.Simple.PropertyName"], property.Name));
+                column ??= columns.FirstOrDefault(c => !c.ExtendedProperties.ContainsKey("M.Simple.PropertyName") && c.ColumnName == property.Name);
+                string? displayName = property.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName;
+                column ??= columns.FirstOrDefault(c => !c.ExtendedProperties.ContainsKey("M.Simple.PropertyName") && c.ColumnName == displayName);
+                if (column != null) mappings.Add((property, column));
+            }
             foreach (DataRow row in dt.Rows)
             {
-                //创建TResult的实例
-                T ob = new();
-                //找到对应的数据  并赋值
-                prlist.ForEach(p => { if (row[p.Name] != DBNull.Value) p.SetValue(ob, row[p.Name], null); });
-                //放入到返回的集合中.
-                oblist.Add(ob);
+                T item = new();
+                foreach (var (property, column) in mappings)
+                {
+                    object? value = row[column];
+                    Type? nullableType = Nullable.GetUnderlyingType(property.PropertyType);
+                    Type valueType = nullableType ?? property.PropertyType;
+                    if (value == DBNull.Value)
+                    {
+                        // 明确还原null，覆盖模型构造函数或属性初始值。
+                        if (nullableType != null || !valueType.IsValueType) property.SetValue(item, null);
+                        continue;
+                    }
+                    if (!valueType.IsInstanceOfType(value))
+                    {
+                        if (valueType.IsEnum) value = value is string text ? Enum.Parse(valueType, text) : Enum.ToObject(valueType, value);
+                        else if (valueType == typeof(Guid)) value = Guid.Parse(value.ToString()!);
+                        else value = Convert.ChangeType(value, valueType, CultureInfo.CurrentCulture);
+                    }
+                    property.SetValue(item, value);
+                }
+                result.Add(item);
             }
-            return oblist;
+            return result;
         }
         /// <summary>
         /// <para>M.Simple.Expand扩展</para>    
@@ -53,9 +75,10 @@ namespace M.Simple.Expand
         /// <returns>筛选后的新DataTable</returns>
         public static DataTable Where(this DataTable dt, Func<DataRow, bool> predicate)
         {
-            // 校验源表是否为空
-            if (dt == null || dt.Rows.Count == 0)
-                return dt.Clone(); // 返回结构相同但无数据的表
+            ArgumentNullException.ThrowIfNull(predicate);
+            // null源返回空表；有结构的空表保留结构。
+            if (dt == null) return new DataTable();
+            if (dt.Rows.Count == 0) return dt.Clone();
 
             // 筛选符合条件的行并创建新表
             var filteredRows = dt.Rows.Cast<DataRow>().Where(predicate).ToArray();

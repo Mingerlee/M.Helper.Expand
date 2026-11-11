@@ -29,41 +29,49 @@ namespace M.Simple.Expand.Services
         public SmtpClient GetSmtpClient(MailSettings settings)
         {
             SmtpClient smtpClient = new SmtpClient();
-            switch (settings.DeliveryOption)
+            try
             {
-                case MailDeliveryOptions.UseNetworkSmtp:
-                    smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-                    smtpClient.Host = settings.StmpHostServer;
-                    smtpClient.Port = settings.PortNumber;
-                    if (settings.RequireAuth)
-                    {
-                        smtpClient.UseDefaultCredentials = false;
-                        smtpClient.Credentials = settings.GetCredential;
-                    }
+                switch (settings.DeliveryOption)
+                {
+                    case MailDeliveryOptions.UseNetworkSmtp:
+                        smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
+                        smtpClient.Host = settings.StmpHostServer;
+                        smtpClient.Port = settings.PortNumber;
+                        if (settings.RequireAuth)
+                        {
+                            smtpClient.UseDefaultCredentials = false;
+                            smtpClient.Credentials = settings.GetCredential;
+                        }
 
-                    smtpClient.EnableSsl = settings.EnableSSL;
-                    break;
-                case MailDeliveryOptions.UseIISPickUpDirectory:
-                    smtpClient.DeliveryMethod = SmtpDeliveryMethod.PickupDirectoryFromIis;
-                    break;
-                case MailDeliveryOptions.SpecifiedPickUpDirectory:
-                    smtpClient.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
-                    smtpClient.PickupDirectoryLocation = settings.SpecifiedPickUpDirectoryPath;
-                    break;
-                default:
-                    smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-                    smtpClient.Host = settings.StmpHostServer;
-                    smtpClient.Port = settings.PortNumber;
-                    if (settings.RequireAuth)
-                    {
-                        smtpClient.Credentials = settings.GetCredential;
-                    }
+                        smtpClient.EnableSsl = settings.EnableSSL;
+                        break;
+                    case MailDeliveryOptions.UseIISPickUpDirectory:
+                        smtpClient.DeliveryMethod = SmtpDeliveryMethod.PickupDirectoryFromIis;
+                        break;
+                    case MailDeliveryOptions.SpecifiedPickUpDirectory:
+                        smtpClient.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
+                        smtpClient.PickupDirectoryLocation = settings.SpecifiedPickUpDirectoryPath;
+                        break;
+                    default:
+                        smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
+                        smtpClient.Host = settings.StmpHostServer;
+                        smtpClient.Port = settings.PortNumber;
+                        if (settings.RequireAuth)
+                        {
+                            smtpClient.Credentials = settings.GetCredential;
+                        }
 
-                    smtpClient.EnableSsl = settings.EnableSSL;
-                    break;
+                        smtpClient.EnableSsl = settings.EnableSSL;
+                        break;
+                }
+
+                return smtpClient;
             }
-
-            return smtpClient;
+            catch
+            {
+                smtpClient.Dispose();
+                throw;
+            }
         }
         /// <summary>
         ///     发送邮件
@@ -76,17 +84,17 @@ namespace M.Simple.Expand.Services
             {
                 return new MailResult("Settings not initialised. Please provide mail settings before send.");
             }
-            SmtpClient smtpClient = GetSmtpClient();
             try
             {
-                smtpClient.Send(ConvertMailMessage(Mail));
+                // 消息拥有附件和正文视图，客户端及消息在成功和失败路径都必须释放。
+                using SmtpClient smtpClient = GetSmtpClient();
+                using MailMessage message = ConvertMailMessage(Mail);
+                smtpClient.Send(message);
             }
             catch (Exception ex)
             {
                 return new MailResult(ex.Message);
             }
-            smtpClient.Dispose();
-            smtpClient = null;
             return new MailResult();
         }
         /// <summary>
@@ -100,135 +108,105 @@ namespace M.Simple.Expand.Services
             {
                 return new MailResult("Settings not initialised. Please provide mail settings before send.");
             }
-            SmtpClient smtpClient = GetSmtpClient();
             try
             {
-                await smtpClient.SendMailAsync(ConvertMailMessage(Mail));
+                // 消息拥有附件和正文视图，客户端及消息在成功和失败路径都必须释放。
+                using SmtpClient smtpClient = GetSmtpClient();
+                using MailMessage message = ConvertMailMessage(Mail);
+                await smtpClient.SendMailAsync(message);
             }
             catch (Exception e)
             {
                 return new MailResult($"Sending failure,error {e.Message}");
             }
-            smtpClient.Dispose();
-            smtpClient = null;
             return new MailResult();
         }
 
         private SmtpClient GetSmtpClient()
         {
-            SmtpClient smtpClient = new SmtpClient();
-            switch (Settings.DeliveryOption)
-            {
-                case MailDeliveryOptions.UseNetworkSmtp:
-                    smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-                    smtpClient.Host = Settings.StmpHostServer;
-                    smtpClient.Port = Settings.PortNumber;
-                    if (Settings.RequireAuth)
-                    {
-                        smtpClient.UseDefaultCredentials = false;
-                        smtpClient.Credentials = Settings.GetCredential;
-                    }
-
-                    smtpClient.EnableSsl = Settings.EnableSSL;
-                    break;
-                case MailDeliveryOptions.UseIISPickUpDirectory:
-                    smtpClient.DeliveryMethod = SmtpDeliveryMethod.PickupDirectoryFromIis;
-                    break;
-                case MailDeliveryOptions.SpecifiedPickUpDirectory:
-                    smtpClient.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;
-                    smtpClient.PickupDirectoryLocation = Settings.SpecifiedPickUpDirectoryPath;
-                    break;
-                default:
-                    smtpClient.DeliveryMethod = SmtpDeliveryMethod.Network;
-                    smtpClient.Host = Settings.StmpHostServer;
-                    smtpClient.Port = Settings.PortNumber;
-                    if (Settings.RequireAuth)
-                    {
-                        smtpClient.Credentials = Settings.GetCredential;
-                    }
-
-                    smtpClient.EnableSsl = Settings.EnableSSL;
-                    break;
-            }
-
-            return smtpClient;
+            return GetSmtpClient(Settings);
         }
         private MailMessage ConvertMailMessage(MailContent model)
         {
             if (!string.IsNullOrEmpty(model.ToAddresses))
             {
-                MailMessage mms = new()
+                MailMessage mms = new();
+                try
                 {
-                    From = new MailAddress(Settings.FromAddress),//必须要和用户名对应的邮件地址
-                    Subject = model.Subject,
-                    SubjectEncoding = Encoding.UTF8
-                };
-                if (!model.IsHTML)
-                {
-                    mms.IsBodyHtml = model.IsHTML;
-                    mms.Body = model.Body;
-                    mms.BodyEncoding = Encoding.UTF8;
-                }
-                else
-                {
-                    //var TextView = AlternateView.CreateAlternateViewFromString(model.Body.GetPlainTextFromHTML(), Encoding.UTF8, "text/plain");
-                    var TextView = AlternateView.CreateAlternateViewFromString(model.Body, Encoding.UTF8, "text/plain");
-                    var HTMLview = AlternateView.CreateAlternateViewFromString(model.Body, Encoding.UTF8, "text/html");
-                    mms.AlternateViews.Add(TextView);
-                    mms.AlternateViews.Add(HTMLview);
-                }
+                    mms.From = new MailAddress(Settings.FromAddress);
+                    mms.Subject = model.Subject;
+                    mms.SubjectEncoding = Encoding.UTF8;
+                    if (!model.IsHTML)
+                    {
+                        mms.IsBodyHtml = model.IsHTML;
+                        mms.Body = model.Body;
+                        mms.BodyEncoding = Encoding.UTF8;
+                    }
+                    else
+                    {
+                        //var TextView = AlternateView.CreateAlternateViewFromString(model.Body.GetPlainTextFromHTML(), Encoding.UTF8, "text/plain");
+                        mms.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(model.Body, Encoding.UTF8, "text/plain"));
+                        mms.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(model.Body, Encoding.UTF8, "text/html"));
+                    }
 
-                //Add to Addresses
-                if (!string.IsNullOrEmpty(model.ToAddresses))
-                {
-                    var addresses = model.ToAddresses.GetEMailAddressArray();
-                    foreach (var a in addresses)
+                    //Add to Addresses
+                    if (!string.IsNullOrEmpty(model.ToAddresses))
                     {
-                        mms.To.Add(new MailAddress(a));
+                        var addresses = model.ToAddresses.GetEMailAddressArray();
+                        foreach (var a in addresses)
+                        {
+                            mms.To.Add(new MailAddress(a));
+                        }
                     }
-                }
-                //Add CC Addresses
-                if (!string.IsNullOrEmpty(model.CcAddresses))
-                {
-                    // 抄送只读取抄送地址，避免误用主收件人。
-                    var addresses = model.CcAddresses.GetEMailAddressArray();
-                    foreach (var a in addresses)
+                    //Add CC Addresses
+                    if (!string.IsNullOrEmpty(model.CcAddresses))
                     {
-                        if (!string.IsNullOrEmpty(a))
-                            mms.CC.Add(new MailAddress(a));
+                        // 抄送只读取抄送地址，避免误用主收件人。
+                        var addresses = model.CcAddresses.GetEMailAddressArray();
+                        foreach (var a in addresses)
+                        {
+                            if (!string.IsNullOrEmpty(a))
+                                mms.CC.Add(new MailAddress(a));
+                        }
                     }
-                }
-                //Add BCC Addresses
-                if (!string.IsNullOrEmpty(model.BccAddresses))
-                {
-                    // 密送使用独立地址列表。
-                    var addresses = model.BccAddresses.GetEMailAddressArray();
-                    foreach (var a in addresses)
+                    //Add BCC Addresses
+                    if (!string.IsNullOrEmpty(model.BccAddresses))
                     {
-                        if (!string.IsNullOrEmpty(a))
-                            mms.Bcc.Add(new MailAddress(a));
+                        // 密送使用独立地址列表。
+                        var addresses = model.BccAddresses.GetEMailAddressArray();
+                        foreach (var a in addresses)
+                        {
+                            if (!string.IsNullOrEmpty(a))
+                                mms.Bcc.Add(new MailAddress(a));
+                        }
                     }
-                }
-                //Add ReplyTo Addresses
-                if (!string.IsNullOrEmpty(model.ReplyToAddresses))
-                {
-                    // 回复地址与收件人分别设置。
-                    var addresses = model.ReplyToAddresses.GetEMailAddressArray();
-                    foreach (var a in addresses)
+                    //Add ReplyTo Addresses
+                    if (!string.IsNullOrEmpty(model.ReplyToAddresses))
                     {
-                        if (!string.IsNullOrEmpty(a))
-                            mms.ReplyToList.Add(new MailAddress(a));
+                        // 回复地址与收件人分别设置。
+                        var addresses = model.ReplyToAddresses.GetEMailAddressArray();
+                        foreach (var a in addresses)
+                        {
+                            if (!string.IsNullOrEmpty(a))
+                                mms.ReplyToList.Add(new MailAddress(a));
+                        }
                     }
-                }
-                //Add Attachments
-                if (model.AttachmentPaths != null)
-                {
-                    foreach (var a in model.AttachmentPaths)
+                    //Add Attachments
+                    if (model.AttachmentPaths != null)
                     {
-                        mms.Attachments.Add(new Attachment(a.Trim()));
+                        foreach (var a in model.AttachmentPaths)
+                        {
+                            mms.Attachments.Add(new Attachment(a.Trim()));
+                        }
                     }
+                    return mms;
                 }
-                return mms;
+                catch
+                {
+                    // 构建后续附件失败时，释放此前已打开的附件流。
+                    mms.Dispose();
+                    throw;
+                }
             }
             return null;
         }

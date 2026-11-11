@@ -57,6 +57,10 @@ static partial class Demo
 
 - FtpDownloadAsync 的 CancellationToken 同时用于中断网络请求及数据复制，取消通过 OperationCanceledException 返回。下载成功仍覆盖同名文件，空文件下载成功也会正常替换。
 
+- 邮件发送在成功、发送失败和消息构建失败时均释放客户端、消息、附件及正文视图。公开 GetSmtpClient(settings) 成功返回的客户端由调用方 using/Dispose；配置客户端失败由库内部释放。示例及资源回归测试通过本地投递目录验证，不向外部收件人发送邮件。
+
+- FTP 的上传、删除、目录列表、建目录、大小查询、重命名及下载均按作用域释放文件流、响应和读取器，协议错误附带的响应也会关闭。上传会读取最终响应，服务端最终确认失败时不会误报成功；空目录明细返回空数组。资源回归使用回环地址测试服务器，未连接真实FTP服务。
+
 - 默认示例只解析服务，不发送邮件、不连接 FTP。异步 FTP 上传下载需传 CancellationToken。FTP 使用传统协议，账号和网络边界由使用方配置。
 
 - GetFtpListDirectoryDetails、FtpDelete、FtpReName、FtpMakeDirectory 等会实际访问远程服务。先准备专用测试目录，再显式调用；不要直接把示例当作生产操作脚本。

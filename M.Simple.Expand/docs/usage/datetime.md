@@ -41,7 +41,7 @@ static partial class Demo
 
 - DiffDays 计算日期差，includeToday 控制附加计数；DiffMonth 的算法通过 DiffMonthWayEnum 选择。CalculateAge 使用运行时当前日期。
 
-- IsOverlap 会原地排序传入的 List，并直接读取第 0 项，所以调用前须确保非 null 且 Count > 0；建议传入副本以保护原顺序。时间区间相接（后一项开始等于前一项结束）不算重叠。
+- 两种 IsOverlap 在 null、空列表或仅一个区间时均返回 false。多个区间仍会原地排序，建议传入副本以保护原顺序。DateTimePeriod 的端点相接不算重叠；DatePeriod 按日期比较，端点相接算重叠，沿用原有边界规则。
 
 - 可空重载的回退逻辑按具体方法而异；有些使用当前时间，不要统一假设返回空字符串。DateTime 的 Kind 和时区应由调用方明确。
 

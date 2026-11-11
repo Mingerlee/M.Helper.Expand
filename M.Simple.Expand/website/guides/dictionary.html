@@ -22,6 +22,6 @@ static partial class Demo
 <h2 id="使用规则与边界">使用规则与边界</h2>
 <ul><li>Merge、Merges 以新值覆盖同键数据；MergeIgnore、MergeIgnores 保留已存在键的值。方法会修改原字典，不是返回一个独立副本。</li></ul>
 <ul><li>GetValue 找不到键返回 TValue 的 default；RemovePop 先取出再删除，不存在也返回 default，不能用它区分键缺失与实际默认值。</li></ul>
-<ul><li>Merge 和 MergeIgnore 的单项版本可创建空字典；多项版本不要假设会正确初始化 null 目标，先实例化 Dictionary。Removes 可批量删除。</li></ul>
+<ul><li>Merge、MergeIgnore、Merges、MergeIgnores 均支持 null 目标，但必须接收返回值（例如 target = target.Merges(source)）。批量合并遇到 null 目标时创建一个字典并保留源字典的键比较器；目标已存在时继续使用目标的比较器。source 为 null 时原样返回目标；两者都为 null 时仍返回 null。Removes 可批量删除。</li></ul>
 <h2 id="api-查询">API 查询</h2>
 <p><a href="../api.html">API 与源码索引</a>列出实际声明及 XML 注释。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="../index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#可运行示例">可运行示例</a><a class="toc-level-2" href="#使用规则与边界">使用规则与边界</a><a class="toc-level-2" href="#api-查询">API 查询</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

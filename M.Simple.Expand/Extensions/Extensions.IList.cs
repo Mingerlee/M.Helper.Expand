@@ -20,41 +20,40 @@ namespace M.Simple.Expand
         public static DataTable ToDataTable(this IList list)
         {
             DataTable result = new();
-            if (list != null && list.Count > 0)
+            if (list == null) return result;
+            // 泛型空集合也保留表结构；非泛型空集合无法推断元素类型。
+            Type? itemType = list.GetType().GetInterfaces().Append(list.GetType())
+                .FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                ?.GetGenericArguments()[0];
+            itemType = list.Cast<object?>().FirstOrDefault(item => item != null)?.GetType() ?? itemType;
+            if (itemType == null) return result;
+            var properties = itemType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.GetMethod?.IsPublic == true && p.GetIndexParameters().Length == 0).ToArray();
+            foreach (var property in properties)
             {
-                PropertyInfo[] propertys = list[0].GetType().GetProperties();
-                foreach (PropertyInfo pi in propertys)
-                {
-                    //获取类型
-                    Type colType = pi.PropertyType;
-                    //当类型为Nullable<>时
-                    if ((colType.IsGenericType) && (colType.GetGenericTypeDefinition() == typeof(Nullable<>)))
-                    {
-                        colType = colType.GetGenericArguments()[0];
-                    }
-
-                    var displayNameAttribute = pi.GetCustomAttribute<DisplayNameAttribute>();//列名
-                    if (displayNameAttribute != null)
-                    {
-                        result.Columns.Add(displayNameAttribute.DisplayName, colType);
-                    }
-                    else
-                    {
-                        result.Columns.Add(pi.Name, colType);
-                    }
-                }
-                for (int i = 0; i < list.Count; i++)
-                {
-                    ArrayList tempList = [];
-                    foreach (PropertyInfo pi in propertys)
-                    {
-                        object obj = pi.GetValue(list[i], null);
-                        tempList.Add(obj);
-                    }
-                    object?[] array = tempList.ToArray();
-                    result.LoadDataRow(array, true);
-                }
+                Type columnType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+                if (columnType.IsEnum) columnType = Enum.GetUnderlyingType(columnType);
+                string displayName = property.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? property.Name;
+                string columnName = string.IsNullOrEmpty(displayName) ? property.Name : displayName;
+                // 显示名重复时生成独立列，映射信息记录原属性名，避免丢值或错位。
+                if (result.Columns.Contains(columnName)) columnName = property.Name;
+                string baseName = columnName;
+                for (int suffix = 2; result.Columns.Contains(columnName); suffix++) columnName = baseName + "_" + suffix;
+                var column = result.Columns.Add(columnName, columnType);
+                column.Caption = displayName;
+                column.ExtendedProperties["M.Simple.PropertyName"] = property.Name;
             }
+            foreach (var item in list)
+            {
+                if (item == null) throw new ArgumentException("集合不能包含null元素。", nameof(list));
+                var values = properties.Select(p =>
+                {
+                    object? value = p.GetValue(item);
+                    return value is Enum ? Convert.ChangeType(value, Enum.GetUnderlyingType(value.GetType())) : value ?? DBNull.Value;
+                }).ToArray();
+                result.Rows.Add(values);
+            }
+            result.AcceptChanges();
             return result;
         }
         /// <summary>

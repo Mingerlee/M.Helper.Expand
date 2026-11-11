@@ -80,8 +80,7 @@ namespace M.Simple.Expand
         {
             try
             {
-                var result = GetInstance().Config.GetSection(name).Value;
-                return true;
+                return GetInstance().Config.GetSection(name).Exists();
             }
             catch
             {

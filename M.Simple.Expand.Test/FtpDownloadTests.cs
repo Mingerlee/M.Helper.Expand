@@ -114,6 +114,66 @@ public class FtpDownloadTests
             : Task.Run(() => service.FtpDownload(directory, "result.bin"));
     }
 
+    [DataTestMethod]
+    [DataRow("helper", "success")]
+    [DataRow("service", "success")]
+    [DataRow("async", "success")]
+    [DataRow("helper", "reject")]
+    [DataRow("service", "reject")]
+    [DataRow("async", "reject")]
+    [DataRow("helper", "interrupt")]
+    [DataRow("service", "interrupt")]
+    [DataRow("async", "interrupt")]
+    [Timeout(20000)]
+    public async Task Upload_ReleasesSourceFileAndChecksCompletion(string entry, string mode)
+    {
+        string source = Path.Combine(Path.GetTempPath(), "ftp-upload-" + Guid.NewGuid().ToString("N") + ".bin");
+        File.WriteAllBytes(source, LocalFtpServer.Payload);
+        try
+        {
+            using var server = new LocalFtpServer(mode);
+            var service = new FtpClientService(new FtpClientSettings
+            {
+                FtpServerIP = server.Address,
+                FtpUserID = "test",
+                FtpPassword = "test"
+            });
+            Func<Task> upload = entry == "helper"
+                ? () => Task.Run(() => new FtpClient(server.Address, "test", "test").Upload(source))
+                : entry == "service" ? () => Task.Run(() => service.FtpUpload(source))
+                : () => service.FtpUploadAsync(source, CancellationToken.None);
+            if (mode == "success") await upload();
+            else await Assert.ThrowsExceptionAsync<Exception>(upload);
+            using (var exclusive = new FileStream(source, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                Assert.AreEqual(LocalFtpServer.Payload.Length, exclusive.Length);
+            await server.Completion;
+            if (mode != "reject") CollectionAssert.AreEqual(LocalFtpServer.Payload, server.Uploaded);
+        }
+        finally
+        {
+            File.Delete(source);
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow("helper")]
+    [DataRow("service")]
+    [Timeout(20000)]
+    public async Task ListDirectory_EmptyRemoteDirectoryReturnsEmptyArray(string entry)
+    {
+        using var server = new LocalFtpServer("empty");
+        string[] results = await Task.Run(() => entry == "helper"
+            ? new FtpClient(server.Address, "test", "test").GetFilesDetailList()
+            : new FtpClientService(new FtpClientSettings
+            {
+                FtpServerIP = server.Address,
+                FtpUserID = "test",
+                FtpPassword = "test"
+            }).GetFtpListDirectoryDetails());
+        Assert.AreEqual(0, results.Length);
+        await server.Completion;
+    }
+
     // 仅监听回环地址的最小FTP测试端，模拟拒绝、部分传输失败与正常完成。
     private sealed class LocalFtpServer : IDisposable
     {
@@ -122,6 +182,7 @@ public class FtpDownloadTests
         private readonly CancellationTokenSource stop = new(TimeSpan.FromSeconds(15));
         public string Address { get; }
         public Task Completion { get; }
+        public byte[] Uploaded { get; private set; }
         public TaskCompletionSource<bool> TransferStarted { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public LocalFtpServer(string mode)
@@ -137,6 +198,7 @@ public class FtpDownloadTests
             using var reader = new StreamReader(control.GetStream(), Encoding.ASCII);
             using var writer = new StreamWriter(control.GetStream(), Encoding.ASCII) { NewLine = "\r\n", AutoFlush = true };
             TcpListener passive = null;
+            IPEndPoint active = null;
             try
             {
                 await writer.WriteLineAsync("220 Local test FTP");
@@ -161,6 +223,35 @@ public class FtpDownloadTests
                                 : $"229 Entering Extended Passive Mode (|||{port}|)");
                             break;
                         case "SIZE": await writer.WriteLineAsync("213 " + Payload.Length); break;
+                        case "PORT":
+                            var parts = line.Substring(5).Split(',').Select(int.Parse).ToArray();
+                            active = new IPEndPoint(IPAddress.Loopback, parts[4] * 256 + parts[5]);
+                            await writer.WriteLineAsync("200 Active endpoint ready");
+                            break;
+                        case "STOR":
+                            if (mode == "reject")
+                            {
+                                await writer.WriteLineAsync("550 Upload rejected");
+                                return;
+                            }
+                            using (var data = new TcpClient())
+                            {
+                                await data.ConnectAsync(active, stop.Token);
+                                await writer.WriteLineAsync("150 Opening upload connection");
+                                using var content = new MemoryStream();
+                                await data.GetStream().CopyToAsync(content, stop.Token);
+                                Uploaded = content.ToArray();
+                            }
+                            await writer.WriteLineAsync(mode == "interrupt" ? "426 Upload failed" : "226 Upload complete");
+                            break;
+                        case "LIST":
+                            using (var data = new TcpClient())
+                            {
+                                await data.ConnectAsync(active, stop.Token);
+                                await writer.WriteLineAsync("150 Opening directory listing");
+                            }
+                            await writer.WriteLineAsync("226 Listing complete");
+                            break;
                         case "RETR":
                             if (mode == "reject")
                             {

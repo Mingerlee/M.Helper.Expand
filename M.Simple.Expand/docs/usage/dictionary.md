@@ -33,7 +33,7 @@ static partial class Demo
 
 - GetValue 找不到键返回 TValue 的 default；RemovePop 先取出再删除，不存在也返回 default，不能用它区分键缺失与实际默认值。
 
-- Merge 和 MergeIgnore 的单项版本可创建空字典；多项版本不要假设会正确初始化 null 目标，先实例化 Dictionary。Removes 可批量删除。
+- Merge、MergeIgnore、Merges、MergeIgnores 均支持 null 目标，但必须接收返回值（例如 target = target.Merges(source)）。批量合并遇到 null 目标时创建一个字典并保留源字典的键比较器；目标已存在时继续使用目标的比较器。source 为 null 时原样返回目标；两者都为 null 时仍返回 null。Removes 可批量删除。
 
 ## API 查询
 
