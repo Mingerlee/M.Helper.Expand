@@ -29,8 +29,8 @@ public sealed class SimpleLoggingOptions
 
     internal void Validate()
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(ApplicationName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(DatabasePath);
+        if (string.IsNullOrWhiteSpace(ApplicationName)) throw new ArgumentException("应用名称不能为空。", nameof(ApplicationName));
+        if (string.IsNullOrWhiteSpace(DatabasePath)) throw new ArgumentException("数据库路径不能为空。", nameof(DatabasePath));
         if (RetentionDays < 1 || RetentionDays > 3650 || QueueCapacity < 1 ||
             BatchSize < 1 || BatchSize > QueueCapacity || MaxFieldLength < 256 ||
             FlushInterval <= TimeSpan.Zero || FlushInterval > TimeSpan.FromMinutes(1) ||
@@ -39,7 +39,7 @@ public sealed class SimpleLoggingOptions
             MinFreeDiskSpaceBytes < 0 || DiskSpaceRecoveryMarginBytes < 0 ||
             MinFreeDiskSpaceBytes > long.MaxValue - DiskSpaceRecoveryMarginBytes ||
             StorageCheckInterval <= TimeSpan.Zero || StorageCheckInterval > TimeSpan.FromHours(1) ||
-            !Enum.IsDefined(MinimumLevel))
+            !Enum.IsDefined(typeof(LogLevel), MinimumLevel))
         {
             throw new ArgumentException("日志容量、批量大小、保留时间、字段长度或日志级别配置无效。");
         }

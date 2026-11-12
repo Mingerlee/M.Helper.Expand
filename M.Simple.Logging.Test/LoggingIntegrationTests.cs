@@ -185,6 +185,7 @@ public sealed class LoggingIntegrationTests
         builder.Services.AddAuthentication("Test").AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
         await using var app = builder.Build();
         app.UsePathBase("/prefix");
+        app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapSimpleLogDashboard("/nested/logs");
@@ -274,7 +275,11 @@ public sealed class LoggingIntegrationTests
 }
 
 internal sealed class TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
+#if NET6_0
+    ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder, new SystemClock())
+#else
     ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+#endif
 {
     protected override Task<AuthenticateResult> HandleAuthenticateAsync() => Task.FromResult(
         Request.Headers.ContainsKey("X-Test-Auth")

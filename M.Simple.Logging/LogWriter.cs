@@ -51,7 +51,7 @@ internal sealed class LogWriter(SimpleLoggingOptions options, LogBuffer buffer, 
                     {
                         store.Write(batch);
                         Interlocked.Add(ref buffer.Persisted, batch.Count);
-                        Interlocked.Exchange(ref buffer.LastWriteTicks, DateTimeOffset.UtcNow.UtcTicks);
+                        Interlocked.Exchange(ref buffer.LastWriteTicks, DateTimeOffset.UtcNow.UtcDateTime.Ticks);
                         batch.Clear();
                         Volatile.Write(ref buffer.LastError, null);
                     }

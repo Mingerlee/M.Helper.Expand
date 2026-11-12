@@ -30,7 +30,11 @@ public sealed class SimpleLoggerProvider : ILoggerProvider, ISupportExternalScop
         public bool IsEnabled(LogLevel level) => Volatile.Read(ref owner._disposed) == 0 &&
             level != LogLevel.None && level >= owner._options.MinimumLevel;
 
+#if NET6_0
+        public IDisposable BeginScope<TState>(TState state) => owner._scopes.Push(state);
+#else
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => owner._scopes.Push(state);
+#endif
 
         public void Log<TState>(LogLevel level, EventId eventId, TState state, Exception? exception,
             Func<TState, Exception?, string> formatter)

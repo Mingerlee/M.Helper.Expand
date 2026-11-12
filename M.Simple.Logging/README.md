@@ -1,6 +1,8 @@
 # M.Simple.Logging
 
-面向 .NET 8 / ASP.NET Core 的轻量日志包：标准 `ILogger<T>`、本地 SQLite、应用内嵌 Dashboard。无需 Serilog、ORM、前端构建工具或外部日志服务。
+面向 .NET 6 / .NET 8 / ASP.NET Core 的轻量日志包：标准 `ILogger<T>`、本地 SQLite、应用内嵌 Dashboard。无需 Serilog、ORM、前端构建工具或外部日志服务。
+
+同一 NuGet 包包含 `net6.0`、`net8.0` 程序集，消费项目自动选择目标；接入方法一致。源码使用 C# 12，仓库构建需 .NET 8 SDK；使用已打包的 net6.0 程序集不要求升级应用目标框架。
 
 ## 快速接入
 
@@ -21,7 +23,9 @@ app.Run();
 
 认证方案和 `LogAdmin` 策略由宿主注册。Dashboard 默认要求已登录；生产应用应明确限制管理员权限。注册本包不会清除现有日志提供程序。
 
-宿主使用 `UsePathBase` 时，将其放在 `UseAuthentication` / `UseAuthorization` 之前，显式保留这些中间件顺序。
+宿主使用 `UsePathBase` 时，显式按 `UsePathBase` → `UseRouting` → `UseAuthentication` → `UseAuthorization` 顺序注册中间件，确保 .NET 6 下也正确匹配路由。
+
+.NET 6 的 `MapSimpleLogDashboard` 返回 `SimpleLogDashboardBuilder`，支持对全部端点统一调用 `RequireAuthorization`、`AllowAnonymous`、`WithMetadata`；.NET 8 保持返回 `RouteGroupBuilder`。不要在跨版本代码中显式声明 `RouteGroupBuilder` 或使用仅 .NET 7+ 才提供的路由分组 API。
 
 业务代码继续使用标准日志接口：
 
@@ -116,7 +120,7 @@ Docker 下按数据库目录匹配最长挂载点的可用空间；整个目录�
 
 ## 可靠性与边界
 
-- 唯一直接 NuGet 依赖为 `Microsoft.Data.Sqlite`，包含传递的 SQLite 原生运行库。其他能力来自 .NET 8 / `Microsoft.AspNetCore.App` 共享框架，消费端需 ASP.NET Core 运行时。
+- 唯一直接 NuGet 依赖为 `Microsoft.Data.Sqlite`，包含传递的 SQLite 原生运行库。其他能力来自对应 .NET 6 / .NET 8 的 `Microsoft.AspNetCore.App` 共享框架，消费端需相应 ASP.NET Core 运行时。
 - 单后台写入器、事务批量提交、WAL、`synchronous=NORMAL`，读连接独立。
 - 有界队列满时丢弃新日志，不阻塞业务；Formatter / Enrich 失败不抛给业务，计入 CaptureFailures。
 - 写入失败保留批次，每秒重试；队列仍有容量上限。状态只暴露错误类型，内部错误不递归写日志。
@@ -129,11 +133,13 @@ Docker 下按数据库目录匹配最长挂载点的可用空间；整个目录�
 ## 运行示例
 
 ```powershell
-dotnet run --project M.Simple.Logging.Sample
+dotnet run --project M.Simple.Logging.Sample --framework net8.0
 Invoke-RestMethod -Method Post http://127.0.0.1:5188/demo/logs
 ```
 
 打开 <http://127.0.0.1:5188/logs>。示例只监听回环地址，明确允许匿名，此匿名设置不应用于生产环境。数据库在示例输出目录的 `App_Data/sample-logs.db`，保留上次运行数据。
+
+验证 .NET 6 时将启动参数替换为 `--framework net6.0`。
 
 ## 测试与打包
 

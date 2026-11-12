@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <LangVersion>12.0</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.1.2</Version>
+    <Version>1.0.1.3</Version>
     <Authors>Mr.MingOuyang</Authors>
     <Description>Lightweight SQLite logging and embedded dashboard for ASP.NET Core.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -14,6 +15,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.22" />
     <EmbeddedResource Include="Dashboard/index.html" />
-    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Remove="README.md" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>
