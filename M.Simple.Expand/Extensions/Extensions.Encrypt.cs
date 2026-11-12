@@ -119,7 +119,7 @@ namespace M.Simple.Expand
         }
         /// <summary>
         ///     <para>M.Simple.Expand扩展</para>
-        ///     <para>RSA生成签名</para>
+        ///     <para>历史RSA签名：SHA-1与PKCS#1 v1.5；新协议使用RsaSignDataSha256</para>
         /// </summary>
         /// <param name="plainText">明文</param>
         /// <param name="encryptKey">秘钥</param>
@@ -130,7 +130,7 @@ namespace M.Simple.Expand
         }
         /// <summary>
         ///     <para>M.Simple.Expand扩展</para>
-        ///     <para>RSA生成签名</para>
+        ///     <para>历史RSA验签：SHA-1与PKCS#1 v1.5；新协议使用RsaVerifyDataSha256</para>
         /// </summary>
         /// <param name="plainText">明文</param>
         /// <param name="autograph">签名密文</param>
@@ -164,7 +164,7 @@ namespace M.Simple.Expand
         }
         /// <summary>
         ///     <para>M.Simple.Expand扩展</para>
-        ///     <para>MD5加密</para>
+        ///     <para>历史MD5摘要（不可逆，非加密），保留原协议；可使用Md5Hash或Md5SaltHash别名</para>
         /// </summary>
         /// <param name="plainText">明文</param>
         /// <returns>密文</returns>
@@ -174,7 +174,7 @@ namespace M.Simple.Expand
         }
         /// <summary>
         ///     <para>M.Simple.Expand扩展</para>
-        ///     <para>MD5加密</para>
+        ///     <para>历史MD5摘要（不可逆，非加密），保留原协议；可使用Md5Hash或Md5SaltHash别名</para>
         /// </summary>
         /// <param name="plainText">明文</param>
         /// <param name="encryptSecret">盐值</param>
@@ -197,7 +197,7 @@ namespace M.Simple.Expand
         }
         /// <summary>
         ///     <para>M.Simple.Expand扩展</para>
-        ///     <para>MD5加密</para>
+        ///     <para>历史MD5摘要（不可逆，非加密），保留原协议；可使用Md5Hash或Md5SaltHash别名</para>
         /// </summary>
         /// <param name="plainText">明文</param>
         /// <returns>密文</returns>

@@ -100,6 +100,7 @@ ftp.GotoFtpDirectory("daily", false); // 本实例目录：reports/daily
 - FTP 下载先写同目录临时文件，成功后才替换目标；失败或取消时保留旧文件并尝试清理临时文件。进程强制退出或清理被拒绝时可能残留临时文件。
 - FTP 的四个异步方法异步等待网络响应，支持在建立请求、传输及最终确认阶段取消。取消以 `OperationCanceledException`（含其子类）传播并保留调用方 token；取消不回滚远端已执行的操作。
 - 短码唯一性以当前进程内复用生成器为边界；跨进程、跨机器的唯一性需要额外协调。
+- 新摘要使用 `Sha256Hash()`；新RSA签名使用 `RsaSignDataSha256` / `RsaVerifyDataSha256`，默认SHA-256/PSS，支持XML或PEM、至少2048位密钥。旧SHA-1签名及MD5入口保持兼容，`Md5Hash` / `Md5SaltHash` 提供准确命名的旧摘要别名。协议版本由调用方明确记录，算法不会自动替换或降级。
 
 ## 使用手册与示例
 

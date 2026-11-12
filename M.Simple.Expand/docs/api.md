@@ -1124,7 +1124,7 @@ M.Simple.Expand扩展取本周的最后一天（周日）
 System.String MD5Encrypt(System.String)
 ```
 
-M.Simple.Expand扩展MD5加密
+M.Simple.Expand扩展历史MD5摘要（不可逆，非加密），保留原协议；可使用Md5Hash或Md5SaltHash别名
 
 - plainText：明文
 
@@ -1173,6 +1173,34 @@ M.Simple.Expand扩展MD5验证
 - plainText：明文
 
 - cipherText：密文
+
+### Md5Hash
+
+```text
+System.String Md5Hash(System.String)
+```
+
+历史MD5摘要别名，结果与MD5Encrypt完全一致，仅供旧协议兼容。
+
+- text：原文；null和空串沿用历史空结果
+
+返回：历史Base64摘要或空串；摘要不可解密
+
+### Md5SaltHash
+
+```text
+M.Simple.Expand.Models.MD5EncryptResultModel Md5SaltHash(System.String)
+```
+
+重载或注释详情请对照功能手册与源码。
+
+### Md5SaltHash
+
+```text
+System.String Md5SaltHash(System.String, System.String)
+```
+
+重载或注释详情请对照功能手册与源码。
 
 ### Merge
 
@@ -1426,7 +1454,7 @@ System.String RsaEncryptWithBlock(System.String, System.String)
 System.String RsaSignData(System.String, System.String)
 ```
 
-M.Simple.Expand扩展RSA生成签名
+M.Simple.Expand扩展历史RSA签名：SHA-1与PKCS#1 v1.5；新协议使用RsaSignDataSha256
 
 - plainText：明文
 
@@ -1434,13 +1462,29 @@ M.Simple.Expand扩展RSA生成签名
 
 返回：签名密文
 
+### RsaSignDataSha256
+
+```text
+System.String RsaSignDataSha256(System.String, System.String, System.Security.Cryptography.RSASignaturePadding)
+```
+
+使用RSA和SHA-256签名UTF-8原文，默认PSS，返回Base64签名。
+
+- text：原文，不能为null
+
+- privateKey：XML或PEM私钥；至少2048位
+
+- padding：默认PSS；需对接PKCS#1 v1.5时显式传入Pkcs1
+
+返回：Base64签名，不包含算法或密钥元数据
+
 ### RsaVerifyData
 
 ```text
 Boolean RsaVerifyData(System.String, System.String, System.String)
 ```
 
-M.Simple.Expand扩展RSA生成签名
+M.Simple.Expand扩展历史RSA验签：SHA-1与PKCS#1 v1.5；新协议使用RsaVerifyDataSha256
 
 - plainText：明文
 
@@ -1449,6 +1493,24 @@ M.Simple.Expand扩展RSA生成签名
 - publickey：公钥
 
 返回：签名密文
+
+### RsaVerifyDataSha256
+
+```text
+Boolean RsaVerifyDataSha256(System.String, System.String, System.String, System.Security.Cryptography.RSASignaturePadding)
+```
+
+使用RSA和SHA-256验签，不自动尝试其他摘要或填充算法。
+
+- text：UTF-8原文
+
+- signature：Base64签名
+
+- publicKey：XML或PEM公钥；至少2048位
+
+- padding：默认PSS，必须与签名方一致
+
+返回：签名不匹配返回false；无效Base64、密钥或参数抛异常
 
 ### SetConfigurationBasePath
 
@@ -1465,6 +1527,18 @@ Void SetStringValue(System.Reflection.PropertyInfo, System.Object, System.String
 ```
 
 M.Simple.Expand扩展设置属性的值
+
+### Sha256Hash
+
+```text
+System.String Sha256Hash(System.String)
+```
+
+计算UTF-8文本的SHA-256摘要，返回Base64；空串计算标准空消息摘要。
+
+- text：原文，不能为null
+
+返回：Base64编码的32字节摘要
 
 ### Shuffle
 
@@ -3311,6 +3385,8 @@ M.Simple.Helper帮助类FTP：上传文件到当前目录
 ### Extensions
 
 - `Extensions/Extensions.ConfigurationBuilder.cs`
+
+- `Extensions/Extensions.Cryptography.cs`
 
 - `Extensions/Extensions.DataTable.cs`
 

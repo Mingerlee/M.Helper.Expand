@@ -22,17 +22,78 @@ static partial class Demo
         Check(cipher.RsaDecrypt(privateKey) == plain, &quot;RSA 往返&quot;);
         var signature = plain.RsaSignData(privateKey);
         Check(plain.RsaVerifyData(signature, publicKey), &quot;RSA 签名&quot;);
+        var modernSignature = plain.RsaSignDataSha256(rsa.ExportPkcs8PrivateKeyPem());
+        Check(plain.RsaVerifyDataSha256(modernSignature, rsa.ExportSubjectPublicKeyInfoPem()), &quot;RSA SHA-256/PSS 签名&quot;);
+        Check(Convert.FromBase64String(plain.Sha256Hash()).Length == 32, &quot;SHA-256 摘要&quot;);
+        Check(plain.Md5Hash() == plain.MD5Encrypt(), &quot;MD5 历史别名兼容&quot;);
         Console.WriteLine(&quot;RSA 公钥加密、私钥解密与签名验证通过&quot;);
         Check(plain.MD5Verify(plain.MD5Encrypt()), &quot;兼容摘要&quot;);
         Console.WriteLine(&quot;历史 MD5 摘要验证通过&quot;);
     }
 }</code></pre></div>
 <p>示例与其他文件共享 Demo.Check 和辅助模型；完整上下文见<a href="../samples.html">示例项目</a>。</p>
+<h2 id="新接口完整示例">新接口完整示例</h2>
+<p>以下示例覆盖全部新增入口，由上方 <code>crypto</code> 命令一起执行。<code>Check</code> 为示例项目中的断言方法；复制到自己的项目时可改为测试断言或业务判断。</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Expand;
+using System.Security.Cryptography;
+
+static partial class Demo
+{
+    public static void ModernCryptography()
+    {
+        // 1. SHA-256摘要：UTF-8输入，Base64输出；不可解密。
+        var hash = &quot;abc&quot;.Sha256Hash();
+        Check(hash == &quot;ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=&quot;, &quot;SHA-256 标准摘要&quot;);
+        Check(&quot;&quot;.Sha256Hash() == &quot;47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=&quot;, &quot;空串摘要&quot;);
+        Console.WriteLine($&quot;SHA-256(abc)：{hash}&quot;);
+
+        // 2. RSA SHA-256/PSS：临时生成演示密钥；实际使用时加载自己的密钥。
+        using var rsa = RSA.Create(2048);
+        var privatePem = rsa.ExportPkcs8PrivateKeyPem();
+        var publicPem = rsa.ExportSubjectPublicKeyInfoPem();
+        const string message = &quot;订单编号：1001&quot;;
+        var signature = message.RsaSignDataSha256(privatePem);
+        bool valid = message.RsaVerifyDataSha256(signature, publicPem);
+        bool tampered = &quot;订单编号：1002&quot;.RsaVerifyDataSha256(signature, publicPem);
+        Check(valid &amp;&amp; !tampered, &quot;PSS 验签及篡改检测&quot;);
+        Console.WriteLine($&quot;SHA-256/PSS 验签：{valid}；篡改后：{tampered}&quot;);
+
+        // 3. 对接SHA-256/PKCS#1协议时，两端显式指定相同填充。
+        var pkcs1Signature = message.RsaSignDataSha256(privatePem, RSASignaturePadding.Pkcs1);
+        bool pkcs1Valid = message.RsaVerifyDataSha256(pkcs1Signature, publicPem, RSASignaturePadding.Pkcs1);
+        Check(pkcs1Valid, &quot;SHA-256/PKCS#1 验签&quot;);
+        Console.WriteLine($&quot;SHA-256/PKCS#1 验签：{pkcs1Valid}&quot;);
+
+        // 4. 复用XML密钥也要使用新入口，旧RsaSignData仍固定为SHA-1。
+        var xmlSignature = message.RsaSignDataSha256(rsa.ToXmlString(true));
+        Check(message.RsaVerifyDataSha256(xmlSignature, rsa.ToXmlString(false)), &quot;XML 密钥新协议&quot;);
+
+        // 5. MD5准确命名别名：仅兼容历史摘要，不能替代密码存储算法。
+        var legacyHash = &quot;abc&quot;.Md5Hash();
+        Check(legacyHash == &quot;abc&quot;.MD5Encrypt() &amp;&amp; &quot;abc&quot;.MD5Verify(legacyHash), &quot;MD5 别名与旧接口互通&quot;);
+        var salted = message.Md5SaltHash();
+        Check(message.MD5SaltVerify(salted.CipherText, salted.EncryptSecret), &quot;自动盐摘要验证&quot;);
+        // 使用已有盐复算历史摘要，无需重新生成盐。
+        var recomputed = message.Md5SaltHash(salted.EncryptSecret);
+        Check(recomputed == salted.CipherText, &quot;指定盐摘要复算&quot;);
+        Console.WriteLine(&quot;MD5 别名、自动盐及指定盐兼容验证通过（不输出盐和密钥）&quot;);
+    }
+}</code></pre></div>
+<p>运行时会输出标准 SHA-256 摘要、PSS 验签 <code>True</code>、篡改后 <code>False</code>、PKCS#1 验签 <code>True</code>，并验证MD5别名与旧接口互通。密钥、盐和签名不写入控制台。</p>
+<p>RSA签名用于验证原文及签名方，不是把原文加密；验签仍需提供原文。保存签名时同时记录算法/填充版本和密钥标识，后续按对应协议验签。</p>
 <h2 id="使用规则与边界">使用规则与边界</h2>
+<h3 id="新旧协议选择">新旧协议选择</h3>
+<div class="table-scroll"><table><thead><tr><th>用途</th><th>新协议入口</th><th>历史兼容入口</th></tr></thead><tbody><tr><td>RSA签名</td><td>RsaSignDataSha256 / RsaVerifyDataSha256，SHA-256，默认PSS</td><td>RsaSignData / RsaVerifyData，SHA-1与PKCS#1 v1.5</td></tr><tr><td>文本摘要</td><td>Sha256Hash，UTF-8，Base64</td><td>MD5Encrypt / MD5Verify，原有输出不变</td></tr><tr><td>历史MD5准确命名</td><td>Md5Hash、Md5SaltHash（含指定盐和自动生成盐重载）</td><td>分别委托MD5Encrypt、MD5SaltEncrypt，结果及空值约定一致</td></tr></tbody></table></div>
+<p>新签名入口支持XML及标准未加密PEM密钥（PKCS#1、PKCS#8私钥，PKCS#1、SubjectPublicKeyInfo公钥），要求RSA至少2048位。签名输出为Base64，不附带算法元数据；签名方和验签方必须选择相同填充。对接已有SHA-256/PKCS#1协议时双方显式传入 RSASignaturePadding.Pkcs1，不会自动回退到SHA-1或另一种填充。</p>
+<p>Sha256Hash 对空串返回标准空消息摘要，null抛ArgumentNullException。Md5Hash 保留历史约定：null或空串返回空串。摘要不是加密，SHA-256和加盐MD5均不是新密码存储方案。</p>
+<p>验签不匹配返回false；无效Base64、密钥、弱密钥和无效参数抛异常。PSS签名含随机性，同一内容重复签名不要求字节一致，应用应通过验签判断有效性。</p>
+<h3 id="迁移约定">迁移约定</h3>
+<ul><li>旧签名、MD5及加盐MD5入口继续保持原有算法、编码、盐拼接和输出格式，不自动升级或重写历史数据。AES、RSA加解密及分段协议本次未改动。</li><li>新数据可单独记录协议版本（例如 rsa-sha256-pss、rsa-sha256-pkcs1、legacy-rsa-sha1），同时保留密钥标识。读取时按明确版本选择验签入口；未标记的历史数据按原协议处理，不按“试到成功”为规则降级。</li><li>SHA-1签名不能直接变成SHA-256签名，MD5摘要不能还原原文后再转换SHA-256；有原始数据或用户再次提供原文时才能重新计算。先完成双方协议升级，再切换新写入入口。</li></ul>
+<h3 id="其他边界">其他边界</h3>
 <ul><li>AesEncrypt() 返回 CipherText、Key、IV；解密使用 cipher.AesDecrypt(key, iv)。示例生成临时密钥，仅打印往返验证结果。</li></ul>
 <ul><li>RSA 示例用 .NET RSA.Create 生成 XML 格式公私钥，使用公共扩展完成公钥加密、私钥解密及签名验签。RSAEncryptHelper 是 internal 类型，外部项目不能直接调用。无参 RsaEncrypt 封装内部使用 pair.PrivateKey 调用加密方法。</li></ul>
 <ul><li>RsaEncryptWithBlock、RsaDecryptWithBlock 用于原有分段协议，密钥格式与填充方式需和调用方协议匹配。</li></ul>
 <ul><li>MD5Encrypt、MD5SaltEncrypt 为不可逆历史摘要，不是可解密的加密。仅用于兼容已有协议，不作为新密码存储方案。</li></ul>
 <ul><li>AES 实现的模式、IV、RSA 填充与摘要算法以源码协议为准；本手册验证功能往返，不代表经过密码学审计。示例不输出密钥、私钥或凭证。</li></ul>
 <h2 id="api-查询">API 查询</h2>
-<p><a href="../api.html">API 与源码索引</a>列出实际声明及 XML 注释。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="../index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#可运行示例">可运行示例</a><a class="toc-level-2" href="#使用规则与边界">使用规则与边界</a><a class="toc-level-2" href="#api-查询">API 查询</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
+<p><a href="../api.html">API 与源码索引</a>列出实际声明及 XML 注释。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="../index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#可运行示例">可运行示例</a><a class="toc-level-2" href="#新接口完整示例">新接口完整示例</a><a class="toc-level-2" href="#使用规则与边界">使用规则与边界</a><a class="toc-level-3" href="#新旧协议选择">新旧协议选择</a><a class="toc-level-3" href="#迁移约定">迁移约定</a><a class="toc-level-3" href="#其他边界">其他边界</a><a class="toc-level-2" href="#api-查询">API 查询</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

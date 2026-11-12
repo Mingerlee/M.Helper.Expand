@@ -58,6 +58,10 @@ Amount: 100 → 120
 AES 加解密验证通过（不输出密钥）
 RSA 公钥加密、私钥解密与签名验证通过
 历史 MD5 摘要验证通过
+SHA-256(abc)：ungWv48Bz+pBQUDeXa4iI7ADYaOWF3qctBD/YfIAFa0=
+SHA-256/PSS 验签：True；篡改后：False
+SHA-256/PKCS#1 验签：True
+MD5 别名、自动盐及指定盐兼容验证通过（不输出盐和密钥）
 
 [configuration]
 配置：M.Simple.Expand
