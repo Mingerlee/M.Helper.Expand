@@ -35,18 +35,11 @@ public static class SimpleLoggingExtensions
     }
 
     /// <summary>挂载内嵌页面与只读 API。默认要求授权，可在返回的路由组上指定策略。</summary>
-#if NET6_0
-    public static SimpleLogDashboardBuilder MapSimpleLogDashboard(this IEndpointRouteBuilder endpoints, string path = "/logs")
-#else
     public static RouteGroupBuilder MapSimpleLogDashboard(this IEndpointRouteBuilder endpoints, string path = "/logs")
-#endif
     {
         if (string.IsNullOrWhiteSpace(path) || !path.StartsWith('/') || path == "/" ||
             path.Contains('{') || path.Contains('?') || path.Contains('#'))
             throw new ArgumentException("Dashboard 路径必须是非根目录的固定绝对路径。", nameof(path));
-#if NET6_0
-        return MapNet6Dashboard(endpoints, path.TrimEnd('/'));
-#else
         var group = endpoints.MapGroup(path.TrimEnd('/'));
         group.RequireAuthorization();
         group.AddEndpointFilter(async (context, next) =>
@@ -87,62 +80,8 @@ public static class SimpleLoggingExtensions
             Results.Ok(await store.GetStatisticsAsync(Number(request, "utcOffsetMinutes") ?? 0, ct)));
         group.MapGet("/api/status", (SqliteLogStore store) => Results.Ok(store.GetStatus()));
         return group;
-#endif
     }
 
-#if NET6_0
-    private static SimpleLogDashboardBuilder MapNet6Dashboard(IEndpointRouteBuilder endpoints, string path)
-    {
-        var builder = new SimpleLogDashboardBuilder();
-        void Get(string suffix, Func<HttpContext, SqliteLogStore, Task<IResult>> action)
-        {
-            var endpoint = endpoints.MapGet(path + suffix, (RequestDelegate)(async context =>
-            {
-                var headers = context.Response.Headers;
-                headers["Cache-Control"] = "no-store";
-                headers["X-Content-Type-Options"] = "nosniff";
-                headers["Referrer-Policy"] = "no-referrer";
-                headers["Content-Security-Policy"] =
-                    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; " +
-                    "img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
-                IResult result;
-                try { result = await action(context, context.RequestServices.GetRequiredService<SqliteLogStore>()); }
-                catch (ArgumentException) { result = Results.BadRequest(new { error = "查询参数无效。" }); }
-                catch (Microsoft.Data.Sqlite.SqliteException)
-                {
-                    result = Results.Problem("日志数据库暂时不可用，请稍后重试。", statusCode: 503);
-                }
-                await result.ExecuteAsync(context);
-            }));
-            endpoint.RequireAuthorization();
-            builder.AddEndpoint(endpoint);
-        }
-        Get("/", (_, _) => Task.FromResult(Results.Content(DashboardHtml.Value, "text/html; charset=utf-8")));
-        Get("/api/logs", async (context, store) =>
-        {
-            var request = context.Request;
-            return Results.Ok(await store.QueryAsync(new LogQuery
-            {
-                From = Date(request, "from"),
-                To = Date(request, "to"),
-                Level = Number(request, "level"),
-                MinimumLevel = Number(request, "minimumLevel"),
-                Category = request.Query["category"].ToString(),
-                Keyword = request.Query["keyword"].ToString(),
-                TraceId = request.Query["traceId"].ToString(),
-                BeforeId = Long(request, "beforeId"),
-                PageSize = Number(request, "pageSize") ?? 50
-            }, context.RequestAborted));
-        });
-        Get("/api/logs/{id:long}", async (context, store) =>
-            await store.GetAsync(Convert.ToInt64(context.Request.RouteValues["id"], CultureInfo.InvariantCulture), context.RequestAborted)
-                is { } entry ? Results.Ok(entry) : Results.NotFound());
-        Get("/api/statistics", async (context, store) => Results.Ok(await store.GetStatisticsAsync(
-            Number(context.Request, "utcOffsetMinutes") ?? 0, context.RequestAborted)));
-        Get("/api/status", (_, store) => Task.FromResult(Results.Ok(store.GetStatus())));
-        return builder;
-    }
-#endif
 
     private static string? Value(HttpRequest request, string name)
     {

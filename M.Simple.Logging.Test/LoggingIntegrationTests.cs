@@ -275,11 +275,7 @@ public sealed class LoggingIntegrationTests
 }
 
 internal sealed class TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
-#if NET6_0
-    ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder, new SystemClock())
-#else
     ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
-#endif
 {
     protected override Task<AuthenticateResult> HandleAuthenticateAsync() => Task.FromResult(
         Request.Headers.ContainsKey("X-Test-Auth")
