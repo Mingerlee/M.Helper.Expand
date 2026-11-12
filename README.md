@@ -1,5 +1,7 @@
 # M.Helper.Expand
 
+新增独立日志包 **[M.Helper.Logging](M.Helper.Logging/README.md)**：.NET 8 标准日志接口、本地 SQLite 和内嵌 Dashboard。快速体验：`dotnet run --project M.Helper.Logging.Sample`，访问 <http://127.0.0.1:5188/logs>。
+
 本仓库当前维护的通用扩展包为 **M.Simple.Expand**，目标框架为 .NET 8，供多个 .NET 项目复用，也可构建为 NuGet 包。
 
 - [包说明与快速示例](M.Simple.Expand/README.md)

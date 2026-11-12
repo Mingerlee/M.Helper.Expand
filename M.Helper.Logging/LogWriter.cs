@@ -1,0 +1,85 @@
+using Microsoft.Extensions.Hosting;
+
+namespace M.Helper.Logging;
+
+internal sealed class LogWriter(HelperLoggingOptions options, LogBuffer buffer, SqliteLogStore store)
+    : IHostedService, IDisposable
+{
+    private readonly CancellationTokenSource _abort = new();
+    private Task? _worker;
+
+    public Task StartAsync(CancellationToken cancellationToken)
+    {
+        // 启动时即验证目录、原生驱动和建表权限，失败时明确阻止错误配置继续运行。
+        cancellationToken.ThrowIfCancellationRequested();
+        store.Initialize();
+        Volatile.Write(ref buffer.IsWriting, 1);
+        _worker = Task.Run(RunAsync, CancellationToken.None);
+        return Task.CompletedTask;
+    }
+
+    private async Task RunAsync()
+    {
+        var batch = new List<LogEntry>(options.BatchSize);
+        var nextCleanup = DateTimeOffset.MinValue;
+        try
+        {
+            while (!_abort.IsCancellationRequested)
+            {
+                while (batch.Count < options.BatchSize && buffer.Channel.Reader.TryRead(out var entry)) batch.Add(entry);
+                try
+                {
+                    if (batch.Count > 0)
+                    {
+                        store.Write(batch);
+                        Interlocked.Add(ref buffer.Persisted, batch.Count);
+                        Interlocked.Exchange(ref buffer.LastWriteTicks, DateTimeOffset.UtcNow.UtcTicks);
+                        batch.Clear();
+                        Volatile.Write(ref buffer.LastError, null);
+                    }
+                    if (DateTimeOffset.UtcNow >= nextCleanup)
+                    {
+                        // 每次仅删除一个小批次；积压时下一轮继续，避免长事务阻塞日志写入。
+                        nextCleanup = store.DeleteExpiredBatch() == 1000
+                            ? DateTimeOffset.MinValue : DateTimeOffset.UtcNow.AddHours(1);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Interlocked.Increment(ref buffer.WriteFailures);
+                    // 不暴露路径、SQL 或潜在业务内容，也不递归写日志；保留批次等待重试。
+                    Volatile.Write(ref buffer.LastError, ex.GetType().Name);
+                    await Task.Delay(TimeSpan.FromSeconds(1), _abort.Token);
+                    continue;
+                }
+                if (buffer.Channel.Reader.Completion.IsCompleted) break;
+                if (!buffer.Channel.Reader.TryPeek(out _))
+                    await Task.Delay(options.FlushInterval, _abort.Token);
+            }
+        }
+        catch (OperationCanceledException) when (_abort.IsCancellationRequested) { }
+        finally
+        {
+            Interlocked.Add(ref buffer.Dropped, batch.Count);
+            while (buffer.Channel.Reader.TryRead(out _)) Interlocked.Increment(ref buffer.Dropped);
+            Volatile.Write(ref buffer.IsWriting, 0);
+        }
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken)
+    {
+        buffer.Channel.Writer.TryComplete();
+        if (_worker is null) return;
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeout.CancelAfter(options.ShutdownTimeout);
+        try { await _worker.WaitAsync(timeout.Token); }
+        catch (OperationCanceledException) { _abort.Cancel(); }
+    }
+
+    public void Dispose()
+    {
+        buffer.Channel.Writer.TryComplete();
+        _abort.Cancel();
+        // 后台同步 SQLite 调用最多等待连接超时；不阻塞宿主的有界停机流程。
+    }
+}
