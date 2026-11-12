@@ -10,6 +10,6 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.0.4" />
     <PackageReference Include="MSTest.TestFramework" Version="3.0.4" />
-    <ProjectReference Include="../M.Helper.Logging/M.Helper.Logging.csproj" />
+    <ProjectReference Include="../M.Simple.Logging/M.Simple.Logging.csproj" />
   </ItemGroup>
 </Project>

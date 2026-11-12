@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace M.Helper.Logging.Test;
+namespace M.Simple.Logging.Test;
 
 [TestClass]
 public sealed class StorageProtectionTests
@@ -233,7 +233,7 @@ public sealed class StorageProtectionTests
     [TestMethod]
     public void CapacityOptions_RejectInvalidValues_AndActualMountCanBeMeasured()
     {
-        foreach (var change in new Action<HelperLoggingOptions>[]
+        foreach (var change in new Action<SimpleLoggingOptions>[]
         {
             o => o.MaxStorageBytes = 1,
             o => o.MinFreeDiskSpaceBytes = -1,
@@ -250,7 +250,7 @@ public sealed class StorageProtectionTests
         Assert.IsTrue(available.HasValue && available.Value > 0);
     }
 
-    private (HelperLoggingOptions Options, SqliteLogStore Store, LogBuffer Buffer, StorageGuard Guard) Create()
+    private (SimpleLoggingOptions Options, SqliteLogStore Store, LogBuffer Buffer, StorageGuard Guard) Create()
     {
         var options = Options();
         var buffer = new LogBuffer(options);
@@ -258,7 +258,7 @@ public sealed class StorageProtectionTests
         return (options, store, buffer, new StorageGuard(options, buffer, store, new FakeDisk()));
     }
 
-    private HelperLoggingOptions Options() => new()
+    private SimpleLoggingOptions Options() => new()
     {
         DatabasePath = Database,
         MaxStorageBytes = 16 * MiB,
@@ -268,12 +268,12 @@ public sealed class StorageProtectionTests
         FlushInterval = TimeSpan.FromMilliseconds(10)
     };
 
-    private IHost Host(FakeDisk disk, Action<HelperLoggingOptions>? configure = null) => new HostBuilder()
+    private IHost Host(FakeDisk disk, Action<SimpleLoggingOptions>? configure = null) => new HostBuilder()
         .ConfigureLogging(logging => logging.ClearProviders())
         .ConfigureServices(services =>
         {
             services.AddSingleton<IDiskSpaceProbe>(disk);
-            services.AddHelperLogging(o =>
+            services.AddSimpleLogging(o =>
             {
                 var settings = Options();
                 o.DatabasePath = settings.DatabasePath;

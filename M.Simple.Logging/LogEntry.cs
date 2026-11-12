@@ -1,4 +1,4 @@
-namespace M.Helper.Logging;
+namespace M.Simple.Logging;
 
 /// <summary>日志快照。时间统一使用 UTC，属性和作用域使用 JSON 保存。</summary>
 public sealed class LogEntry

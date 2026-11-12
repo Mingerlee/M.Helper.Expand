@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace M.Helper.Logging;
+namespace M.Simple.Logging;
 
 internal interface IDiskSpaceProbe
 {
@@ -24,7 +24,7 @@ internal sealed class DiskSpaceProbe : IDiskSpaceProbe
 }
 
 /// <summary>由单个后台写入器调用；容量维护不进入业务线程，不执行完整 VACUUM。</summary>
-internal sealed class StorageGuard(HelperLoggingOptions options, LogBuffer buffer,
+internal sealed class StorageGuard(SimpleLoggingOptions options, LogBuffer buffer,
     SqliteLogStore store, IDiskSpaceProbe disk)
 {
     private bool _initialized;

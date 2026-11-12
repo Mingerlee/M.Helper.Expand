@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "M.Helper.Logging.Sample": {
+    "M.Simple.Logging.Sample": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

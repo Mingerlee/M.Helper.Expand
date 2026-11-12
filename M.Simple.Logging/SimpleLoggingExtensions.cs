@@ -7,35 +7,35 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace M.Helper.Logging;
+namespace M.Simple.Logging;
 
-public static class HelperLoggingExtensions
+public static class SimpleLoggingExtensions
 {
     /// <summary>注册日志采集和后台写入器。应在宿主构建前调用一次。</summary>
-    public static IServiceCollection AddHelperLogging(this IServiceCollection services,
-        Action<HelperLoggingOptions>? configure = null)
+    public static IServiceCollection AddSimpleLogging(this IServiceCollection services,
+        Action<SimpleLoggingOptions>? configure = null)
     {
         if (services.Any(s => s.ServiceType == typeof(LogBuffer)))
-            throw new InvalidOperationException("AddHelperLogging 只能注册一次。");
-        var options = new HelperLoggingOptions();
+            throw new InvalidOperationException("AddSimpleLogging 只能注册一次。");
+        var options = new SimpleLoggingOptions();
         configure?.Invoke(options);
         options.Validate();
         services.AddSingleton(options);
-        services.AddSingleton(sp => new LogBuffer(sp.GetRequiredService<HelperLoggingOptions>()));
-        services.AddSingleton(sp => new SqliteLogStore(sp.GetRequiredService<HelperLoggingOptions>(), sp.GetRequiredService<LogBuffer>()));
-        services.AddSingleton(sp => new HelperLoggerProvider(sp.GetRequiredService<HelperLoggingOptions>(), sp.GetRequiredService<LogBuffer>()));
-        services.AddSingleton<ILoggerProvider>(sp => sp.GetRequiredService<HelperLoggerProvider>());
+        services.AddSingleton(sp => new LogBuffer(sp.GetRequiredService<SimpleLoggingOptions>()));
+        services.AddSingleton(sp => new SqliteLogStore(sp.GetRequiredService<SimpleLoggingOptions>(), sp.GetRequiredService<LogBuffer>()));
+        services.AddSingleton(sp => new SimpleLoggerProvider(sp.GetRequiredService<SimpleLoggingOptions>(), sp.GetRequiredService<LogBuffer>()));
+        services.AddSingleton<ILoggerProvider>(sp => sp.GetRequiredService<SimpleLoggerProvider>());
         services.TryAddSingleton<IDiskSpaceProbe, DiskSpaceProbe>();
         services.AddSingleton<StorageGuard>();
         services.AddSingleton<IHostedService, LogWriter>();
         // Dashboard 自身轮询产生的框架请求日志默认不采集，仍保留框架警告和异常。
-        services.AddLogging(logging => logging.AddFilter<HelperLoggerProvider>("Microsoft.AspNetCore", LogLevel.Warning));
+        services.AddLogging(logging => logging.AddFilter<SimpleLoggerProvider>("Microsoft.AspNetCore", LogLevel.Warning));
         services.AddAuthorization();
         return services;
     }
 
     /// <summary>挂载内嵌页面与只读 API。默认要求授权，可在返回的路由组上指定策略。</summary>
-    public static RouteGroupBuilder MapHelperLogDashboard(this IEndpointRouteBuilder endpoints, string path = "/logs")
+    public static RouteGroupBuilder MapSimpleLogDashboard(this IEndpointRouteBuilder endpoints, string path = "/logs")
     {
         if (string.IsNullOrWhiteSpace(path) || !path.StartsWith('/') || path == "/" ||
             path.Contains('{') || path.Contains('?') || path.Contains('#'))
@@ -103,7 +103,7 @@ public static class HelperLoggingExtensions
 
     private static readonly Lazy<string> DashboardHtml = new(() =>
     {
-        using var stream = typeof(HelperLoggingExtensions).Assembly.GetManifestResourceStream("M.Helper.Logging.Dashboard.index.html")!;
+        using var stream = typeof(SimpleLoggingExtensions).Assembly.GetManifestResourceStream("M.Simple.Logging.Dashboard.index.html")!;
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     });

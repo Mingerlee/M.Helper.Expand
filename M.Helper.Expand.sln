@@ -11,11 +11,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Expand", "M.Simple
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Expand.Test", "M.Simple.Expand.Test\M.Simple.Expand.Test.csproj", "{42778079-5419-40A4-AC0A-2A80DDE34F9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Helper.Logging", "M.Helper.Logging\M.Helper.Logging.csproj", "{3B0F63CB-BFF7-478C-9687-70E382469E0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Logging", "M.Simple.Logging\M.Simple.Logging.csproj", "{3B0F63CB-BFF7-478C-9687-70E382469E0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Helper.Logging.Sample", "M.Helper.Logging.Sample\M.Helper.Logging.Sample.csproj", "{CA1842F5-5F29-41B8-A554-165B15B35CC8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Logging.Sample", "M.Simple.Logging.Sample\M.Simple.Logging.Sample.csproj", "{CA1842F5-5F29-41B8-A554-165B15B35CC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Helper.Logging.Test", "M.Helper.Logging.Test\M.Helper.Logging.Test.csproj", "{8D055322-4A32-4671-B837-72A63054A443}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Logging.Test", "M.Simple.Logging.Test\M.Simple.Logging.Test.csproj", "{8D055322-4A32-4671-B837-72A63054A443}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

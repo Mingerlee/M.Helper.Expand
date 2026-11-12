@@ -1,18 +1,18 @@
 using System.Text;
 using Microsoft.Data.Sqlite;
 
-namespace M.Helper.Logging;
+namespace M.Simple.Logging;
 
 /// <summary>本地日志查询服务，每次查询独立连接，不与写入器共享连接。</summary>
 public sealed class SqliteLogStore
 {
     private readonly string _connectionString;
     private readonly string _readConnectionString;
-    private readonly HelperLoggingOptions _options;
+    private readonly SimpleLoggingOptions _options;
     private readonly LogBuffer _buffer;
     internal string DatabasePath { get; }
 
-    internal SqliteLogStore(HelperLoggingOptions options, LogBuffer buffer)
+    internal SqliteLogStore(SimpleLoggingOptions options, LogBuffer buffer)
     {
         _options = options;
         _buffer = buffer;

@@ -16,7 +16,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace M.Helper.Logging.Test;
+namespace M.Simple.Logging.Test;
 
 [TestClass]
 public sealed class LoggingIntegrationTests
@@ -143,7 +143,7 @@ public sealed class LoggingIntegrationTests
         options.QueueCapacity = 1;
         options.BatchSize = 1;
         var buffer = new LogBuffer(options);
-        using var provider = new HelperLoggerProvider(options, buffer);
+        using var provider = new SimpleLoggerProvider(options, buffer);
         var logger = provider.CreateLogger("Full");
         logger.LogInformation("first");
         logger.LogInformation("second");
@@ -181,13 +181,13 @@ public sealed class LoggingIntegrationTests
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
         builder.Logging.ClearProviders();
-        builder.Services.AddHelperLogging(o => o.DatabasePath = Database);
+        builder.Services.AddSimpleLogging(o => o.DatabasePath = Database);
         builder.Services.AddAuthentication("Test").AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
         await using var app = builder.Build();
         app.UsePathBase("/prefix");
         app.UseAuthentication();
         app.UseAuthorization();
-        app.MapHelperLogDashboard("/nested/logs");
+        app.MapSimpleLogDashboard("/nested/logs");
         await app.StartAsync();
         var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
         using var client = new HttpClient { BaseAddress = new Uri(address + "/prefix/") };
@@ -248,16 +248,16 @@ public sealed class LoggingIntegrationTests
         Assert.IsTrue(JsonDocument.Parse(entry.PropertiesJson).RootElement.GetProperty("_truncated").GetBoolean());
     }
 
-    private IHost BuildHost(Action<HelperLoggingOptions>? configure = null) => new HostBuilder()
+    private IHost BuildHost(Action<SimpleLoggingOptions>? configure = null) => new HostBuilder()
         .ConfigureLogging(logging => logging.ClearProviders())
-        .ConfigureServices(services => services.AddHelperLogging(o =>
+        .ConfigureServices(services => services.AddSimpleLogging(o =>
         {
             o.DatabasePath = Database;
             o.FlushInterval = TimeSpan.FromMilliseconds(20);
             configure?.Invoke(o);
         })).Build();
 
-    private HelperLoggingOptions Options() => new() { DatabasePath = Database };
+    private SimpleLoggingOptions Options() => new() { DatabasePath = Database };
     private static LogEntry Entry(DateTimeOffset time, int level) => new()
     {
         TimestampUtc = time,

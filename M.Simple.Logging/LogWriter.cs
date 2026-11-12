@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Hosting;
 
-namespace M.Helper.Logging;
+namespace M.Simple.Logging;
 
-internal sealed class LogWriter(HelperLoggingOptions options, LogBuffer buffer, SqliteLogStore store, StorageGuard storage)
+internal sealed class LogWriter(SimpleLoggingOptions options, LogBuffer buffer, SqliteLogStore store, StorageGuard storage)
     : IHostedService, IDisposable
 {
     private readonly CancellationTokenSource _abort = new();

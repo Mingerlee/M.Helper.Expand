@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
 
-namespace M.Helper.Logging;
+namespace M.Simple.Logging;
 
 /// <summary>日志存储及后台写入选项；启动后不动态变更。</summary>
-public sealed class HelperLoggingOptions
+public sealed class SimpleLoggingOptions
 {
     public string ApplicationName { get; set; } = AppDomain.CurrentDomain.FriendlyName;
     public string DatabasePath { get; set; } = "App_Data/helper-logs.db";

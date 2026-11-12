@@ -1,16 +1,16 @@
 using System.Diagnostics;
-using M.Helper.Logging;
+using M.Simple.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 // 演示站点仅监听回环地址，匿名查看仅适用于本地示例。
 builder.WebHost.UseUrls("http://127.0.0.1:5188");
-builder.Services.AddHelperLogging(options =>
+builder.Services.AddSimpleLogging(options =>
 {
     options.ApplicationName = "日志包示例";
     options.DatabasePath = "App_Data/sample-logs.db";
 });
 var app = builder.Build();
-app.MapHelperLogDashboard("/logs").AllowAnonymous();
+app.MapSimpleLogDashboard("/logs").AllowAnonymous();
 app.MapGet("/", () => Results.Redirect("/logs"));
 app.MapPost("/demo/logs", (ILoggerFactory factory) =>
 {

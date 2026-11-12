@@ -1,21 +1,21 @@
-# M.Helper.Logging
+# M.Simple.Logging
 
 面向 .NET 8 / ASP.NET Core 的轻量日志包：标准 `ILogger<T>`、本地 SQLite、应用内嵌 Dashboard。无需 Serilog、ORM、前端构建工具或外部日志服务。
 
 ## 快速接入
 
-包发布后安装：`dotnet add package M.Helper.Logging`。仓库内可使用项目引用，当前尚未发布到 NuGet。
+包发布后安装：`dotnet add package M.Simple.Logging`。仓库内可使用项目引用，当前尚未发布到 NuGet。
 
 ```csharp
-using M.Helper.Logging;
+using M.Simple.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 // 沿用宿主现有的认证方案和授权策略。
-builder.Services.AddHelperLogging();
+builder.Services.AddSimpleLogging();
 var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapHelperLogDashboard("/logs").RequireAuthorization("LogAdmin");
+app.MapSimpleLogDashboard("/logs").RequireAuthorization("LogAdmin");
 app.Run();
 ```
 
@@ -39,7 +39,7 @@ using (logger.BeginScope(new Dictionary<string, object?> { ["UserId"] = userId }
 ## 配置
 
 ```csharp
-builder.Services.AddHelperLogging(options =>
+builder.Services.AddSimpleLogging(options =>
 {
     options.ApplicationName = "BAMS.Api";
     options.DatabasePath = "App_Data/logs.db";
@@ -57,11 +57,11 @@ builder.Services.AddHelperLogging(options =>
 ```
 
 - 相对路径基于 `AppContext.BaseDirectory`，目录自动创建；启动时检查数据库权限。
-- 默认过滤 `Microsoft.AspNetCore` 分类低于 Warning 的框架请求日志，避免页面轮询产生大量自身日志。可通过后续 `builder.Logging.AddFilter<HelperLoggerProvider>(...)` 覆盖。
+- 默认过滤 `Microsoft.AspNetCore` 分类低于 Warning 的框架请求日志，避免页面轮询产生大量自身日志。可通过后续 `builder.Logging.AddFilter<SimpleLoggerProvider>(...)` 覆盖。
 - 宿主 Logging 过滤配置仍生效；开启 Debug / Trace 时需要同时允许宿主过滤器和本包 MinimumLevel。
 - 字段默认最多 32,768 字符；属性和 Scope 超限保存有效 JSON 截断标识。普通对象通过 `ToString()` 快照，不深度遍历对象。
 - `Enrich` 回调可在入队前脱敏消息、异常、属性和 Scope；需线程安全，不得保留并异步修改日志对象。业务主动写入的敏感信息需自行处理。
-- 选项在注册时配置，运行期间不要修改；每个宿主仅调用一次 `AddHelperLogging`。
+- 选项在注册时配置，运行期间不要修改；每个宿主仅调用一次 `AddSimpleLogging`。
 
 ## 页面与 API
 
@@ -129,7 +129,7 @@ Docker 下按数据库目录匹配最长挂载点的可用空间；整个目录�
 ## 运行示例
 
 ```powershell
-dotnet run --project M.Helper.Logging.Sample
+dotnet run --project M.Simple.Logging.Sample
 Invoke-RestMethod -Method Post http://127.0.0.1:5188/demo/logs
 ```
 
@@ -138,9 +138,9 @@ Invoke-RestMethod -Method Post http://127.0.0.1:5188/demo/logs
 ## 测试与打包
 
 ```powershell
-dotnet test M.Helper.Logging.Test --configuration Release
-dotnet build M.Helper.Logging.Sample --configuration Release
-dotnet pack M.Helper.Logging --configuration Release --output artifacts/packages
+dotnet test M.Simple.Logging.Test --configuration Release
+dotnet build M.Simple.Logging.Sample --configuration Release
+dotnet pack M.Simple.Logging --configuration Release --output artifacts/packages
 ```
 
 测试使用真实临时 SQLite 和本地 HTTP 服务，覆盖并发采集、停机排空、重启恢复、Scope/TraceId、游标分页、过期清理、失败重试、字段限长、授权、容量清理/缩容、长读事务阻塞 WAL、低磁盘/空间未知暂停与恢复、SQLITE_FULL 回滚及旧库兼容。磁盘不足通过可替换的内部探针模拟，不会实际填满开发机磁盘；Linux Docker 尚未实测。

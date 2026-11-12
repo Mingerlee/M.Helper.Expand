@@ -3,29 +3,29 @@ using System.Text.Json;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 
-namespace M.Helper.Logging;
+namespace M.Simple.Logging;
 
 /// <summary>标准 ILogger 的 SQLite 采集端；不向自身记录内部错误。</summary>
-[ProviderAlias("Helper")]
-public sealed class HelperLoggerProvider : ILoggerProvider, ISupportExternalScope
+[ProviderAlias("Simple")]
+public sealed class SimpleLoggerProvider : ILoggerProvider, ISupportExternalScope
 {
-    private readonly HelperLoggingOptions _options;
+    private readonly SimpleLoggingOptions _options;
     private readonly LogBuffer _buffer;
     private IExternalScopeProvider _scopes = new LoggerExternalScopeProvider();
     private readonly string _instanceId = $"{Environment.MachineName}:{Environment.ProcessId}:{Guid.NewGuid():N}";
     private int _disposed;
 
-    internal HelperLoggerProvider(HelperLoggingOptions options, LogBuffer buffer)
+    internal SimpleLoggerProvider(SimpleLoggingOptions options, LogBuffer buffer)
     {
         _options = options;
         _buffer = buffer;
     }
 
-    public ILogger CreateLogger(string categoryName) => new HelperLogger(this, categoryName);
+    public ILogger CreateLogger(string categoryName) => new SimpleLogger(this, categoryName);
     public void SetScopeProvider(IExternalScopeProvider scopeProvider) => _scopes = scopeProvider;
     public void Dispose() => Interlocked.Exchange(ref _disposed, 1);
 
-    private sealed class HelperLogger(HelperLoggerProvider owner, string category) : ILogger
+    private sealed class SimpleLogger(SimpleLoggerProvider owner, string category) : ILogger
     {
         public bool IsEnabled(LogLevel level) => Volatile.Read(ref owner._disposed) == 0 &&
             level != LogLevel.None && level >= owner._options.MinimumLevel;
@@ -127,7 +127,7 @@ internal sealed class LogBuffer
     internal int IsWriting;
     internal LogStorageStatus? Storage;
 
-    internal LogBuffer(HelperLoggingOptions options)
+    internal LogBuffer(SimpleLoggingOptions options)
     {
         Channel = System.Threading.Channels.Channel.CreateBounded<LogEntry>(new BoundedChannelOptions(options.QueueCapacity)
         {
