@@ -10,6 +10,7 @@ builder.Services.AddSimpleLogging(options =>
     options.DatabasePath = "App_Data/sample-logs.db";
 });
 var app = builder.Build();
+app.UseSimpleLoggingRequestContext(options => options.ShouldCapture = http => http.Request.Path.StartsWithSegments("/demo"));
 app.MapSimpleLogDashboard("/logs").AllowAnonymous();
 app.MapGet("/", () => Results.Redirect("/logs"));
 app.MapPost("/demo/logs", (ILoggerFactory factory) =>
@@ -25,4 +26,11 @@ app.MapPost("/demo/logs", (ILoggerFactory factory) =>
     return Results.Ok(new { orderId, traceId = activity.TraceId.ToString() });
 });
 app.Logger.LogInformation("日志工作台示例已启动，通过 POST /demo/logs 生成演示数据");
+app.MapPost("/demo/request-error", (DemoRequest request, ILoggerFactory factory) =>
+{
+    factory.CreateLogger("Sample.RequestContext").LogError("订单 {OrderId} 示例处理失败", request.OrderId);
+    return Results.Problem("演示错误响应", statusCode: 500);
+});
 app.Run();
+
+internal sealed record DemoRequest(long OrderId, string? Password);

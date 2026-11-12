@@ -44,6 +44,14 @@ public sealed class SimpleLoggerProvider : ILoggerProvider, ISupportExternalScop
             try
             {
                 var properties = Snapshot(state);
+                if (level >= LogLevel.Error && RequestLogContext.Current is { } request &&
+                    (state is IRequestContextLogState control ? control.IncludeRequestContext : request.IncludeInErrorLogs))
+                {
+                    var enriched = properties as Dictionary<string, object?> ?? new Dictionary<string, object?>();
+                    if (properties is not null && properties is not Dictionary<string, object?>) enriched["State"] = properties;
+                    enriched["Request"] = request.Snapshot();
+                    properties = enriched;
+                }
                 var scopes = new List<object?>();
                 owner._scopes.ForEachScope((scope, list) => list.Add(Snapshot(scope)), scopes);
                 var entry = new LogEntry

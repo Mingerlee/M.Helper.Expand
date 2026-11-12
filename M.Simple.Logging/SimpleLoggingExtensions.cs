@@ -11,6 +11,17 @@ namespace M.Simple.Logging;
 
 public static class SimpleLoggingExtensions
 {
+    /// <summary>可选采集请求参数，仅附加至 Error/Critical。放在宿主异常处理之后、接口执行之前。</summary>
+    public static IApplicationBuilder UseSimpleLoggingRequestContext(this IApplicationBuilder app,
+        Action<SimpleRequestLoggingOptions>? configure = null)
+    {
+        _ = app.ApplicationServices.GetRequiredService<SimpleLoggingOptions>();
+        var options = new SimpleRequestLoggingOptions();
+        configure?.Invoke(options);
+        options.Validate();
+        return app.UseMiddleware<SimpleRequestLoggingMiddleware>(options);
+    }
+
     /// <summary>注册日志采集和后台写入器。应在宿主构建前调用一次。</summary>
     public static IServiceCollection AddSimpleLogging(this IServiceCollection services,
         Action<SimpleLoggingOptions>? configure = null)

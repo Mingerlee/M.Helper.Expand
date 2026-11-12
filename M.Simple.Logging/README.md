@@ -38,7 +38,67 @@ using (logger.BeginScope(new Dictionary<string, object?> { ["UserId"] = userId }
 }
 ```
 
-自动保存当前 Activity 的 TraceId / SpanId；无 Activity 时为空。不主动采集请求体、响应体、Cookie、Token 或用户身份。
+自动保存当前 Activity 的 TraceId / SpanId；无 Activity 时为空。默认不采集请求参数，按下述方式显式启用。不会采集响应体、请求头、Cookie 或用户身份。
+
+## 自动附带错误请求参数（可选）
+
+```csharp
+builder.Services.AddSimpleLogging();
+var app = builder.Build();
+// 已有 UseExceptionHandler 或业务异常处理中间件应放在这里，包会将异常继续向外抛出。
+app.UseSimpleLoggingRequestContext(options =>
+{
+    options.MaxBodyBytes = 16 * 1024;
+    options.ShouldCapture = context => context.Request.Path.StartsWithSegments("/api");
+    options.SensitiveFields.Add("IdentityNumber");
+});
+// 之后是认证、授权、Controller/接口等原有配置。
+```
+
+仅调用 `AddSimpleLogging` 不启用采集。安装 `UseSimpleLoggingRequestContext` 后，在接口执行范围内调用的 `LogError` / `LogCritical` 自动将请求信息放入 `PropertiesJson.Request`，在工作台详情的“结构化属性”查看；Information / Warning 等日志不附带参数。
+
+- 包含 Method、Path（不含原始 QueryString）、Query、RouteValues、RequestId、TraceId、Body 和 BodyStatus；已有业务结构化属性保留，`Request` 为本包保留字段。
+- JSON（含 `+json`）和 URL 编码表单在接口执行前有界读取，并复位到原位置，保持 Controller / Minimal API 参数绑定。即使最后没有错误，也会发生这次有界读取，但不会额外生成日志。
+- 默认最多读取 16 KiB；已知超大或读取超过上限时不保存请求体，标记 `TooLarge`。无效或深度超过 32 层的 JSON 标记 `UnavailableOrInvalid`，不存原始文本；其他类型（如二进制、纯文本、压缩请求体）跳过。解压中间件需要先于本中间件执行。
+- JSON 嵌套字段、Query、路由及表单字段按名称脱敏，不区分大小写，忽略标点；默认覆盖含 password、passwd、pwd、token、secret、authorization、cookie、apikey 的名称，可通过 `SensitiveFields` 追加。仅按字段名称处理，不能识别普通字符串内容里嵌入的密码，路径本身也不做业务语义脱敏；不应把秘密放进 URL 路径或无名称字符串。
+- multipart 文件上传不预读。错误发生时如果下游已解析表单，则记录脱敏字段及文件名/大小，不读取文件内容；下游尚未解析时标记 `FormNotParsed`。采集不会主动触发表单解析。
+- `IncludeBody=false` 可只记录路径、Query 等元数据；`ShouldCapture` 可排除登录、上传等接口。不采集任何请求头，Authorization 和 Cookie 不进入请求快照。
+- 请求上下文也使用 `MaxBodyBytes` 作为 JSON 字节预算，超限时省略 Body/Query/RouteValues，并标记 `ContextTooLarge`；集合和字段还有单项限制。日志原有的 `MaxFieldLength` 总属性长度限制仍生效，过小可能使整个 PropertiesJson 变为截断标记。
+- `LogUnhandledExceptions=true` 默认记录一条事件号 1001 的错误日志并重新抛出，宿主错误响应不变；请求取消不作为未处理错误记录。宿主也记录异常时可能出现两条日志，可设为 false，只保留接口内主动错误日志的请求信息。
+- 仅返回 HTTP 500 而没有错误日志或异常，不自动生成日志。后台任务在请求结束后不再携带该请求上下文。
+
+请求缓冲使用 ASP.NET Core 的 `EnableBuffering`；服务本身的请求体大小、表单和上传限制仍由宿主配置。本功能不是审计记录，不改变磁盘容量保护策略。
+
+### 按单条错误日志开启或关闭
+
+引入 `using M.Simple.Logging;` 后，可以在标准 `LogError` 的参数前加 `includeRequestContext`：
+
+```csharp
+logger.LogError(true, "订单 {OrderId} 保存失败", orderId);   // 本条附带请求参数
+logger.LogError(false, "订单 {OrderId} 校验失败", orderId); // 本条不附带请求参数
+logger.LogError(true, exception, "订单 {OrderId} 保存异常", orderId);
+logger.LogError(false, new EventId(2001, "SaveFailed"), exception,
+    "订单 {OrderId} 保存异常", orderId);
+```
+
+支持消息、异常、EventId、EventId + 异常四种重载，保留消息模板与结构化属性。开关仅影响当前这一条日志，不影响下一条、并发请求或其他日志提供程序。
+
+如果多数地方不需要附带，可以关闭全局默认，再由个别 `LogError(true, ...)` 开启：
+
+```csharp
+app.UseSimpleLoggingRequestContext(options =>
+{
+    options.IncludeInErrorLogs = false;
+});
+
+logger.LogError("普通错误");                  // 跟随全局默认，不附带
+logger.LogError(true, "需要请求上下文的错误"); // 单独开启
+logger.LogError(false, "无需请求上下文的错误"); // 单独关闭
+```
+
+默认 `IncludeInErrorLogs=true`，原有 `LogError(...)` / `LogCritical(...)` 写法保持自动附带；当前单条重载仅为 `LogError` 提供。该开关控制是否写入请求快照，不控制错误日志本身是否生成。
+
+单条开启仍需安装请求中间件并处于请求执行范围；不会突破 `ShouldCapture` 路径排除、`IncludeBody=false`、大小限制或脱敏规则。`IncludeInErrorLogs=false` 仍会准备有界请求快照，以便单条调用开启；如果整个应用都不需要采集，不安装中间件即可。
 
 ## 配置
 
@@ -138,6 +198,8 @@ Invoke-RestMethod -Method Post http://127.0.0.1:5188/demo/logs
 ```
 
 打开 <http://127.0.0.1:5188/logs>。示例只监听回环地址，明确允许匿名，此匿名设置不应用于生产环境。数据库在示例输出目录的 `App_Data/sample-logs.db`，保留上次运行数据。
+
+示例已对 `/demo` 启用请求采集。发送 `POST /demo/request-error?source=example`，Content-Type 为 `application/json`，请求体为 `{"OrderId":123,"Password":"demo-password"}`，会返回演示 500 响应；详情中可查看 OrderId 和已脱敏的 Password。
 
 
 ## 测试与打包
