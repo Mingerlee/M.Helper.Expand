@@ -3,7 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Authors>Mr.MingOuyang</Authors>
     <Description>Lightweight SQLite logging and embedded dashboard for ASP.NET Core.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>

@@ -39,4 +39,15 @@ public sealed record LogTrendPoint(DateTimeOffset TimestampUtc, long Total, long
 public sealed record LogStatistics(long Total, long Today, long TodayErrors, long LastHour,
     IReadOnlyList<LogTrendPoint> Trend);
 public sealed record LoggingStatus(long Accepted, long Persisted, long Dropped, long WriteFailures,
-    long CaptureFailures, string? LastError, DateTimeOffset? LastWriteUtc, bool IsWriting);
+    long CaptureFailures, string? LastError, DateTimeOffset? LastWriteUtc, bool IsWriting)
+{
+    public LogStorageStatus? Storage { get; init; }
+}
+
+/// <summary>最近一次容量检查快照。可用空间无法读取时为 null，暂停原因使用稳定代码。</summary>
+public sealed record LogStorageStatus(long DatabaseBytes, long WalBytes, long SharedMemoryBytes,
+    long MaxStorageBytes, long? AvailableDiskBytes, long MinFreeDiskSpaceBytes,
+    bool IsPaused, string? PauseReason, long PrunedLogs, DateTimeOffset CheckedAtUtc)
+{
+    public long TotalBytes => DatabaseBytes + WalBytes + SharedMemoryBytes;
+}

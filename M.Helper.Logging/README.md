@@ -49,6 +49,10 @@ builder.Services.AddHelperLogging(options =>
     options.BatchSize = 200;
     options.FlushInterval = TimeSpan.FromSeconds(1);
     options.ShutdownTimeout = TimeSpan.FromSeconds(5);
+    options.MaxStorageBytes = 512L * 1024 * 1024;
+    options.MinFreeDiskSpaceBytes = 256L * 1024 * 1024;
+    options.DiskSpaceRecoveryMarginBytes = 64L * 1024 * 1024;
+    options.StorageCheckInterval = TimeSpan.FromSeconds(30);
 });
 ```
 
@@ -67,7 +71,7 @@ builder.Services.AddHelperLogging(options =>
 - 时间、级别、日志来源精确匹配、消息/异常/属性关键词、TraceId 筛选。
 - 日志详情、异常堆栈、结构化属性、Scope、复制 JSON、TraceId 关联查询。
 - 自动刷新默认关闭，每 10 秒刷新；仅在第一页、详情关闭时生效。
-- 当前进程的采集、落库、丢弃、采集失败、写入失败和运行状态。
+- 当前进程的采集、落库、丢弃、采集失败、写入失败和运行状态，以及日志文件用量、磁盘可用空间、容量清理条数、暂停原因。
 
 | Dashboard 下的相对路径 | 用途 |
 | --- | --- |
@@ -80,6 +84,36 @@ builder.Services.AddHelperLogging(options =>
 
 日志内容通过文本 DOM 展示，不当作 HTML 执行；响应禁止缓存，页面不依赖 CDN。
 
+## 容量与磁盘保护
+
+默认开启以下控制，不需要额外依赖：
+
+| 配置 | 默认值 | 行为 |
+| --- | --- | --- |
+| `RetentionDays` | 15 天 | 分批清理过期日志 |
+| `MaxStorageBytes` | 512 MiB | 主文件 + `-wal` + `-shm` 的合计保护阈值，最小 16 MiB |
+| `MinFreeDiskSpaceBytes` | 256 MiB | 所在文件系统低于该空间时暂停写入 |
+| `DiskSpaceRecoveryMarginBytes` | 64 MiB | 低磁盘暂停后，达到 320 MiB 才恢复，避免反复启停 |
+| `StorageCheckInterval` | 30 秒 | 容量维护及暂停后检查恢复的间隔 |
+
+每批写入前检查文件大小和磁盘可用空间，并为当前事务预留增长空间；大批次会按字节预算拆分。空闲时仍检查并自动恢复。容量紧张时按时间从旧到新清理，每次最多 1,000 条，每轮维护最多 10 批；主文件的活跃页清理目标约为总预算的 60%。空间不足时可能删除仍在保留天数内的旧日志。
+
+新库启用 `auto_vacuum=INCREMENTAL`，维护时分批回收空页并截断已完成的 WAL。主文件另设 SQLite 页数限制，约为总预算的 75%，其余为 WAL 和维护预留；达到 SQLite 页数限制或发生 `SQLITE_FULL` 时，当前事务回滚并进入暂停保护。
+
+暂停期间直接丢弃新日志并计入 Dropped，同时释放已排队但尚未提交的批次，不阻塞业务。已提交的历史日志仍可查询。无法读取磁盘空间时也暂停，避免失去保护；长查询阻止 WAL 回收时先等待查询结束，不盲目删除历史。其他普通写入错误仍按原方式重试。
+
+`GET /api/status` 的 `storage` 返回主文件/WAL/SHM 大小、合计用量、上限、可用空间、暂停原因、容量清理数和检查时间。常见原因：`LowDiskSpace`、`DiskSpaceUnavailable`、`StorageLimit`、`CheckpointBusy`、`StorageFull`。这些指标为当前进程的最近检查快照，重启后清理计数归零。
+
+**旧库兼容**：已有 `auto_vacuum=NONE` 的数据库会继续使用空闲页，但不会自动执行需要大量额外空间的完整 VACUUM。若旧主文件本身已超过阈值，会暂停并等待空间释放或提高阈值，不反复删空历史。需要物理缩小时，在维护窗口停应用、备份数据库并确保足够临时空间，再用 SQLite 工具执行：
+
+```sql
+PRAGMA auto_vacuum=INCREMENTAL;
+VACUUM;
+PRAGMA wal_checkpoint(TRUNCATE);
+```
+
+Docker 下按数据库目录匹配最长挂载点的可用空间；整个目录需要持久化挂载且可读写。可用空间反映文件系统报告值，不一定等于容器或用户的独立配额。文件阈值属于应用层保护，事务和 WAL 维护期间可能短暂超出；如需严格的磁盘硬配额，应同时在 Docker/宿主存储层配置。不要多实例共用同一 SQLite 文件。
+
 ## 可靠性与边界
 
 - 唯一直接 NuGet 依赖为 `Microsoft.Data.Sqlite`，包含传递的 SQLite 原生运行库。其他能力来自 .NET 8 / `Microsoft.AspNetCore.App` 共享框架，消费端需 ASP.NET Core 运行时。
@@ -87,7 +121,7 @@ builder.Services.AddHelperLogging(options =>
 - 有界队列满时丢弃新日志，不阻塞业务；Formatter / Enrich 失败不抛给业务，计入 CaptureFailures。
 - 写入失败保留批次，每秒重试；队列仍有容量上限。状态只暴露错误类型，内部错误不递归写日志。
 - 正常停机在默认 5 秒内尽量排空；强制退出、超时、掉电时可能丢失日志，不适用于可靠审计账本。
-- 每小时及启动时清理过期记录，每批 1,000 条。删除后空页可复用，但数据库文件不自动缩小；首版无磁盘配额、自动 VACUUM 或磁盘缓冲。
+- 每小时及启动时清理过期记录，每批 1,000 条；容量维护对新库执行增量回收，不自动对旧库执行完整 VACUUM。无磁盘持久缓冲。
 - 首版统计扫描保留期数据，关键词扫描筛选范围。建议限制保留期和查询范围；尚未做大规模性能基准。
 - 每实例独立本地 SQLite 文件，不放在网络共享目录；容器需挂载持久化目录。首版不做多实例集中查询。
 - 备份使用 SQLite 在线备份机制，或停机后备份；不能运行中只复制 `.db` 而忽略 WAL。
@@ -109,4 +143,4 @@ dotnet build M.Helper.Logging.Sample --configuration Release
 dotnet pack M.Helper.Logging --configuration Release --output artifacts/packages
 ```
 
-测试使用真实临时 SQLite 和本地 HTTP 服务，覆盖并发采集、停机排空、重启恢复、Scope/TraceId、游标分页、过期清理、失败重试、字段限长及授权。
+测试使用真实临时 SQLite 和本地 HTTP 服务，覆盖并发采集、停机排空、重启恢复、Scope/TraceId、游标分页、过期清理、失败重试、字段限长、授权、容量清理/缩容、长读事务阻塞 WAL、低磁盘/空间未知暂停与恢复、SQLITE_FULL 回滚及旧库兼容。磁盘不足通过可替换的内部探针模拟，不会实际填满开发机磁盘；Linux Docker 尚未实测。

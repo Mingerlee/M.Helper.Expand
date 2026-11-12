@@ -2,7 +2,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace M.Helper.Logging;
 
-internal sealed class LogWriter(HelperLoggingOptions options, LogBuffer buffer, SqliteLogStore store)
+internal sealed class LogWriter(HelperLoggingOptions options, LogBuffer buffer, SqliteLogStore store, StorageGuard storage)
     : IHostedService, IDisposable
 {
     private readonly CancellationTokenSource _abort = new();
@@ -12,7 +12,7 @@ internal sealed class LogWriter(HelperLoggingOptions options, LogBuffer buffer, 
     {
         // 启动时即验证目录、原生驱动和建表权限，失败时明确阻止错误配置继续运行。
         cancellationToken.ThrowIfCancellationRequested();
-        store.Initialize();
+        storage.Initialize();
         Volatile.Write(ref buffer.IsWriting, 1);
         _worker = Task.Run(RunAsync, CancellationToken.None);
         return Task.CompletedTask;
@@ -26,9 +26,27 @@ internal sealed class LogWriter(HelperLoggingOptions options, LogBuffer buffer, 
         {
             while (!_abort.IsCancellationRequested)
             {
-                while (batch.Count < options.BatchSize && buffer.Channel.Reader.TryRead(out var entry)) batch.Add(entry);
+                var estimatedBytes = batch.Sum(StorageGuard.EstimateBytes);
+                while (batch.Count < options.BatchSize && buffer.Channel.Reader.TryPeek(out var next))
+                {
+                    var entryBytes = StorageGuard.EstimateBytes(next);
+                    if (batch.Count > 0 && estimatedBytes + entryBytes > options.MaxStorageBytes / 8) break;
+                    if (!buffer.Channel.Reader.TryRead(out var entry)) break;
+                    batch.Add(entry);
+                    estimatedBytes += entryBytes;
+                }
                 try
                 {
+                    if (!storage.CanWrite(batch, _abort.Token))
+                    {
+                        // 保护期间不让旧批次无限重试；已接收和后续日志都明确计入丢弃数量。
+                        Interlocked.Add(ref buffer.Dropped, batch.Count);
+                        batch.Clear();
+                        while (buffer.Channel.Reader.TryRead(out _)) Interlocked.Increment(ref buffer.Dropped);
+                        if (buffer.Channel.Reader.Completion.IsCompleted) break;
+                        await Task.Delay(options.FlushInterval, _abort.Token);
+                        continue;
+                    }
                     if (batch.Count > 0)
                     {
                         store.Write(batch);
@@ -43,6 +61,15 @@ internal sealed class LogWriter(HelperLoggingOptions options, LogBuffer buffer, 
                         nextCleanup = store.DeleteExpiredBatch() == 1000
                             ? DateTimeOffset.MinValue : DateTimeOffset.UtcNow.AddHours(1);
                     }
+                }
+                catch (OperationCanceledException) when (_abort.IsCancellationRequested) { throw; }
+                catch (Microsoft.Data.Sqlite.SqliteException ex) when (ex.SqliteErrorCode == 13)
+                {
+                    Interlocked.Increment(ref buffer.WriteFailures);
+                    Volatile.Write(ref buffer.LastError, ex.GetType().Name);
+                    storage.StorageFull();
+                    Interlocked.Add(ref buffer.Dropped, batch.Count);
+                    batch.Clear();
                 }
                 catch (Exception ex)
                 {

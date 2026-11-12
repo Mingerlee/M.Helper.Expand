@@ -36,6 +36,11 @@ public sealed class HelperLoggerProvider : ILoggerProvider, ISupportExternalScop
             Func<TState, Exception?, string> formatter)
         {
             if (!IsEnabled(level)) return;
+            if (Volatile.Read(ref owner._buffer.Storage)?.IsPaused == true)
+            {
+                Interlocked.Increment(ref owner._buffer.Dropped);
+                return;
+            }
             try
             {
                 var properties = Snapshot(state);
@@ -120,6 +125,7 @@ internal sealed class LogBuffer
     internal string? LastError;
     internal long LastWriteTicks;
     internal int IsWriting;
+    internal LogStorageStatus? Storage;
 
     internal LogBuffer(HelperLoggingOptions options)
     {
@@ -133,12 +139,13 @@ internal sealed class LogBuffer
 
     internal void Enqueue(LogEntry entry)
     {
-        if (Channel.Writer.TryWrite(entry)) Interlocked.Increment(ref Accepted);
+        if (Volatile.Read(ref Storage)?.IsPaused != true && Channel.Writer.TryWrite(entry)) Interlocked.Increment(ref Accepted);
         else Interlocked.Increment(ref Dropped);
     }
 
     internal LoggingStatus Status() => new(Interlocked.Read(ref Accepted), Interlocked.Read(ref Persisted),
         Interlocked.Read(ref Dropped), Interlocked.Read(ref WriteFailures), Interlocked.Read(ref CaptureFailures),
         Volatile.Read(ref LastError), Interlocked.Read(ref LastWriteTicks) is var ticks && ticks > 0
-            ? new DateTimeOffset(ticks, TimeSpan.Zero) : null, Volatile.Read(ref IsWriting) == 1);
+            ? new DateTimeOffset(ticks, TimeSpan.Zero) : null, Volatile.Read(ref IsWriting) == 1)
+        { Storage = Volatile.Read(ref Storage) };
 }

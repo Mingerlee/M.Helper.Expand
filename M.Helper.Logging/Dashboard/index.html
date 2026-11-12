@@ -12,6 +12,7 @@
 <main>
 <div class="heading"><div><h1>运行概览</h1><span class="meta">从一条日志，找到问题的起点。</span></div><div class="toolbar"><label class="check"><input type="checkbox" id="autoRefresh"> 每 10 秒刷新</label><button id="refresh">↻ 刷新</button></div></div>
 <div id="notice" class="notice" role="alert" hidden></div>
+<div id="storageNotice" class="notice" role="status" aria-live="polite" hidden></div>
 <section class="cards" aria-label="日志统计">
 <button class="card" data-card="all"><span>保留期内日志</span><b id="total">—</b></button>
 <button class="card" data-card="today"><span>今日日志</span><b id="today">—</b></button>
@@ -44,6 +45,21 @@ function text(tag,value,className){const n=document.createElement(tag);n.textCon
 function date(value){return new Date(value).toLocaleString();}
 function localInput(d){return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
 function pretty(value){try{return JSON.stringify(JSON.parse(value),null,2)}catch{return value}}
+function bytes(value){if(value==null)return '未知';return (value/1048576).toLocaleString(undefined,{maximumFractionDigits:1})+' MiB';}
+function showStatus(status){
+ $('status').replaceChildren(...['已接收 '+status.accepted.toLocaleString(),'已保存 '+status.persisted.toLocaleString(),'丢弃 '+status.dropped.toLocaleString(),'写入失败次数 '+status.writeFailures,'采集失败 '+status.captureFailures,'写入器 '+(status.isWriting?'运行中':'已停止')].map(x=>text('span',x)));
+ if(status.lastError)$('status').append(text('span','最近存储错误：'+status.lastError));
+ showStorage(status.storage);
+}
+function showStorage(storage){
+ $('storageNotice').hidden=!storage?.isPaused;
+ if(!storage)return;
+ $('status').append(...['日志存储 '+bytes(storage.totalBytes)+' / '+bytes(storage.maxStorageBytes),'磁盘可用 '+bytes(storage.availableDiskBytes),'容量清理 '+storage.prunedLogs.toLocaleString()+' 条'].map(x=>text('span',x)));
+ if(storage.isPaused){
+  const reasons={LowDiskSpace:'磁盘可用空间不足',DiskSpaceUnavailable:'无法检查磁盘可用空间',StorageLimit:'日志存储已达到容量限制',CheckpointBusy:'存储空间回收暂时受阻',BatchTooLarge:'单条日志超出容量预算',StorageFull:'存储空间不足',StorageCheckFailed:'日志存储检查失败'};
+  $('storageNotice').textContent=(reasons[storage.pauseReason]||'日志存储暂时不可用')+'，已暂停保存日志并定期检查恢复。暂停期间的新日志会被丢弃并计数。';
+ }
+}
 async function api(path){const r=await fetch(base+'/api/'+path,{cache:'no-store',headers:{Accept:'application/json'}});if(!r.ok)throw new Error(r.status===401||r.status===403?'无权访问日志，请先登录并确认权限。':'请求失败（'+r.status+'），请检查服务状态或筛选条件。');if(!r.headers.get('content-type')?.includes('application/json'))throw new Error('会话可能已过期，请重新登录。');return r.json();}
 function setError(e){$('notice').textContent=e.message;$('notice').hidden=false;}
 function captureFilters(){const q=new URLSearchParams();for(const id of ['from','to']){if($(id).value)q.set(id,new Date($(id).value).toISOString());}for(const id of ['level','keyword','traceId','category'])if($(id).value)q.set(id,$(id).value);if(q.get('level')==='errors'){q.delete('level');q.set('minimumLevel','4');}return q;}
@@ -60,10 +76,9 @@ async function refresh(reset=false){
   for(const entry of logs.items){const tr=document.createElement('tr');tr.tabIndex=0;tr.setAttribute('aria-label','查看日志 '+entry.id);tr.append(text('td',date(entry.timestampUtc),'time'));const level=text('td','');level.append(text('span',levels[entry.level]??entry.level,'badge level-'+entry.level));tr.append(level);const message=text('td','');message.append(text('div',entry.message,'message'),text('div',entry.category,'category'));tr.append(message,text('td',entry.traceId?.slice(0,12)||'—','time'));tr.onclick=()=>showDetail(entry.id);tr.onkeydown=e=>{if(e.key==='Enter')showDetail(entry.id)};$('rows').append(tr);}
   if(!logs.items.length){const tr=document.createElement('tr'),td=text('td','当前条件下暂无日志','empty');td.colSpan=4;tr.append(td);$('rows').append(tr);}
   $('pageInfo').textContent='第 '+(page+1)+' 页 · 本页 '+logs.items.length+' 条';
-  $('status').replaceChildren(...['已接收 '+status.accepted.toLocaleString(),'已保存 '+status.persisted.toLocaleString(),'丢弃 '+status.dropped.toLocaleString(),'写入失败次数 '+status.writeFailures,'采集失败 '+status.captureFailures,'写入器 '+(status.isWriting?'运行中':'已停止')].map(x=>text('span',x)));
-  if(status.lastError)$('status').append(text('span','最近存储错误：'+status.lastError));
+  showStatus(status);
   $('lastUpdated').textContent='更新于 '+new Date().toLocaleTimeString();
- }catch(e){setError(e)}finally{busy=false;$('refresh').disabled=false;$('prev').disabled=page===0;$('next').disabled=!nextCursor;}
+ }catch(e){setError(e);try{showStatus(await api('status'))}catch{}}finally{busy=false;$('refresh').disabled=false;$('prev').disabled=page===0;$('next').disabled=!nextCursor;}
 }
 async function showDetail(id){try{current=await api('logs/'+id);$('detailId').textContent='#'+current.id;$('detailMeta').replaceChildren();for(const [label,value]of [['发生时间',date(current.timestampUtc)],['级别',levels[current.level]],['来源',current.category],['应用',current.applicationName],['实例',current.instanceId],['EventId',current.eventId+(current.eventName?' / '+current.eventName:'')],['TraceId',current.traceId||'—'],['SpanId',current.spanId||'—']])$('detailMeta').append(text('span',label),text('span',value));$('detailMessage').textContent=current.message;$('detailTemplate').textContent=current.messageTemplate||'—';$('detailException').textContent=current.exception||'无异常';$('detailProperties').textContent=pretty(current.propertiesJson);$('detailScopes').textContent=pretty(current.scopesJson);$('related').hidden=!current.traceId;if(!$('detail').open)$('detail').showModal();}catch(e){setError(e)}}
 $('filters').onsubmit=e=>{e.preventDefault();refresh(true)};$('refresh').onclick=()=>refresh(true);

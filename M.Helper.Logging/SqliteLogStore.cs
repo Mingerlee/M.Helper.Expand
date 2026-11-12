@@ -7,14 +7,17 @@ namespace M.Helper.Logging;
 public sealed class SqliteLogStore
 {
     private readonly string _connectionString;
+    private readonly string _readConnectionString;
     private readonly HelperLoggingOptions _options;
     private readonly LogBuffer _buffer;
+    internal string DatabasePath { get; }
 
     internal SqliteLogStore(HelperLoggingOptions options, LogBuffer buffer)
     {
         _options = options;
         _buffer = buffer;
         var path = Path.GetFullPath(options.DatabasePath, AppContext.BaseDirectory);
+        DatabasePath = path;
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         _connectionString = new SqliteConnectionStringBuilder
         {
@@ -23,14 +26,25 @@ public sealed class SqliteLogStore
             DefaultTimeout = 3,
             Pooling = true
         }.ToString();
+        _readConnectionString = new SqliteConnectionStringBuilder(_connectionString)
+        {
+            Mode = SqliteOpenMode.ReadOnly
+        }.ToString();
     }
 
     public LoggingStatus GetStatus() => _buffer.Status();
 
     internal void Initialize()
     {
+        var isNew = !File.Exists(DatabasePath) || new FileInfo(DatabasePath).Length == 0;
         using var connection = Open();
         using var command = connection.CreateCommand();
+        if (isNew)
+        {
+            // 仅新库启用增量回收；旧库切换需要完整 VACUUM，不能在容量紧张时自动执行。
+            command.CommandText = "PRAGMA auto_vacuum=INCREMENTAL;";
+            command.ExecuteNonQuery();
+        }
         command.CommandText = """
             PRAGMA journal_mode=WAL;
             CREATE TABLE IF NOT EXISTS helper_logs (
@@ -60,6 +74,14 @@ public sealed class SqliteLogStore
     internal void Write(IReadOnlyList<LogEntry> entries)
     {
         using var connection = Open();
+        using (var limit = connection.CreateCommand())
+        {
+            limit.CommandText = "PRAGMA page_size;";
+            var pageSize = Convert.ToInt64(limit.ExecuteScalar());
+            // 主文件最多使用总预算的 75%，给 WAL 和维护操作留出空间。
+            limit.CommandText = $"PRAGMA max_page_count={_options.MaxStorageBytes * 3 / 4 / pageSize};";
+            limit.ExecuteScalar();
+        }
         using var transaction = connection.BeginTransaction();
         using var command = connection.CreateCommand();
         command.Transaction = transaction;
@@ -102,7 +124,7 @@ public sealed class SqliteLogStore
     public async Task<LogPage> QueryAsync(LogQuery query, CancellationToken cancellationToken = default)
     {
         Validate(query);
-        using var connection = Open();
+        using var connection = Open(readOnly: true);
         using var command = connection.CreateCommand();
         var where = new StringBuilder(" WHERE 1=1");
         if (query.From is { } from) Add("timestamp >= $from", "$from", from.ToUnixTimeMilliseconds());
@@ -133,7 +155,7 @@ public sealed class SqliteLogStore
 
     public async Task<LogEntry?> GetAsync(long id, CancellationToken cancellationToken = default)
     {
-        using var connection = Open();
+        using var connection = Open(readOnly: true);
         using var command = connection.CreateCommand();
         command.CommandText = "SELECT * FROM helper_logs WHERE id=$id";
         command.Parameters.AddWithValue("$id", id);
@@ -149,7 +171,7 @@ public sealed class SqliteLogStore
         var now = DateTimeOffset.UtcNow;
         var offset = TimeSpan.FromMinutes(utcOffsetMinutes);
         var today = new DateTimeOffset(now.ToOffset(offset).Date, offset).ToUnixTimeMilliseconds();
-        using var connection = Open();
+        using var connection = Open(readOnly: true);
         using var command = connection.CreateCommand();
         command.CommandText = """
             SELECT COUNT(*), COALESCE(SUM(timestamp >= $today),0),
@@ -201,14 +223,68 @@ public sealed class SqliteLogStore
         return command.ExecuteNonQuery();
     }
 
-    private SqliteConnection Open()
+    internal (long Database, long Wal, long Shm) FileSizes() =>
+        (Size(DatabasePath), Size(DatabasePath + "-wal"), Size(DatabasePath + "-shm"));
+
+    private static long Size(string path)
     {
-        var connection = new SqliteConnection(_connectionString);
+        try { return new FileInfo(path).Length; }
+        catch (FileNotFoundException) { return 0; }
+    }
+
+    internal (long UsedBytes, long FreePages, bool CanShrink) PageUsage()
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        long Value(string pragma)
+        {
+            command.CommandText = "PRAGMA " + pragma;
+            return Convert.ToInt64(command.ExecuteScalar());
+        }
+        var pageSize = Value("page_size");
+        var pages = Value("page_count");
+        var free = Value("freelist_count");
+        return ((pages - free) * pageSize, free, Value("auto_vacuum") == 2);
+    }
+
+    internal bool Checkpoint()
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandTimeout = 1;
+        command.CommandText = "PRAGMA wal_checkpoint(TRUNCATE);";
+        using var reader = command.ExecuteReader();
+        return reader.Read() && reader.GetInt64(0) == 0;
+    }
+
+    internal void ReclaimPages()
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = "PRAGMA incremental_vacuum(256);";
+        command.ExecuteNonQuery();
+    }
+
+    internal int DeleteOldestBatch()
+    {
+        using var connection = Open();
+        using var command = connection.CreateCommand();
+        command.CommandText = """
+            DELETE FROM helper_logs WHERE id IN
+                (SELECT id FROM helper_logs ORDER BY timestamp,id
+                    LIMIT MAX(1, MIN(1000, (SELECT COUNT(*) / 10 FROM helper_logs))))
+            """;
+        return command.ExecuteNonQuery();
+    }
+
+    private SqliteConnection Open(bool readOnly = false)
+    {
+        var connection = new SqliteConnection(readOnly ? _readConnectionString : _connectionString);
         try
         {
             connection.Open();
             using var command = connection.CreateCommand();
-            command.CommandText = "PRAGMA synchronous=NORMAL;";
+            command.CommandText = "PRAGMA synchronous=NORMAL; PRAGMA wal_autocheckpoint=128; PRAGMA journal_size_limit=0;";
             command.ExecuteNonQuery();
             return connection;
         }

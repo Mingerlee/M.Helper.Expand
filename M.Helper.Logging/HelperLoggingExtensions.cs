@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -24,6 +25,8 @@ public static class HelperLoggingExtensions
         services.AddSingleton(sp => new SqliteLogStore(sp.GetRequiredService<HelperLoggingOptions>(), sp.GetRequiredService<LogBuffer>()));
         services.AddSingleton(sp => new HelperLoggerProvider(sp.GetRequiredService<HelperLoggingOptions>(), sp.GetRequiredService<LogBuffer>()));
         services.AddSingleton<ILoggerProvider>(sp => sp.GetRequiredService<HelperLoggerProvider>());
+        services.TryAddSingleton<IDiskSpaceProbe, DiskSpaceProbe>();
+        services.AddSingleton<StorageGuard>();
         services.AddSingleton<IHostedService, LogWriter>();
         // Dashboard 自身轮询产生的框架请求日志默认不采集，仍保留框架警告和异常。
         services.AddLogging(logging => logging.AddFilter<HelperLoggerProvider>("Microsoft.AspNetCore", LogLevel.Warning));
