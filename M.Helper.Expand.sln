@@ -35,17 +35,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Simple.Expands", "M.Simpl
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Simple.Loggings", "M.Simple.Loggings", "{9C921C04-FBD0-4188-8A98-98BD7A0C4794}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Services.Email", "M.Simple.Services.Email\M.Simple.Services.Email.csproj", "{56DFC32C-E7FB-44D0-9F00-296D995DE52E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Services.Email", "M.Simple.Services.Email\M.Simple.Services.Email.csproj", "{56DFC32C-E7FB-44D0-9F00-296D995DE52E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Services.Email.Test", "M.Simple.Services.Email.Test\M.Simple.Services.Email.Test.csproj", "{60E5B4DE-2A49-4654-8789-E754FE2028EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Services.Email.Test", "M.Simple.Services.Email.Test\M.Simple.Services.Email.Test.csproj", "{60E5B4DE-2A49-4654-8789-E754FE2028EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Services.Ftp", "M.Simple.Services.Ftp\M.Simple.Services.Ftp.csproj", "{813B1D9F-FDD9-410F-94C9-BFD88B1B2D6D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Services.Ftp", "M.Simple.Services.Ftp\M.Simple.Services.Ftp.csproj", "{813B1D9F-FDD9-410F-94C9-BFD88B1B2D6D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Services.Ftp.Test", "M.Simple.Services.Ftp.Test\M.Simple.Services.Ftp.Test.csproj", "{14F64D40-0E95-4172-9635-4FA35699E7F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Services.Ftp.Test", "M.Simple.Services.Ftp.Test\M.Simple.Services.Ftp.Test.csproj", "{14F64D40-0E95-4172-9635-4FA35699E7F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Services.DependencyInjection", "M.Simple.Services.DependencyInjection\M.Simple.Services.DependencyInjection.csproj", "{89CA414D-5493-4EFA-817A-D7464B432F3A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Services.DependencyInjection", "M.Simple.Services.DependencyInjection\M.Simple.Services.DependencyInjection.csproj", "{89CA414D-5493-4EFA-817A-D7464B432F3A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Services.DependencyInjection.Test", "M.Simple.Services.DependencyInjection.Test\M.Simple.Services.DependencyInjection.Test.csproj", "{939ACC0D-92CE-4608-A60E-B78C4EBBDB3A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Services.DependencyInjection.Test", "M.Simple.Services.DependencyInjection.Test\M.Simple.Services.DependencyInjection.Test.csproj", "{939ACC0D-92CE-4608-A60E-B78C4EBBDB3A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Simple.Services", "M.Simple.Services", "{C397F695-33DD-41F8-9F96-854CD973C43A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -142,6 +144,12 @@ Global
 		{3F4E1A8F-A278-452B-A5DF-6B276A349B5E} = {8FC62AB8-BA28-4003-8B8E-72DF509292BF}
 		{79AF682D-3116-486F-BC3B-A4437641786F} = {8FC62AB8-BA28-4003-8B8E-72DF509292BF}
 		{F558A5A0-868A-44E2-B548-4352E2E1E2B5} = {8FC62AB8-BA28-4003-8B8E-72DF509292BF}
+		{56DFC32C-E7FB-44D0-9F00-296D995DE52E} = {C397F695-33DD-41F8-9F96-854CD973C43A}
+		{60E5B4DE-2A49-4654-8789-E754FE2028EC} = {C397F695-33DD-41F8-9F96-854CD973C43A}
+		{813B1D9F-FDD9-410F-94C9-BFD88B1B2D6D} = {C397F695-33DD-41F8-9F96-854CD973C43A}
+		{14F64D40-0E95-4172-9635-4FA35699E7F1} = {C397F695-33DD-41F8-9F96-854CD973C43A}
+		{89CA414D-5493-4EFA-817A-D7464B432F3A} = {C397F695-33DD-41F8-9F96-854CD973C43A}
+		{939ACC0D-92CE-4608-A60E-B78C4EBBDB3A} = {C397F695-33DD-41F8-9F96-854CD973C43A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {495B3D5B-73CE-48C4-9E1C-F11AE185D5A8}
