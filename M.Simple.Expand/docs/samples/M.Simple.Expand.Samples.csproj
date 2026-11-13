@@ -9,6 +9,9 @@
   <ItemGroup>
     <!-- 使用 .cs.txt 避免被上层库项目的默认 C# 通配符纳入编译。 -->
     <Compile Include="*.cs.txt" />
+    <ProjectReference Include="../../../M.Simple.Services.DependencyInjection/M.Simple.Services.DependencyInjection.csproj" />
+    <ProjectReference Include="../../../M.Simple.Services.Ftp/M.Simple.Services.Ftp.csproj" />
+    <ProjectReference Include="../../../M.Simple.Services.Email/M.Simple.Services.Email.csproj" />
     <None Update="sample-settings.json" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="../../M.Simple.Expand.csproj" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.2" />

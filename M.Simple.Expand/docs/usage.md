@@ -1,18 +1,18 @@
 # M.Simple.Expand 使用手册
 
-本手册针对 D:/oym/M.Helper.Expand/M.Simple.Expand 当前原版源码，包版本 1.0.1.8，目标框架 .NET 8。它与另一目录的 M.Simple.Extensions 是独立项目，命名空间和 API 不互换。
+本手册针对 D:/oym/M.Helper.Expand/M.Simple.Expand 当前原版源码，包版本 3.0.0-preview.1，目标框架 .NET 8。它与另一目录的 M.Simple.Extensions 是独立项目，命名空间和 API 不互换。
 
 ## 安装
 
 在调用方项目中安装匹配的 NuGet 版本：
 
 ```powershell
-dotnet add package M.Simple.Expand --version 1.0.1.8
+dotnet add package M.Simple.Expand --version 3.0.0-preview.1
 ```
 
 该命令要求对应包源实际存在此版本；本次未向公共 NuGet 发布。需要使用本地源码构建时，在本目录运行 dotnet build M.Simple.Expand.csproj --configuration Release，包生成于 bin/Release。可将该目录作为本地 NuGet 源。
 
-扩展方法一般导入 using M.Simple.Expand；模型在 M.Simple.Expand.Models，特性在 M.Simple.Expand.Attributes，服务在 M.Simple.Expand.Services。部分历史加解密辅助类命名空间为 M.Simple.Helper。
+扩展方法一般导入 using M.Simple.Expand；模型在 M.Simple.Expand.Models，特性在 M.Simple.Expand.Attributes，服务在 M.Simple.Services.Email、M.Simple.Services.Ftp 和 M.Simple.Services.DependencyInjection，需要分别安装。部分历史加解密辅助类命名空间为 M.Simple.Helper。
 
 ## 功能分类
 
@@ -44,7 +44,7 @@ dotnet run --project docs/samples/M.Simple.Expand.Samples.csproj --configuration
 
 ## 依赖与适用范围
 
-库引用 Configuration 系列 10.0.3、DI Abstractions 9.0.2、PinYinConverterCore 1.0.2；示例额外引用 DI 容器实现 9.0.2。本项目不是零依赖基础包。
+库引用 Configuration 系列 10.0.3、PinYinConverterCore 1.0.2；综合示例额外引用三个独立服务项目和 DI 容器实现 9.0.2。本项目不是零依赖基础包。
 
 本手册依据当前源码和可运行示例编写，包含集合排除、范围校验、日期计算、模型转换、资源释放及并发隔离等修复后的约定。各功能页说明实际行为与兼容性变化；真实 SMTP/FTP、跨机器 ID 唯一性、NativeAOT 或裁剪仍未验证。
 

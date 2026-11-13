@@ -1,9 +1,9 @@
-﻿using M.Simple.Expand.Attributes;
+﻿using M.Simple.Services.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace M.Simple.Expand.Services
+namespace M.Simple.Services.DependencyInjection
 {
     /// <summary>
     /// <para>M.Simple.Services服务类</para>
@@ -13,7 +13,7 @@ namespace M.Simple.Expand.Services
     ///     
     /// </remarks>
     /// <param name="serviceProvider"></param>
-    [AppService]
+    [AppService(Lifetime = Microsoft.Extensions.DependencyInjection.ServiceLifetime.Scoped, InterfaceServiceType = false)]
     public class AutowiredService(IServiceProvider serviceProvider)
     {
         private readonly IServiceProvider serviceProvider = serviceProvider;

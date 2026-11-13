@@ -1,6 +1,6 @@
 # 枚举
 
-描述、Display、解析与下拉选项。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+描述、Display、解析与下拉选项。适用 M.Simple.Expand 3.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 

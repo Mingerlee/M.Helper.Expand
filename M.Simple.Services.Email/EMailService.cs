@@ -1,7 +1,7 @@
 ﻿using System.Net.Mail;
 using System.Text;
 
-namespace M.Simple.Expand.Services
+namespace M.Simple.Services.Email
 {
     /// <summary>
     ///     <para>M.Simple.Services服务类</para>
@@ -122,6 +122,8 @@ namespace M.Simple.Expand.Services
             return new MailResult();
         }
 
+        private static string[] ParseAddresses(string addresses) => addresses.Replace(',', ';').Split(';');
+
         private SmtpClient GetSmtpClient()
         {
             return GetSmtpClient(Settings);
@@ -152,7 +154,7 @@ namespace M.Simple.Expand.Services
                     //Add to Addresses
                     if (!string.IsNullOrEmpty(model.ToAddresses))
                     {
-                        var addresses = model.ToAddresses.GetEMailAddressArray();
+                        var addresses = ParseAddresses(model.ToAddresses);
                         foreach (var a in addresses)
                         {
                             mms.To.Add(new MailAddress(a));
@@ -162,7 +164,7 @@ namespace M.Simple.Expand.Services
                     if (!string.IsNullOrEmpty(model.CcAddresses))
                     {
                         // 抄送只读取抄送地址，避免误用主收件人。
-                        var addresses = model.CcAddresses.GetEMailAddressArray();
+                        var addresses = ParseAddresses(model.CcAddresses);
                         foreach (var a in addresses)
                         {
                             if (!string.IsNullOrEmpty(a))
@@ -173,7 +175,7 @@ namespace M.Simple.Expand.Services
                     if (!string.IsNullOrEmpty(model.BccAddresses))
                     {
                         // 密送使用独立地址列表。
-                        var addresses = model.BccAddresses.GetEMailAddressArray();
+                        var addresses = ParseAddresses(model.BccAddresses);
                         foreach (var a in addresses)
                         {
                             if (!string.IsNullOrEmpty(a))
@@ -184,7 +186,7 @@ namespace M.Simple.Expand.Services
                     if (!string.IsNullOrEmpty(model.ReplyToAddresses))
                     {
                         // 回复地址与收件人分别设置。
-                        var addresses = model.ReplyToAddresses.GetEMailAddressArray();
+                        var addresses = ParseAddresses(model.ReplyToAddresses);
                         foreach (var a in addresses)
                         {
                             if (!string.IsNullOrEmpty(a))

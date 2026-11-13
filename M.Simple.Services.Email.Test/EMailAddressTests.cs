@@ -1,8 +1,8 @@
 using System.Net.Mail;
 using System.Reflection;
-using M.Simple.Expand.Services;
+using M.Simple.Services.Email;
 
-namespace M.Simple.Expand.Test;
+namespace M.Simple.Services.Email.Test;
 
 [TestClass]
 public class EMailAddressTests

@@ -1,6 +1,6 @@
 # 配置读取
 
-配置基准路径与 AppSetting。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+配置基准路径与 AppSetting。适用 M.Simple.Expand 3.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 

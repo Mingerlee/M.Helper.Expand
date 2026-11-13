@@ -1,6 +1,6 @@
 # 加解密与摘要
 
-AES、RSA 加解密及签名。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+AES、RSA 加解密及签名。适用 M.Simple.Expand 3.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 

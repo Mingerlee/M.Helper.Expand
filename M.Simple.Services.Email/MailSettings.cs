@@ -6,7 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace M.Simple.Expand.Services
+namespace M.Simple.Services.Email
 {
     /// <summary>
     ///     <para>M.Simple.Services服务类</para>

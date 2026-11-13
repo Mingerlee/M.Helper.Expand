@@ -1,6 +1,6 @@
 # DataTable
 
-列表转表、表转模型与筛选。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+列表转表、表转模型与筛选。适用 M.Simple.Expand 3.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 

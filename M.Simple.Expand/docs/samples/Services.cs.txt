@@ -1,5 +1,6 @@
 using M.Simple.Expand;
-using M.Simple.Expand.Services;
+using M.Simple.Services.Email;
+using M.Simple.Services.Ftp;
 using Microsoft.Extensions.DependencyInjection;
 
 static partial class Demo

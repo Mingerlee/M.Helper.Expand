@@ -1,6 +1,6 @@
 # 金额
 
-金额大写、舍入、格式化。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+金额大写、舍入、格式化。适用 M.Simple.Expand 3.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 

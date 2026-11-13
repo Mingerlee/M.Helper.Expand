@@ -1,5 +1,7 @@
 # M.Helper.Expand
 
+新增独立服务包：[邮件](M.Simple.Services.Email/README.md)、[FTP](M.Simple.Services.Ftp/README.md)、[自动注入](M.Simple.Services.DependencyInjection/README.md)。源码与测试沿用根目录平铺结构，升级步骤见[迁移说明](MIGRATION.md)。
+
 新增 **[M.Simple.EntityFrameworkCore](M.Simple.EntityFrameworkCore/README.md)** 首版：基础 CRUD、DTO 分页、工作单元及 MySQL / SQL Server 原生批量新增。按需安装数据库适配包，核心包自动引入；[可运行示例](M.Simple.EntityFrameworkCore.Sample/README.md)。
 
 新增独立日志包 **[M.Simple.Logging](M.Simple.Logging/README.md)**：支持 .NET 8 标准日志接口、本地 SQLite 和内嵌 Dashboard。快速体验：`dotnet run --project M.Simple.Logging.Sample --framework net8.0`，访问 <http://127.0.0.1:5188/logs>。

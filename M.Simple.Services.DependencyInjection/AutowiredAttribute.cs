@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace M.Simple.Expand.Attributes
+namespace M.Simple.Services.DependencyInjection
 {
     /// <summary>
     /// <para>M.Simple.Expand扩展</para>

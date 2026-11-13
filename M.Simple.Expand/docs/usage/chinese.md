@@ -1,6 +1,6 @@
 # 中文与拼音
 
-拼音、首字母、中文日期与农历。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+拼音、首字母、中文日期与农历。适用 M.Simple.Expand 3.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 

@@ -1,6 +1,6 @@
 # 字典
 
-覆盖合并、忽略合并、弹出与删除。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+覆盖合并、忽略合并、弹出与删除。适用 M.Simple.Expand 3.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 

@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace M.Simple.Helper
+namespace M.Simple.Services.Ftp
 {
     /// <summary>
     /// <para>M.Simple.Helper帮助类</para>   

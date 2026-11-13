@@ -35,7 +35,7 @@ static class ApiReference
         }
         text.AppendLine("## 源码目录索引").AppendLine();
         var projectRoot = Directory.GetParent(Path.GetDirectoryName(Path.GetFullPath(output))!)!.FullName;
-        foreach (var directory in new[] { "Extensions", "Attributes", "Comparers", "Models", "Services", "Helper" })
+        foreach (var directory in new[] { "Extensions", "Attributes", "Comparers", "Models", "Helper" })
         {
             text.AppendLine("### " + directory).AppendLine();
             foreach (var file in Directory.GetFiles(Path.Combine(projectRoot, directory), "*.cs", SearchOption.AllDirectories)

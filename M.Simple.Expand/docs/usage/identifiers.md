@@ -1,6 +1,6 @@
 # GUID 与编码
 
-GUID 格式、雪花 ID 与短码。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+GUID 格式、雪花 ID 与短码。适用 M.Simple.Expand 3.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 

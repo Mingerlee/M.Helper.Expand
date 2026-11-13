@@ -1,13 +1,13 @@
 # M.Simple.Expand
 
-.NET 8 通用扩展与服务包，覆盖字符串、日期、集合、模型转换、校验、配置、依赖注入、邮件和 FTP。当前源码包版本为 `1.0.1.8`。
+.NET 8 通用扩展包，覆盖字符串、日期、集合、模型转换、校验和配置；邮件、FTP、自动注入已拆为独立包。当前源码包版本为 `3.0.0-preview.1`。
 
-扩展方法导入 `M.Simple.Expand`，服务导入 `M.Simple.Expand.Services`，模型、枚举和特性分别位于 `Models`、`Enums`、`Attributes` 命名空间。以下行为以当前仓库源码为准，使用已发布 NuGet 包时请核对对应版本。
+扩展方法导入 `M.Simple.Expand`，服务分别导入 `M.Simple.Services.Email`、`M.Simple.Services.Ftp`、`M.Simple.Services.DependencyInjection`，需安装对应独立包；模型、枚举和特性分别位于 `Models`、`Enums`、`Attributes` 命名空间。以下行为以当前仓库源码为准，使用已发布 NuGet 包时请核对对应版本。
 
 ## 安装
 
 ```powershell
-dotnet add package M.Simple.Expand --version 1.0.1.8
+dotnet add package M.Simple.Expand --version 3.0.0-preview.1
 ```
 
 安装命令要求所用包源中已发布该版本。自行构建时，在本目录执行：
@@ -16,7 +16,7 @@ dotnet add package M.Simple.Expand --version 1.0.1.8
 dotnet pack M.Simple.Expand.csproj --configuration Release
 ```
 
-产物位于 `bin/Release/M.Simple.Expand.1.0.1.8.nupkg`，可将 `bin/Release` 配置为本地 NuGet 源；同一解决方案内也可直接引用本项目。库依赖 Configuration、DI Abstractions 和 PinYinConverterCore，具体版本以项目文件为准。使用默认 DI 容器的宿主还需引用 `Microsoft.Extensions.DependencyInjection`。
+产物位于 `bin/Release/M.Simple.Expand.3.0.0-preview.1.nupkg`，可将 `bin/Release` 配置为本地 NuGet 源；同一解决方案内也可直接引用本项目。库依赖 Configuration 和 PinYinConverterCore，具体版本以项目文件为准。使用默认 DI 容器的宿主还需引用 `Microsoft.Extensions.DependencyInjection`。
 
 ## 快速使用
 
@@ -42,8 +42,8 @@ values = values.Merges(new Dictionary<string, int> { ["A"] = 1, ["B"] = 2 });
 | 集合、比较器与字典 | 分批、排除、分组、属性比较、覆盖或忽略合并 |
 | 实体与 DataTable | 差异比较、属性赋值、列表与表的往返转换 |
 | 枚举与校验 | 描述读取、选项转换、DataAnnotations 范围及格式校验 |
-| 配置与依赖注入 | 配置读取、服务扫描、手动属性与字段装配 |
-| 邮件、FTP 与编码 | 邮件发送、文件传输、GUID、短码、加解密及摘要 |
+| 配置 | 配置读取；依赖注入功能使用独立服务包 |
+| 编码与加密 | GUID、短码、加解密及摘要；邮件与 FTP 使用独立服务包 |
 
 每类 API 的示例及边界见下方完整使用手册。
 
@@ -65,11 +65,13 @@ var reverse = end.DiffMonth(start, DiffMonthWayEnum.精确);// -1
 - “精确”以较早日期为锚点，按 `AddMonths(n)` 判断完整月数，目标月份无对应日时取月末；1月31日到非闰年2月28日为1，到闰年2月28日为0。交换起止日期结果取反。
 - 当前实现修正了旧版 `DiffMonth` 的相反方向及边界问题，依赖旧符号或额外加1的调用方需要调整。
 
-## 服务注册与并发使用
+## 独立服务注册与并发使用
+
+以下需要安装 M.Simple.Services.Ftp。服务拆分和生命周期变化见[迁移说明](../MIGRATION.md)。
 
 ```csharp
 using M.Simple.Expand;
-using M.Simple.Expand.Services;
+using M.Simple.Services.Ftp;
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
@@ -84,10 +86,10 @@ ftp.GotoFtpDirectory("daily", false); // 本实例目录：reports/daily
 // 配好实际FTP地址及认证后，再调用下载等网络方法。
 ```
 
-- FTP 配置模板为 Singleton，服务为 **Transient**，每次解析得到独立实例。每条独立的“切目录→操作文件”流程单独解析一次；同一流程内复用该实例，避免将其长期捕获到单例中供并行流程共享。
+- FTP 配置及服务为 **Transient**，每次解析得到独立实例。每条独立的“切目录→操作文件”流程单独解析一次；同一流程内复用该实例，避免将其长期捕获到单例中供并行流程共享。
 - 配置在构造、重置时复制，每个请求使用一致快照。`FtpClientService.Settings` 返回副本，修改后需调用 `ResetFtpClientSettings` 应用。共享同一实例的多次方法调用不保证流程原子性。
-- `AutowiredService` 保持 Singleton，并发缓存只保存装配委托。装配 scoped 依赖时显式传入 `Autowired(target, scope.ServiceProvider)`；单参数重载不会自动识别当前请求 scope。
-- 邮件配置及服务保持 Singleton。发送方法负责释放客户端、消息及附件；通过公开 `GetSmtpClient(settings)` 自行创建的客户端由调用方释放。
+- `AutowiredService` 改为 Scoped，并发缓存只保存装配委托。装配 scoped 依赖时显式传入 `Autowired(target, scope.ServiceProvider)`；单参数重载不会自动识别当前请求 scope。
+- 邮件配置及服务改为 Transient。发送方法负责释放客户端、消息及附件；通过公开 `GetSmtpClient(settings)` 自行创建的客户端由调用方释放。
 
 ## 转换与结果边界
 

@@ -1,6 +1,6 @@
 # 集合与比较器
 
-批次、排除、分组与按属性去重。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+批次、排除、分组与按属性去重。适用 M.Simple.Expand 3.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 

@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using M.Simple.Expand.Services;
+using M.Simple.Services.Ftp;
 
-namespace M.Simple.Expand.Test;
+namespace M.Simple.Services.Ftp.Test;
 
 [TestClass]
 public class FtpAsyncCancellationTests

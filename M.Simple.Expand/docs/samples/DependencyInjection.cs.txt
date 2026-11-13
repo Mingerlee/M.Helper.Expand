@@ -1,6 +1,6 @@
 using M.Simple.Expand;
-using M.Simple.Expand.Attributes;
-using M.Simple.Expand.Services;
+using M.Simple.Services.DependencyInjection;
+
 using Microsoft.Extensions.DependencyInjection;
 
 static partial class Demo
@@ -8,10 +8,11 @@ static partial class Demo
     public static void DependencyInjection()
     {
         var services = new ServiceCollection();
-        services.AddAppServices();
-        using var provider = services.BuildServiceProvider();
+        services.AddAppServices(typeof(SampleGreeting).Assembly);
+        using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        using var scope = provider.CreateScope();
         var consumer = new SampleConsumer();
-        provider.GetRequiredService<AutowiredService>().Autowired(consumer);
+        scope.ServiceProvider.GetRequiredService<AutowiredService>().Autowired(consumer);
         Console.WriteLine(consumer.Greeting.Text);
         Check(consumer.Greeting.Text == "服务装配成功", "手动属性装配");
     }

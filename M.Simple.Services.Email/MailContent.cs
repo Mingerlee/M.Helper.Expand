@@ -1,4 +1,4 @@
-﻿namespace M.Simple.Expand.Services
+﻿namespace M.Simple.Services.Email
 {
     /// <summary>
     ///     <para>M.Simple.Services服务类</para>    

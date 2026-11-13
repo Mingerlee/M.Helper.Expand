@@ -1,6 +1,6 @@
 # 字符串
 
-遮盖、命名转换、全半角、匹配。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+遮盖、命名转换、全半角、匹配。适用 M.Simple.Expand 3.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 

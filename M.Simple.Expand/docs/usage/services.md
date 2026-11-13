@@ -1,6 +1,6 @@
 # 邮件与 FTP
 
-配置、服务注册与实际调用入口。适用 M.Simple.Expand 1.0.1.8 / .NET 8。
+配置、服务注册与实际调用入口。适用独立包 M.Simple.Services.Email / M.Simple.Services.Ftp 1.0.0-preview.1 / .NET 8。
 
 ## 可运行示例
 
@@ -10,7 +10,8 @@ dotnet run --project docs/samples/M.Simple.Expand.Samples.csproj --configuration
 
 ```csharp
 using M.Simple.Expand;
-using M.Simple.Expand.Services;
+using M.Simple.Services.Email;
+using M.Simple.Services.Ftp;
 using Microsoft.Extensions.DependencyInjection;
 
 static partial class Demo
@@ -49,7 +50,7 @@ static partial class Demo
 
 ## 使用规则与边界
 
-- AddEMailSetup 注册的 MailSettings 和 IEMailService 保持 Singleton。AddFtpClientSetup 将 FtpClientSettings 注册为 Singleton 配置模板，将 IFtpClientService 注册为 Transient：每次解析创建独立服务，同一个 scope 内再次解析也得到新实例。每个FTP实例复制配置模板，切换目录不会回写模板或其他实例。
+- AddEMailSetup 注册的 MailSettings 和 IEMailService 均为 Transient。AddFtpClientSetup 将 FtpClientSettings 和 IFtpClientService 均注册为 Transient：每次解析创建独立服务，同一个 scope 内再次解析也得到新实例。每个FTP实例复制配置模板，切换目录不会回写模板或其他实例。
 
 - 每条独立的“切目录→操作文件”流程应单独解析 IFtpClientService；同一流程内复用该实例。不要在单例消费者中长期捕获一个FTP实例供多个并行流程共享。实例内加锁仅保证目录更新和单次配置快照一致，不保证共享同一实例时跨多次方法调用的流程原子性。
 
@@ -81,4 +82,4 @@ static partial class Demo
 
 ## API 查询
 
-[API 与源码索引](../api.md)列出实际声明及 XML 注释。
+完整说明见独立包文档：[Email](https://github.com/Mingerlee/M.Helper.Expand/blob/main/M.Simple.Services.Email/README.md)、[FTP](https://github.com/Mingerlee/M.Helper.Expand/blob/main/M.Simple.Services.Ftp/README.md)。
