@@ -7,25 +7,33 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Helper.Expand", "M.Helper
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Helper.Expand.Test", "M.Helper.Expand.Test\M.Helper.Expand.Test.csproj", "{08355600-17B9-4CF5-9FE4-D78BD04CFA48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Expand", "M.Simple.Expand\M.Simple.Expand.csproj", "{F8BE5124-B326-4D9D-AF99-B11A0EBB18B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Expand", "M.Simple.Expand\M.Simple.Expand.csproj", "{F8BE5124-B326-4D9D-AF99-B11A0EBB18B8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Expand.Test", "M.Simple.Expand.Test\M.Simple.Expand.Test.csproj", "{42778079-5419-40A4-AC0A-2A80DDE34F9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Expand.Test", "M.Simple.Expand.Test\M.Simple.Expand.Test.csproj", "{42778079-5419-40A4-AC0A-2A80DDE34F9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Logging", "M.Simple.Logging\M.Simple.Logging.csproj", "{3B0F63CB-BFF7-478C-9687-70E382469E0A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Logging", "M.Simple.Logging\M.Simple.Logging.csproj", "{3B0F63CB-BFF7-478C-9687-70E382469E0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Logging.Sample", "M.Simple.Logging.Sample\M.Simple.Logging.Sample.csproj", "{CA1842F5-5F29-41B8-A554-165B15B35CC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Logging.Sample", "M.Simple.Logging.Sample\M.Simple.Logging.Sample.csproj", "{CA1842F5-5F29-41B8-A554-165B15B35CC8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Logging.Test", "M.Simple.Logging.Test\M.Simple.Logging.Test.csproj", "{8D055322-4A32-4671-B837-72A63054A443}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Logging.Test", "M.Simple.Logging.Test\M.Simple.Logging.Test.csproj", "{8D055322-4A32-4671-B837-72A63054A443}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.EntityFrameworkCore", "M.Simple.EntityFrameworkCore\M.Simple.EntityFrameworkCore.csproj", "{83900231-B0EF-4237-B14F-DB723402D491}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.EntityFrameworkCore", "M.Simple.EntityFrameworkCore\M.Simple.EntityFrameworkCore.csproj", "{83900231-B0EF-4237-B14F-DB723402D491}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.EntityFrameworkCore.MySql", "M.Simple.EntityFrameworkCore.MySql\M.Simple.EntityFrameworkCore.MySql.csproj", "{1421A216-2740-42CD-BFA6-027E766D17DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.EntityFrameworkCore.MySql", "M.Simple.EntityFrameworkCore.MySql\M.Simple.EntityFrameworkCore.MySql.csproj", "{1421A216-2740-42CD-BFA6-027E766D17DD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.EntityFrameworkCore.SqlServer", "M.Simple.EntityFrameworkCore.SqlServer\M.Simple.EntityFrameworkCore.SqlServer.csproj", "{3F4E1A8F-A278-452B-A5DF-6B276A349B5E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.EntityFrameworkCore.SqlServer", "M.Simple.EntityFrameworkCore.SqlServer\M.Simple.EntityFrameworkCore.SqlServer.csproj", "{3F4E1A8F-A278-452B-A5DF-6B276A349B5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.EntityFrameworkCore.Test", "M.Simple.EntityFrameworkCore.Test\M.Simple.EntityFrameworkCore.Test.csproj", "{79AF682D-3116-486F-BC3B-A4437641786F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.EntityFrameworkCore.Test", "M.Simple.EntityFrameworkCore.Test\M.Simple.EntityFrameworkCore.Test.csproj", "{79AF682D-3116-486F-BC3B-A4437641786F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.EntityFrameworkCore.Sample", "M.Simple.EntityFrameworkCore.Sample\M.Simple.EntityFrameworkCore.Sample.csproj", "{F558A5A0-868A-44E2-B548-4352E2E1E2B5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.EntityFrameworkCore.Sample", "M.Simple.EntityFrameworkCore.Sample\M.Simple.EntityFrameworkCore.Sample.csproj", "{F558A5A0-868A-44E2-B548-4352E2E1E2B5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Helper.Expands", "M.Helper.Expands", "{645FAC53-20CC-4C6F-ABBB-9C443D68367F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Simple.EntityFrameworkCores", "M.Simple.EntityFrameworkCores", "{8FC62AB8-BA28-4003-8B8E-72DF509292BF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Simple.Expands", "M.Simple.Expands", "{30360DCE-4CC4-4576-B52C-7A5A0EBC3D73}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Simple.Loggings", "M.Simple.Loggings", "{9C921C04-FBD0-4188-8A98-98BD7A0C4794}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -84,6 +92,20 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A79C31D3-9024-4AB2-A6BB-2F36C6023884} = {645FAC53-20CC-4C6F-ABBB-9C443D68367F}
+		{08355600-17B9-4CF5-9FE4-D78BD04CFA48} = {645FAC53-20CC-4C6F-ABBB-9C443D68367F}
+		{F8BE5124-B326-4D9D-AF99-B11A0EBB18B8} = {30360DCE-4CC4-4576-B52C-7A5A0EBC3D73}
+		{42778079-5419-40A4-AC0A-2A80DDE34F9E} = {30360DCE-4CC4-4576-B52C-7A5A0EBC3D73}
+		{3B0F63CB-BFF7-478C-9687-70E382469E0A} = {9C921C04-FBD0-4188-8A98-98BD7A0C4794}
+		{CA1842F5-5F29-41B8-A554-165B15B35CC8} = {9C921C04-FBD0-4188-8A98-98BD7A0C4794}
+		{8D055322-4A32-4671-B837-72A63054A443} = {9C921C04-FBD0-4188-8A98-98BD7A0C4794}
+		{83900231-B0EF-4237-B14F-DB723402D491} = {8FC62AB8-BA28-4003-8B8E-72DF509292BF}
+		{1421A216-2740-42CD-BFA6-027E766D17DD} = {8FC62AB8-BA28-4003-8B8E-72DF509292BF}
+		{3F4E1A8F-A278-452B-A5DF-6B276A349B5E} = {8FC62AB8-BA28-4003-8B8E-72DF509292BF}
+		{79AF682D-3116-486F-BC3B-A4437641786F} = {8FC62AB8-BA28-4003-8B8E-72DF509292BF}
+		{F558A5A0-868A-44E2-B548-4352E2E1E2B5} = {8FC62AB8-BA28-4003-8B8E-72DF509292BF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {495B3D5B-73CE-48C4-9E1C-F11AE185D5A8}
