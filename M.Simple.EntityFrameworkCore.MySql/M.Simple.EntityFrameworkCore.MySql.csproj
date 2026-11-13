@@ -3,7 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.0-preview.1</Version>
+    <Version>1.0.0.1</Version>
     <Authors>Mr.Sunny</Authors>
     <Description>MySQL provider and native bulk insert for M.Simple.EntityFrameworkCore.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
