@@ -1,5 +1,7 @@
 # M.Helper.Expand
 
+新增 **[M.Simple.AspNetCore.Response](M.Simple.AspNetCore.Response/README.md)**：.NET 8 MVC 统一返回 `code/message/data`、参数校验与异常处理；可选 [Swagger 适配包](M.Simple.AspNetCore.Response.Swagger/README.md)。通过 `AddUnifiedResponse()` 和 `UseUnifiedResponse()` 接入。
+
 新增独立服务包：[邮件](M.Simple.Services.Email/README.md)、[FTP](M.Simple.Services.Ftp/README.md)、[自动注入](M.Simple.Services.DependencyInjection/README.md)。源码与测试沿用根目录平铺结构，升级步骤见[迁移说明](MIGRATION.md)。
 
 新增 **[M.Simple.EntityFrameworkCore](M.Simple.EntityFrameworkCore/README.md)** 首版：基础 CRUD、DTO 分页、工作单元及 MySQL / SQL Server 原生批量新增。按需安装数据库适配包，核心包自动引入；[可运行示例](M.Simple.EntityFrameworkCore.Sample/README.md)。

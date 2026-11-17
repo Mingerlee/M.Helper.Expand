@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Version>1.0.1</Version>
+    <Authors>Mr.Sunny</Authors>
+    <Description>Swashbuckle 6.x integration for M.Simple.AspNetCore.Response.</Description>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../M.Simple.AspNetCore.Response/M.Simple.AspNetCore.Response.csproj" />
+    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="[6.4.0,7.0.0)" />
+    <None Update="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

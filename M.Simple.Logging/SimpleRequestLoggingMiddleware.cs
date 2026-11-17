@@ -26,8 +26,14 @@ internal sealed class SimpleRequestLoggingMiddleware(RequestDelegate next, Simpl
         catch (OperationCanceledException) when (http.RequestAborted.IsCancellationRequested) { throw; }
         catch (Exception ex)
         {
-            if (options.LogUnhandledExceptions)
+            // Shared HTTP Items contract with the unified response package. Track the exact exception per request.
+            const string loggedExceptionItemKey = "M.Simple.UnhandledException.LoggedException";
+            if (options.LogUnhandledExceptions && logger.IsEnabled(LogLevel.Error) &&
+                !ReferenceEquals(http.Items[loggedExceptionItemKey], ex))
+            {
                 logger.LogError(new EventId(1001, "UnhandledRequestException"), ex, "接口发生未处理异常");
+                http.Items[loggedExceptionItemKey] = ex;
+            }
             throw;
         }
     }

@@ -1,13 +1,13 @@
 # M.Simple.Expand
 
-.NET 8 通用扩展包，覆盖字符串、日期、集合、模型转换、校验和配置；邮件、FTP、自动注入已拆为独立包。当前源码包版本为 `3.0.0-preview.1`。
+.NET 8 通用扩展包，覆盖字符串、日期、集合、模型转换、校验和配置；邮件、FTP、自动注入已拆为独立包。当前源码包版本为 `3.0.0.1`。
 
 扩展方法导入 `M.Simple.Expand`，服务分别导入 `M.Simple.Services.Email`、`M.Simple.Services.Ftp`、`M.Simple.Services.DependencyInjection`，需安装对应独立包；模型、枚举和特性分别位于 `Models`、`Enums`、`Attributes` 命名空间。以下行为以当前仓库源码为准，使用已发布 NuGet 包时请核对对应版本。
 
 ## 安装
 
 ```powershell
-dotnet add package M.Simple.Expand --version 3.0.0-preview.1
+dotnet add package M.Simple.Expand --version 3.0.0.1
 ```
 
 安装命令要求所用包源中已发布该版本。自行构建时，在本目录执行：
@@ -16,7 +16,7 @@ dotnet add package M.Simple.Expand --version 3.0.0-preview.1
 dotnet pack M.Simple.Expand.csproj --configuration Release
 ```
 
-产物位于 `bin/Release/M.Simple.Expand.3.0.0-preview.1.nupkg`，可将 `bin/Release` 配置为本地 NuGet 源；同一解决方案内也可直接引用本项目。库依赖 Configuration 和 PinYinConverterCore，具体版本以项目文件为准。使用默认 DI 容器的宿主还需引用 `Microsoft.Extensions.DependencyInjection`。
+产物位于 `bin/Release/M.Simple.Expand.3.0.0.1.nupkg`，可将 `bin/Release` 配置为本地 NuGet 源；同一解决方案内也可直接引用本项目。库依赖 Configuration 和 PinYinConverterCore，具体版本以项目文件为准。使用默认 DI 容器的宿主还需引用 `Microsoft.Extensions.DependencyInjection`。
 
 ## 快速使用
 

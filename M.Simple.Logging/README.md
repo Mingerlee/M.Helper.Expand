@@ -64,10 +64,24 @@ app.UseSimpleLoggingRequestContext(options =>
 - multipart 文件上传不预读。错误发生时如果下游已解析表单，则记录脱敏字段及文件名/大小，不读取文件内容；下游尚未解析时标记 `FormNotParsed`。采集不会主动触发表单解析。
 - `IncludeBody=false` 可只记录路径、Query 等元数据；`ShouldCapture` 可排除登录、上传等接口。不采集任何请求头，Authorization 和 Cookie 不进入请求快照。
 - 请求上下文也使用 `MaxBodyBytes` 作为 JSON 字节预算，超限时省略 Body/Query/RouteValues，并标记 `ContextTooLarge`；集合和字段还有单项限制。日志原有的 `MaxFieldLength` 总属性长度限制仍生效，过小可能使整个 PropertiesJson 变为截断标记。
-- `LogUnhandledExceptions=true` 默认记录一条事件号 1001 的错误日志并重新抛出，宿主错误响应不变；请求取消不作为未处理错误记录。宿主也记录异常时可能出现两条日志，可设为 false，只保留接口内主动错误日志的请求信息。
+- `LogUnhandledExceptions=true` 默认记录一条事件号 1001 的错误日志并重新抛出，宿主错误响应不变；请求取消不作为未处理错误记录。从本包 1.0.1.5 起，搭配 M.Simple.AspNetCore.Response 1.0.1 可按请求与异常实例自动去重，保留一条带参数的自动异常日志；推荐保持 true。其他宿主处理器自行记录异常时仍可能重复，可设为 false，仅保留接口内主动错误日志的请求信息。
 - 仅返回 HTTP 500 而没有错误日志或异常，不自动生成日志。后台任务在请求结束后不再携带该请求上下文。
 
 请求缓冲使用 ASP.NET Core 的 `EnableBuffering`；服务本身的请求体大小、表单和上传限制仍由宿主配置。本功能不是审计记录，不改变磁盘容量保护策略。
+
+### 与统一响应包配合
+
+```csharp
+builder.Services.AddSimpleLogging();
+builder.Services.AddUnifiedResponse();
+var app = builder.Build();
+app.UseUnifiedResponse();
+app.UseSimpleLoggingRequestContext();
+```
+
+需引用 M.Simple.AspNetCore.Response 1.0.1 或更高兼容版本，并导入对应命名空间。本包 1.0.1.5 起记录未处理异常后，会在当前 HttpContext.Items 中标记该异常引用；响应包跳过相同异常的自动日志，继续返回统一 500。
+
+此标记仅针对自动记录的未处理异常。业务主动写入的错误、其他请求和其他异常不会被合并。请求上下文与脱敏规则不变；单独使用本日志包仍保持记录异常并重新抛出的原有行为。两包一起使用时，无需通过关闭 LogUnhandledExceptions 来去重。
 
 ### 按单条错误日志开启或关闭
 

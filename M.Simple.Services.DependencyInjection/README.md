@@ -1,6 +1,6 @@
 # M.Simple.Services.DependencyInjection
 
-.NET 8 独立特性注册与手动装配包，版本 `1.0.0-preview.1`，不依赖 `M.Simple.Expand` 或其他服务包。
+.NET 8 独立特性注册与手动装配包，版本 `1.0.0.1`，不依赖 `M.Simple.Expand` 或其他服务包。
 
 ```csharp
 using M.Simple.Services.DependencyInjection;

@@ -1,6 +1,6 @@
 # M.Simple.Services.Email
 
-.NET 8 独立邮件服务包，版本 `1.0.0-preview.1`，不依赖 `M.Simple.Expand` 或其他服务包。
+.NET 8 独立邮件服务包，版本 `1.0.0.1`，不依赖 `M.Simple.Expand` 或其他服务包。
 
 ```csharp
 using M.Simple.Services.Email;

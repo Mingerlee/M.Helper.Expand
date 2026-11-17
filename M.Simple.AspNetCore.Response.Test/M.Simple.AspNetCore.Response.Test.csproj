@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.0.4" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="8.0.22" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <ProjectReference Include="../M.Simple.AspNetCore.Response.Swagger/M.Simple.AspNetCore.Response.Swagger.csproj" />
+    <ProjectReference Include="../M.Simple.Logging/M.Simple.Logging.csproj" />
+  </ItemGroup>
+</Project>
