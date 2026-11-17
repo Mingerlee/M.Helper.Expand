@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace M.Simple.Logging;
 
-/// <summary>对当前这一条 Error 日志选择是否附带已采集的请求信息，不修改全局配置。</summary>
+/// <summary>对当前这一条 Error/Critical 日志选择是否附带已采集的请求信息，不修改全局配置。</summary>
 public static class SimpleErrorLoggingExtensions
 {
     /// <summary>记录错误；includeRequestContext 仅控制本条日志。</summary>
@@ -24,6 +24,25 @@ public static class SimpleErrorLoggingExtensions
     public static void LogError(this ILogger logger, bool includeRequestContext, EventId eventId,
         Exception? exception, string? message, params object?[] args) =>
         LoggerExtensions.LogError(Controlled(logger, includeRequestContext), eventId, exception, message, args);
+
+    /// <summary>记录严重错误；includeRequestContext 仅控制本条日志。</summary>
+    public static void LogCritical(this ILogger logger, bool includeRequestContext, string? message, params object?[] args) =>
+        LoggerExtensions.LogCritical(Controlled(logger, includeRequestContext), message, args);
+
+    /// <summary>记录带异常的严重错误；includeRequestContext 仅控制本条日志。</summary>
+    public static void LogCritical(this ILogger logger, bool includeRequestContext, Exception? exception,
+        string? message, params object?[] args) =>
+        LoggerExtensions.LogCritical(Controlled(logger, includeRequestContext), exception, message, args);
+
+    /// <summary>记录带事件号的严重错误；includeRequestContext 仅控制本条日志。</summary>
+    public static void LogCritical(this ILogger logger, bool includeRequestContext, EventId eventId,
+        string? message, params object?[] args) =>
+        LoggerExtensions.LogCritical(Controlled(logger, includeRequestContext), eventId, message, args);
+
+    /// <summary>记录带事件号和异常的严重错误；includeRequestContext 仅控制本条日志。</summary>
+    public static void LogCritical(this ILogger logger, bool includeRequestContext, EventId eventId,
+        Exception? exception, string? message, params object?[] args) =>
+        LoggerExtensions.LogCritical(Controlled(logger, includeRequestContext), eventId, exception, message, args);
 
     private static ILogger Controlled(ILogger logger, bool include)
     {

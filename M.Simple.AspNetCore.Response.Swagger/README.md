@@ -3,7 +3,7 @@
 M.Simple.AspNetCore.Response 的可选 Swagger 适配包，面向 .NET 8 与 Swashbuckle.AspNetCore **6.x**（6.4.0 起，不兼容 OpenAPI 模型不同的新版主版本）。自动依赖核心响应包，不依赖完整 Swagger UI 包。
 
 ```powershell
-dotnet add package M.Simple.AspNetCore.Response.Swagger --version 1.0.1
+dotnet add package M.Simple.AspNetCore.Response.Swagger --version 1.0.0.1
 ```
 
 在已有 Swagger 注册中增加一行：

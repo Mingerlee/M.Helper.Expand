@@ -246,27 +246,38 @@ public sealed class RequestLoggingTests
         await VerifyPerLogSwitch(defaultInclude: false);
     }
 
-    [TestMethod]
-    public async Task PerLogEnable_WithoutMiddleware_DoesNotInventRequestContext()
+    [DataTestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public async Task CriticalPerLogSwitch_PreservesContextTemplateEventAndException(bool defaultInclude)
+    {
+        await VerifyPerLogSwitch(defaultInclude, critical: true);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task PerLogEnable_WithoutMiddleware_DoesNotInventRequestContext(bool critical)
     {
         await Start(installMiddleware: false);
-        await _client.PostAsync("/switch", new StringContent("{\"OrderId\":99}", Encoding.UTF8, "application/json"));
+        await _client.PostAsync(critical ? "/critical-switch" : "/switch", new StringContent("{\"OrderId\":99}", Encoding.UTF8, "application/json"));
         await _app.StopAsync();
-        var entries = (await Store.QueryAsync(new LogQuery { Category = "Test.Switch" })).Items;
+        var entries = (await Store.QueryAsync(new LogQuery { Category = critical ? "Test.CriticalSwitch" : "Test.Switch" })).Items;
         Assert.AreEqual(6, entries.Count);
         foreach (var entry in entries)
             Assert.IsFalse(JsonDocument.Parse(entry.PropertiesJson).RootElement.TryGetProperty("Request", out _));
     }
 
-    private async Task VerifyPerLogSwitch(bool defaultInclude)
+    private async Task VerifyPerLogSwitch(bool defaultInclude, bool critical = false)
     {
         await Start(o => o.IncludeInErrorLogs = defaultInclude);
-        await _client.PostAsync("/switch", new StringContent("{\"OrderId\":99}", Encoding.UTF8, "application/json"));
+        await _client.PostAsync(critical ? "/critical-switch" : "/switch", new StringContent("{\"OrderId\":99}", Encoding.UTF8, "application/json"));
         await _app.StopAsync();
-        var entries = (await Store.QueryAsync(new LogQuery { Category = "Test.Switch" })).Items;
+        var entries = (await Store.QueryAsync(new LogQuery { Category = critical ? "Test.CriticalSwitch" : "Test.Switch" })).Items;
         Assert.AreEqual(6, entries.Count);
         foreach (var entry in entries)
         {
+            Assert.AreEqual((int)(critical ? LogLevel.Critical : LogLevel.Error), entry.Level);
             using var document = JsonDocument.Parse(entry.PropertiesJson);
             var root = document.RootElement;
             var expected = entry.Message.StartsWith("enabled", StringComparison.Ordinal) ||
@@ -373,6 +384,18 @@ public sealed class RequestLoggingTests
             logger.LogError(true, exception, "enabled exception {OrderId}", 99);
             logger.LogError(true, new EventId(78, "EventOnly"), "enabled event {OrderId}", 99);
             logger.LogError(true, new EventId(77, "SaveFailed"), exception, "enabled event-ex {OrderId}", 99);
+            return Results.Ok();
+        });
+        _app.MapPost("/critical-switch", (ILoggerFactory loggers) =>
+        {
+            var logger = loggers.CreateLogger("Test.CriticalSwitch");
+            var exception = new InvalidOperationException("controlled-exception");
+            logger.LogCritical(true, "enabled plain {OrderId}", 99);
+            logger.LogCritical(false, "disabled plain {OrderId}", 99);
+            logger.LogCritical("default after-disabled {OrderId}", 99);
+            logger.LogCritical(true, exception, "enabled exception {OrderId}", 99);
+            logger.LogCritical(true, new EventId(78, "EventOnly"), "enabled event {OrderId}", 99);
+            logger.LogCritical(true, new EventId(77, "SaveFailed"), exception, "enabled event-ex {OrderId}", 99);
             return Results.Ok();
         });
         _app.MapGet("/status500", () => Results.StatusCode(500));

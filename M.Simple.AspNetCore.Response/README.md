@@ -5,7 +5,7 @@
 ## 安装与接入
 
 ```powershell
-dotnet add package M.Simple.AspNetCore.Response --version 1.0.1
+dotnet add package M.Simple.AspNetCore.Response --version 1.0.0.1
 ```
 
 ```csharp
