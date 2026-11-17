@@ -49,11 +49,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Services.Dependenc
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Simple.Services", "M.Simple.Services", "{C397F695-33DD-41F8-9F96-854CD973C43A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.AspNetCore.Response", "M.Simple.AspNetCore.Response\M.Simple.AspNetCore.Response.csproj", "{BD426D03-8BB2-4A9D-ADE3-F1D802680988}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.AspNetCore.Response", "M.Simple.AspNetCore.Response\M.Simple.AspNetCore.Response.csproj", "{BD426D03-8BB2-4A9D-ADE3-F1D802680988}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.AspNetCore.Response.Swagger", "M.Simple.AspNetCore.Response.Swagger\M.Simple.AspNetCore.Response.Swagger.csproj", "{385E5DEB-FFDF-49BB-B007-794426264B7E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.AspNetCore.Response.Swagger", "M.Simple.AspNetCore.Response.Swagger\M.Simple.AspNetCore.Response.Swagger.csproj", "{385E5DEB-FFDF-49BB-B007-794426264B7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.AspNetCore.Response.Test", "M.Simple.AspNetCore.Response.Test\M.Simple.AspNetCore.Response.Test.csproj", "{10F035A6-D73B-48D3-B555-4673C9439BA8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.AspNetCore.Response.Test", "M.Simple.AspNetCore.Response.Test\M.Simple.AspNetCore.Response.Test.csproj", "{10F035A6-D73B-48D3-B555-4673C9439BA8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Simple.AspNetCore.Responses", "M.Simple.AspNetCore.Responses", "{4E620367-78AC-4881-972D-F046C6F555D8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -168,6 +170,9 @@ Global
 		{14F64D40-0E95-4172-9635-4FA35699E7F1} = {C397F695-33DD-41F8-9F96-854CD973C43A}
 		{89CA414D-5493-4EFA-817A-D7464B432F3A} = {C397F695-33DD-41F8-9F96-854CD973C43A}
 		{939ACC0D-92CE-4608-A60E-B78C4EBBDB3A} = {C397F695-33DD-41F8-9F96-854CD973C43A}
+		{BD426D03-8BB2-4A9D-ADE3-F1D802680988} = {4E620367-78AC-4881-972D-F046C6F555D8}
+		{385E5DEB-FFDF-49BB-B007-794426264B7E} = {4E620367-78AC-4881-972D-F046C6F555D8}
+		{10F035A6-D73B-48D3-B555-4673C9439BA8} = {4E620367-78AC-4881-972D-F046C6F555D8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {495B3D5B-73CE-48C4-9E1C-F11AE185D5A8}
