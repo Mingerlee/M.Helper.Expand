@@ -30,3 +30,25 @@ dotnet test M.Simple.Expand.Test/M.Simple.Expand.Test.csproj --configuration Rel
 ```
 
 安装、功能分类、日期计算约定、FTP 生命周期及文档站点更新步骤见[包 README](M.Simple.Expand/README.md)。
+
+## 打包并发布 NuGet
+
+在仓库根目录使用 `Publish-NuGet.ps1`，指定项目目录或 csproj 路径。脚本自动读取项目版本、生成 Release 包，并将本次生成的包推送至 nuget.org；无需手动修改包文件名或路径。不会自动增加版本号，也不会自动发布项目依赖，请先发布需要更新的依赖包。
+
+```powershell
+# 首次配置或更换密钥：交互输入，Windows 当前用户加密保存，不进入 Git
+.\Publish-NuGet.ps1 -SaveApiKey
+
+# 打包完成后自动推送
+.\Publish-NuGet.ps1 M.Simple.Caching.Redis
+.\Publish-NuGet.ps1 M.Simple.Logging
+
+# 多包按指定顺序打包，全部打包成功后再按顺序推送
+.\Publish-NuGet.ps1 -Project M.Simple.Caching,M.Simple.Caching.Redis
+
+# 只打包，或自定义输出文件夹（相对路径以仓库根目录为基准）
+.\Publish-NuGet.ps1 M.Simple.Caching.Redis -PackOnly
+.\Publish-NuGet.ps1 M.Simple.Logging -OutputDirectory artifacts/nuget
+```
+
+默认输出目录为 `artifacts/packages`；只推送本次生成的 `.nupkg`，已有版本通过 `--skip-duplicate` 跳过。密钥也可通过环境变量 `NUGET_API_KEY` 提供，优先于本地保存的密钥。本地加密密钥位于 `artifacts/private/nuget-api-key.txt`，仅当前 Windows 用户可解密；不要将密钥写入脚本或 README。

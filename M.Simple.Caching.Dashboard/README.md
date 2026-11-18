@@ -4,11 +4,11 @@
 
 ## 安装与接入
 
-安装 Dashboard 和所选后端包。Dashboard 自动依赖核心包；使用内存时无需额外安装其他缓存包。使用 Redis/MongoDB 时，还需安装对应后端包。配套核心及后端版本为 1.0.0.2，不能搭配旧版 DLL。
+安装 Dashboard 和所选后端包。Dashboard 自动依赖核心包；使用内存时无需额外安装其他缓存包。使用 Redis/MongoDB 时，还需安装对应后端包。配套核心及 MongoDB 后端版本为 1.0.0.2，Redis 后端为 1.0.0.3（支持 Redis 3.2+），不能搭配缺少管理接口的旧版 DLL。
 
 ```powershell
 dotnet add package M.Simple.Caching.Dashboard --version 1.0.0
-# Redis 后端另加 M.Simple.Caching.Redis --version 1.0.0.2；MongoDB 后端另加 M.Simple.Caching.MongoDB --version 1.0.0.2。
+# Redis 后端另加 M.Simple.Caching.Redis --version 1.0.0.3；MongoDB 后端另加 M.Simple.Caching.MongoDB --version 1.0.0.2。
 ```
 
 ```csharp
@@ -51,7 +51,7 @@ Redis/MongoDB 项目将 AddSimpleMemoryCache 替换为对应后端注册，不�
 
 非空 KeyPrefix 必须专属于本应用/环境，不能复用其他应用的前缀；嵌套前缀也属于该管理范围。管理接口的 Key 均为去掉 KeyPrefix 后的相对 Key，不具备路径语义。
 
-内存只管理当前实例。Redis 使用原生 SCAN（COUNT 是服务端提示值）遍历已连接主节点，使用 UNLINK 删除；MongoDB 按 _id 游标分页，始终排除逻辑过期文档，即使 TTL 清理尚未发生。列表不传输 JSON 值，Redis 在服务器计算字节数，MongoDB 使用 $binarySize 投影。
+内存只管理当前实例。Redis 使用原生 SCAN（COUNT 是服务端提示值）遍历已连接主节点，优先使用 UNLINK 删除，Redis 3.2 不支持该命令时使用 DEL；MongoDB 按 _id 游标分页，始终排除逻辑过期文档，即使 TTL 清理尚未发生。列表不传输 JSON 值，Redis 在服务器计算字节数，MongoDB 使用 $binarySize 投影。
 
 所有扫描是实时、尽力结果，不是事务快照；并发写入、淘汰或 Redis 拓扑变化可能造成重复/遗漏或需重查。页面不展示误导性的全局总数。过期时间采用服务端 UTC，浏览器按本地时间显示。
 

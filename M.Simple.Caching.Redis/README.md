@@ -1,9 +1,9 @@
 # M.Simple.Caching.Redis
 
-.NET 8 Redis 缓存包，当前源码版本 **1.0.0.2**。自动依赖同版本核心包，使用 StackExchange.Redis 2.11.3；支持 Redis 5+ 的原子 Lua 操作。
+.NET 8 Redis 缓存包，当前源码版本 **1.0.0.3**。自动依赖核心包 1.0.0.2，使用 StackExchange.Redis 2.11.3；支持 Redis 3.2+ 的原子 Lua 操作。
 
 ```powershell
-dotnet add package M.Simple.Caching.Redis --version 1.0.0.2
+dotnet add package M.Simple.Caching.Redis --version 1.0.0.3
 ```
 
 ```csharp
@@ -36,3 +36,21 @@ dotnet pack M.Simple.Caching.Redis/M.Simple.Caching.Redis.csproj -c Release -o a
 ## 可选管理页面
 
 安装 [M.Simple.Caching.Dashboard](../M.Simple.Caching.Dashboard/README.md) 可管理当前 KeyPrefix 内的缓存。请设置专属非空前缀，并使用带 ISimpleCacheAdminStore 管理接口的配套源码/包版本。管理查询不续期，默认要求宿主认证授权；业务缓存调用方式不变。
+
+## Redis 3.2 兼容
+
+从 1.0.0.3 起支持 Redis 3.2：
+
+- 多字段写入使用 HMSET，保持原有 Hash 字段和 JSON 格式，已有缓存无需迁移。
+- 使用服务端 TIME 后可能写入的脚本启用 redis.replicate_commands()，兼容 3.2 的命令效果复制要求；滑动过期和绝对上限规则不变。
+- 管理删除优先使用 UNLINK。服务器不认识该命令时使用 DEL；权限和其他服务端错误仍向调用方传播。Redis 3.2 的 DEL 为同步删除，单条 JSON 大小继续受 MaxPayloadBytes 限制。
+- 普通删除、列表 SCAN 和不续期详情读取均保持原接口。客户端配置 Database 可显式选择 db11 等逻辑数据库。
+
+兼容性集成测试使用独立随机前缀，仅清理本轮创建的 Key，不清空数据库：
+
+```powershell
+$env:M_SIMPLE_TEST_REDIS = "127.0.0.1:6379,defaultDatabase=11"
+dotnet test M.Simple.Caching.Test/M.Simple.Caching.Test.csproj -c Release --filter TestCategory=RedisCompatibility
+```
+
+使用方需升级 Redis 包至 1.0.0.3；核心包及 Dashboard 无需同步改版本。安装命令需等新包发布到所用源后执行，本仓库不自动推送 NuGet。

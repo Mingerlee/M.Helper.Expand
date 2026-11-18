@@ -115,7 +115,15 @@ internal sealed class RedisCacheStore : ISimpleCacheStore, ISimpleCacheAdminStor
         var result = await db.ScriptEvaluateAsync("""
             local t = redis.call('TYPE', KEYS[1])
             if t.ok ~= 'hash' or redis.call('HEXISTS', KEYS[1], 'type') == 0 or redis.call('HEXISTS', KEYS[1], 'payload') == 0 then return 0 end
-            return redis.call('UNLINK', KEYS[1])
+            local removed = redis.pcall('UNLINK', KEYS[1])
+            if type(removed) == 'table' and removed.err then
+                local message = string.lower(removed.err)
+                if string.find(message, 'unknown command', 1, true) or string.find(message, 'unknown redis command', 1, true) then
+                    return redis.call('DEL', KEYS[1])
+                end
+                return redis.error_reply(removed.err)
+            end
+            return removed
             """, new RedisKey[] { key }).WaitAsync(cancellationToken).ConfigureAwait(false);
         return (long)result > 0;
     }
@@ -140,6 +148,8 @@ internal sealed class RedisCacheStore : ISimpleCacheStore, ISimpleCacheAdminStor
     private static long Milliseconds(TimeSpan? duration) => duration is { } value ? (long)Math.Ceiling(value.TotalMilliseconds) : 0;
 
     private const string WriteScript = """
+        -- Redis 3.2 needs effects replication to write after TIME.
+        redis.replicate_commands()
         local t = redis.call('TIME')
         local now = tonumber(t[1]) * 1000 + math.floor(tonumber(t[2]) / 1000)
         local absolute = tonumber(ARGV[3])
@@ -147,12 +157,14 @@ internal sealed class RedisCacheStore : ISimpleCacheStore, ISimpleCacheAdminStor
         if absolute > 0 then absolute = now + absolute end
         local expires = absolute
         if sliding > 0 and (expires == 0 or now + sliding < expires) then expires = now + sliding end
-        redis.call('HSET', KEYS[1], 'type', ARGV[1], 'payload', ARGV[2], 'absolute', absolute, 'sliding', sliding, 'expires', expires)
+        redis.call('HMSET', KEYS[1], 'type', ARGV[1], 'payload', ARGV[2], 'absolute', absolute, 'sliding', sliding, 'expires', expires)
         if expires > 0 then redis.call('PEXPIREAT', KEYS[1], expires) else redis.call('PERSIST', KEYS[1]) end
         return 1
         """;
 
     private const string ReadScript = """
+        -- Sliding reads and expired-entry cleanup may write after TIME.
+        redis.replicate_commands()
         local fields = redis.call('HMGET', KEYS[1], 'type', 'payload', 'absolute', 'sliding', 'expires')
         if not fields[1] then
             if ARGV[2] == '1' then return 0 else return false end

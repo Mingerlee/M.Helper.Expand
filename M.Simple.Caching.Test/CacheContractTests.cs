@@ -54,7 +54,7 @@ public sealed partial class CacheContractTests
             foreach (var endpoint in redis.GetEndPoints())
             {
                 var server = redis.GetServer(endpoint);
-                foreach (var key in server.Keys(pattern: _prefix + "*")) await db.KeyDeleteAsync(key);
+                foreach (var key in server.Keys(database: db.Database, pattern: _prefix + "*")) await db.KeyDeleteAsync(key);
             }
         }
         if (_mongoUsed)
