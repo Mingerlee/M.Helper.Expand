@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>缓存管理 · M.Simple</title>
+<link rel="stylesheet" href="./dashboard.css">
+<script src="./dashboard.js" defer></script>
+</head>
+<body>
+<header><div><span class="eyebrow">M.SIMPLE / CACHING</span><h1>缓存管理</h1></div><span id="mode" class="badge">正在连接</span></header>
+<main>
+<section class="scope"><strong id="backend">—</strong><span>管理前缀 <code id="scope">—</code></span><span id="instance">—</span></section>
+<section class="metrics" aria-label="当前实例指标">
+<article><span>命中率</span><strong id="ratio">—</strong></article>
+<article><span>命中 / 未命中</span><strong id="reads">—</strong></article>
+<article><span>工厂加载</span><strong id="loads">—</strong></article>
+<article><span>加载失败</span><strong id="failures">—</strong></article>
+</section>
+<p class="hint">指标从当前实例启动时累计；列表和详情查看不会延长缓存有效期。</p>
+<section class="panel">
+<div class="toolbar">
+<form id="search"><label for="prefix">Key 前缀</label><input id="prefix" maxlength="1024" placeholder="例如 product:"><button type="submit">查询</button></form>
+<div class="actions"><button id="refresh" class="secondary">刷新</button><button id="batch" class="danger write">删除所选</button><button id="preview" class="danger write">按前缀清理</button></div>
+</div>
+<p id="message" role="status" aria-live="polite"></p>
+<p class="hint mobile-hint">表格可左右滑动，查看完整字段和操作。</p>
+<div class="table-wrap"><table><thead><tr><th class="write"><input id="select-all" type="checkbox" aria-label="选择当前页"></th><th>Key</th><th>类型</th><th>JSON 大小</th><th>当前过期时间</th><th>操作</th></tr></thead><tbody id="entries"></tbody></table></div>
+<div class="pagination"><span id="page-label">第 1 页</span><button id="previous" class="secondary">上一页</button><button id="next" class="secondary">下一页</button></div>
+<p class="hint">游标分页显示当前有效项；扫描期间的数据变化可能造成重复或遗漏。Redis 页面可能为空，仍可继续下一页。</p>
+</section>
+<section class="panel audit"><div class="toolbar"><h2>最近管理操作</h2><button id="audit-refresh" class="secondary">刷新记录</button></div>
+<p class="hint">当前实例最近 100 条操作；持久记录由宿主日志系统保存。</p>
+<div class="table-wrap"><table><thead><tr><th>时间</th><th>操作人</th><th>动作</th><th>Key</th><th>结果</th></tr></thead><tbody id="operations"></tbody></table></div></section>
+</main>
+<dialog id="detail"><div class="dialog-heading"><h2>缓存详情</h2><button id="close-detail" class="secondary">关闭</button></div><pre id="metadata"></pre><pre id="json"></pre></dialog>
+<dialog id="clear-dialog"><h2>确认前缀清理</h2><p id="preview-description"></p><pre id="preview-keys"></pre><p class="hint">确认后仅删除本次预览中的 Key；并发更新的数据也可能被删除。</p><div class="actions"><button id="cancel-clear" class="secondary">取消</button><button id="confirm-clear" class="danger">确认删除</button></div></dialog>
+</body>
+</html>

@@ -11,6 +11,8 @@ public sealed class SimpleCache : ISimpleCache, IDisposable
     private readonly SemaphoreSlim[] _writeGates = Enumerable.Range(0, 64).Select(_ => new SemaphoreSlim(1, 1)).ToArray();
     private readonly CancellationTokenSource _shutdown = new();
     private int _disposed;
+    private readonly CacheCounters _counters = new();
+    internal CacheStatistics GetStatistics() => _counters.Snapshot();
 
     public SimpleCache(ISimpleCacheStore store, SimpleCacheOptions options)
     {
@@ -19,8 +21,12 @@ public sealed class SimpleCache : ISimpleCache, IDisposable
         _options = options.Snapshot();
     }
 
-    public Task<CacheResult<T>> TryGetAsync<T>(string key, CancellationToken cancellationToken = default)
-        => ReadAsync<T>(FullKey(key), cancellationToken);
+    public async Task<CacheResult<T>> TryGetAsync<T>(string key, CancellationToken cancellationToken = default)
+    {
+        var result = await ReadAsync<T>(FullKey(key), cancellationToken).ConfigureAwait(false);
+        _counters.Read(result.Found);
+        return result;
+    }
 
     private async Task<CacheResult<T>> ReadAsync<T>(string key, CancellationToken cancellationToken)
     {
@@ -43,6 +49,7 @@ public sealed class SimpleCache : ISimpleCache, IDisposable
         {
             InvalidateFill(fullKey);
             await _store.WriteAsync(fullKey, entry, Expiration(policy, value is null), cancellationToken).ConfigureAwait(false);
+            _counters.Write();
         }
         finally { gate.Release(); }
     }
@@ -54,6 +61,7 @@ public sealed class SimpleCache : ISimpleCache, IDisposable
         var fullKey = FullKey(key);
         var policy = (options ?? new()).Snapshot();
         var found = await ReadAsync<T>(fullKey, cancellationToken).ConfigureAwait(false);
+        _counters.Read(found.Found);
         if (found.Found) return found.Value!;
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -75,6 +83,7 @@ public sealed class SimpleCache : ISimpleCache, IDisposable
         {
             var cached = await ReadAsync<T>(key, timeout.Token).ConfigureAwait(false);
             if (cached.Found) return cached.Value;
+            _counters.Load();
             var value = await factory(timeout.Token).WaitAsync(timeout.Token).ConfigureAwait(false);
             if (value is null && !(policy.CacheNullValues ?? _options.CacheNullValues)) return value;
             var entry = Serialize(value);
@@ -84,11 +93,15 @@ public sealed class SimpleCache : ISimpleCache, IDisposable
             {
                 // Explicit Set/Remove in this process wins over a factory that started earlier.
                 if (!pending.Invalidated)
+                {
                     await _store.WriteAsync(key, entry, Expiration(policy, value is null), timeout.Token).ConfigureAwait(false);
+                    _counters.Write();
+                }
             }
             finally { gate.Release(); }
             return value;
         }
+        catch { _counters.Failure(); throw; }
         finally { ((ICollection<KeyValuePair<string, PendingFill>>)_fills).Remove(new(key, pending)); }
     }
 
@@ -104,6 +117,22 @@ public sealed class SimpleCache : ISimpleCache, IDisposable
         {
             InvalidateFill(fullKey);
             await _store.RemoveAsync(fullKey, cancellationToken).ConfigureAwait(false);
+            _counters.Remove();
+        }
+        finally { gate.Release(); }
+    }
+
+    internal async Task<bool> RemoveManagedAsync(string key, ISimpleCacheAdminStore store, CancellationToken cancellationToken)
+    {
+        var fullKey = FullKey(key);
+        var gate = Gate(fullKey);
+        await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            InvalidateFill(fullKey);
+            var removed = await store.RemoveManagedAsync(fullKey, cancellationToken).ConfigureAwait(false);
+            if (removed) _counters.Remove();
+            return removed;
         }
         finally { gate.Release(); }
     }

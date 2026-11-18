@@ -1,9 +1,9 @@
 # M.Simple.Caching.MongoDB
 
-.NET 8 MongoDB 缓存适配包，当前源码版本 **1.0.0.1**。自动依赖同版本核心包，使用 MongoDB.Driver 3.9.0；面向 MongoDB 6.0+。
+.NET 8 MongoDB 缓存适配包，当前源码版本 **1.0.0.2**。自动依赖同版本核心包，使用 MongoDB.Driver 3.9.0；面向 MongoDB 6.0+。
 
 ```powershell
-dotnet add package M.Simple.Caching.MongoDB --version 1.0.0.1
+dotnet add package M.Simple.Caching.MongoDB --version 1.0.0.2
 ```
 
 ```csharp
@@ -38,3 +38,7 @@ dotnet pack M.Simple.Caching.MongoDB/M.Simple.Caching.MongoDB.csproj -c Release 
 ```
 
 安装要求包源存在相应版本；本仓库只本地构建，不自动推送 NuGet。
+
+## 可选管理页面
+
+安装 [M.Simple.Caching.Dashboard](../M.Simple.Caching.Dashboard/README.md) 可管理当前 KeyPrefix 内的缓存。请设置专属非空前缀，并使用带 ISimpleCacheAdminStore 管理接口的配套源码/包版本。管理查询不续期，默认要求宿主认证授权；业务缓存调用方式不变。

@@ -2,7 +2,8 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.0.0.1</Version>
+    <Nullable>enable</Nullable>
+    <Version>1.0.0.2</Version>
     <Authors>Mr.Sunny</Authors>
     <Description>MongoDB backend for M.Simple.Caching with logical expiration, TTL cleanup and sliding refresh.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

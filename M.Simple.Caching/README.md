@@ -1,11 +1,11 @@
 # M.Simple.Caching
 
-.NET 8 缓存核心包，当前源码版本 **1.0.0.1**。包含统一接口、JSON 快照、独立内存缓存、过期策略及同一进程内的异步加载合并。可用于 ASP.NET Core、Worker 和控制台，不依赖 ASP.NET Core 共享框架。
+.NET 8 缓存核心包，当前源码版本 **1.0.0.2**。包含统一接口、JSON 快照、独立内存缓存、过期策略及同一进程内的异步加载合并。可用于 ASP.NET Core、Worker 和控制台，不依赖 ASP.NET Core 共享框架。
 
 ## 安装与注册
 
 ```powershell
-dotnet add package M.Simple.Caching --version 1.0.0.1
+dotnet add package M.Simple.Caching --version 1.0.0.2
 ```
 
 ```csharp
@@ -117,3 +117,7 @@ dotnet test M.Simple.Caching.Test/M.Simple.Caching.Test.csproj -c Release
 - [Redis 适配](../M.Simple.Caching.Redis/README.md)
 - [MongoDB 适配](../M.Simple.Caching.MongoDB/README.md)
 - [可运行示例](../M.Simple.Caching.Sample/README.md)
+
+## 可选管理页面
+
+安装 [M.Simple.Caching.Dashboard](../M.Simple.Caching.Dashboard/README.md) 可管理当前 KeyPrefix 内的缓存。请设置专属非空前缀，并使用带 ISimpleCacheAdminStore 管理接口的配套源码/包版本。管理查询不续期，默认要求宿主认证授权；业务缓存调用方式不变。

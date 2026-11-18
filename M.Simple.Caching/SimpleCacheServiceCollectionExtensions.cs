@@ -25,7 +25,9 @@ public static class SimpleCacheServiceCollectionExtensions
         services.TryAddSingleton<TimeProvider>(TimeProvider.System);
         services.AddSingleton(options.Snapshot());
         services.AddSingleton<ISimpleCacheStore>(sp => factory(sp));
-        services.AddSingleton<ISimpleCache, SimpleCache>();
+        services.AddSingleton<SimpleCache>();
+        services.AddSingleton<ISimpleCache>(sp => sp.GetRequiredService<SimpleCache>());
+        services.AddSingleton<ISimpleCacheAdmin, SimpleCacheAdmin>();
         return services;
     }
 }

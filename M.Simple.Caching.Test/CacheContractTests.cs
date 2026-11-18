@@ -9,7 +9,7 @@ using StackExchange.Redis;
 namespace M.Simple.Caching.Test;
 
 [TestClass]
-public sealed class CacheContractTests
+public sealed partial class CacheContractTests
 {
     private readonly List<ServiceProvider> _providers = new();
     private readonly string _prefix = "m-simple-cache-test:" + Guid.NewGuid().ToString("N") + ":";

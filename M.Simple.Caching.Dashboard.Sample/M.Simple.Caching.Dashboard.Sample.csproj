@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../M.Simple.Caching.Dashboard/M.Simple.Caching.Dashboard.csproj" />
+    <ProjectReference Include="../M.Simple.Caching.Redis/M.Simple.Caching.Redis.csproj" />
+    <ProjectReference Include="../M.Simple.Caching.MongoDB/M.Simple.Caching.MongoDB.csproj" />
+  </ItemGroup>
+</Project>

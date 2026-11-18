@@ -1,9 +1,10 @@
+using MongoDB.Bson.Serialization;
 using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace M.Simple.Caching.MongoDB;
 
-internal sealed class MongoCacheStore : ISimpleCacheStore, IDisposable
+internal sealed class MongoCacheStore : ISimpleCacheStore, ISimpleCacheAdminStore, IDisposable
 {
     private readonly IMongoClient _client;
     private readonly IMongoCollection<BsonDocument> _collection;
@@ -127,6 +128,59 @@ internal sealed class MongoCacheStore : ISimpleCacheStore, IDisposable
     {
         await EnsureIndex(cancellationToken).ConfigureAwait(false);
         await _collection.DeleteOneAsync(Builders<BsonDocument>.Filter.Eq("_id", key), cancellationToken).ConfigureAwait(false);
+    }
+
+
+    public string Backend => "MongoDB";
+
+    private static FilterDefinition<BsonDocument> Managed(string prefix)
+    {
+        var filter = (BsonDocument)Live("").Render(new RenderArgs<BsonDocument>(
+            BsonSerializer.SerializerRegistry.GetSerializer<BsonDocument>(), BsonSerializer.SerializerRegistry));
+        filter.Remove("_id");
+        filter["_id"] = new BsonDocument("$regex", "^" + System.Text.RegularExpressions.Regex.Escape(prefix));
+        filter["typeName"] = new BsonDocument("$type", "string");
+        filter["payload"] = new BsonDocument("$type", "binData");
+        return filter;
+    }
+
+    public async Task<CacheScanPage> ScanAsync(string prefix, string? cursor, int pageSize, CancellationToken cancellationToken)
+    {
+        await EnsureIndex(cancellationToken).ConfigureAwait(false);
+        var filter = Managed(prefix);
+        if (cursor is not null) filter &= Builders<BsonDocument>.Filter.Gt("_id", cursor);
+        var docs = await _collection.Find(filter).Sort(Builders<BsonDocument>.Sort.Ascending("_id"))
+            .Limit(pageSize + 1).Project<BsonDocument>(new BsonDocument
+            {
+                ["_id"] = 1, ["typeName"] = 1, ["expiresAt"] = 1, ["absoluteExpiresAt"] = 1, ["slidingMilliseconds"] = 1,
+                ["payloadSize"] = new BsonDocument("$binarySize", "$payload")
+            }).ToListAsync(cancellationToken).ConfigureAwait(false);
+        return new(docs.Take(pageSize).Select(Info).ToArray(),
+            docs.Count > pageSize ? docs[pageSize - 1]["_id"].AsString : null);
+    }
+
+    public async Task<CacheEntryDetail?> PeekAsync(string key, CancellationToken cancellationToken)
+    {
+        await EnsureIndex(cancellationToken).ConfigureAwait(false);
+        var doc = await _collection.Find(Managed(key) & Builders<BsonDocument>.Filter.Eq("_id", key))
+            .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        return doc is null ? null : new(Info(doc), System.Text.Encoding.UTF8.GetString(doc["payload"].AsByteArray));
+    }
+
+    public async Task<bool> RemoveManagedAsync(string key, CancellationToken cancellationToken)
+    {
+        await EnsureIndex(cancellationToken).ConfigureAwait(false);
+        var deleted = await _collection.DeleteOneAsync(Managed(key) & Builders<BsonDocument>.Filter.Eq("_id", key), cancellationToken).ConfigureAwait(false);
+        return deleted.DeletedCount > 0;
+    }
+
+    private static CacheEntryInfo Info(BsonDocument doc)
+    {
+        static DateTimeOffset? Date(BsonDocument doc, string name) =>
+            doc.TryGetValue(name, out var value) && value.IsBsonDateTime ? new DateTimeOffset(value.ToUniversalTime()) : null;
+        return new(doc["_id"].AsString, doc["typeName"].AsString, doc.TryGetValue("payloadSize", out var size) ? size.ToInt64() : doc["payload"].AsByteArray.LongLength,
+            Date(doc, "expiresAt"), Date(doc, "absoluteExpiresAt"),
+            doc.TryGetValue("slidingMilliseconds", out var sliding) && sliding.ToInt64() > 0 ? TimeSpan.FromMilliseconds(sliding.ToInt64()) : null);
     }
 
     private static long Milliseconds(TimeSpan? duration) => duration is { } value ? (long)Math.Ceiling(value.TotalMilliseconds) : 0;

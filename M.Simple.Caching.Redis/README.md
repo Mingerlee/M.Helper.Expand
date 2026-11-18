@@ -1,9 +1,9 @@
 # M.Simple.Caching.Redis
 
-.NET 8 Redis 缓存包，当前源码版本 **1.0.0.1**。自动依赖同版本核心包，使用 StackExchange.Redis 2.11.3；支持 Redis 5+ 的原子 Lua 操作。
+.NET 8 Redis 缓存包，当前源码版本 **1.0.0.2**。自动依赖同版本核心包，使用 StackExchange.Redis 2.11.3；支持 Redis 5+ 的原子 Lua 操作。
 
 ```powershell
-dotnet add package M.Simple.Caching.Redis --version 1.0.0.1
+dotnet add package M.Simple.Caching.Redis --version 1.0.0.2
 ```
 
 ```csharp
@@ -32,3 +32,7 @@ dotnet pack M.Simple.Caching.Redis/M.Simple.Caching.Redis.csproj -c Release -o a
 ```
 
 安装命令要求包源中已有相应版本；本仓库不会自动发布到 NuGet。
+
+## 可选管理页面
+
+安装 [M.Simple.Caching.Dashboard](../M.Simple.Caching.Dashboard/README.md) 可管理当前 KeyPrefix 内的缓存。请设置专属非空前缀，并使用带 ISimpleCacheAdminStore 管理接口的配套源码/包版本。管理查询不续期，默认要求宿主认证授权；业务缓存调用方式不变。

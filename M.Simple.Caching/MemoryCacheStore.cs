@@ -1,36 +1,40 @@
+using System.Collections.Concurrent;
 using System.Text;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace M.Simple.Caching;
 
-internal sealed class MemoryCacheStore(SimpleMemoryCacheOptions options, TimeProvider clock) : ISimpleCacheStore, IDisposable
+internal sealed class MemoryCacheStore(SimpleMemoryCacheOptions options, TimeProvider clock) : ISimpleCacheStore, ISimpleCacheAdminStore, IDisposable
 {
     private readonly MemoryCache _cache = new(new MemoryCacheOptions { SizeLimit = options.MaxSizeBytes });
+    private readonly ConcurrentDictionary<string, Entry> _entries = new(StringComparer.Ordinal);
     private readonly object _gate = new();
     private readonly int _maxEntries = options.MaxEntryCount;
+    public string Backend => "Memory";
 
     public Task<CacheStoreValue?> ReadAsync(string key, bool refreshSliding, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        lock (_gate)
-        {
-            var entry = Read(key, refreshSliding);
-            return Task.FromResult(entry?.Value);
-        }
+        lock (_gate) return Task.FromResult(Read(key, refreshSliding)?.Value);
     }
 
     private Entry? Read(string key, bool refreshSliding)
     {
-        if (!_cache.TryGetValue<Entry>(key, out var entry) || entry is null) return null;
+        if (!_cache.TryGetValue<Entry>(key, out var entry) || entry is null)
+        {
+            _entries.TryRemove(key, out _);
+            return null;
+        }
         var now = clock.GetUtcNow();
         if (entry.ExpiresAt is { } expires && expires <= now)
         {
             _cache.Remove(key);
+            _entries.TryRemove(key, out _);
             return null;
         }
         if (refreshSliding && entry.Sliding is { } sliding)
         {
-            entry.ExpiresAt = Min(now + sliding, entry.Absolute);
+            entry = new(entry.Value, entry.Absolute, entry.Sliding, Min(now + sliding, entry.Absolute));
             Save(key, entry);
         }
         return entry;
@@ -61,9 +65,13 @@ internal sealed class MemoryCacheStore(SimpleMemoryCacheOptions options, TimePro
         if (entry.ExpiresAt is { } expires)
         {
             var remaining = expires - clock.GetUtcNow();
-            if (remaining <= TimeSpan.Zero) { _cache.Remove(key); return; }
+            if (remaining <= TimeSpan.Zero) { _cache.Remove(key); _entries.TryRemove(key, out _); return; }
             settings.AbsoluteExpirationRelativeToNow = remaining;
         }
+        // Remove only this generation; a delayed eviction must not remove a newer entry's index.
+        settings.RegisterPostEvictionCallback((_, value, _, _) =>
+            ((ICollection<KeyValuePair<string, Entry>>)_entries).Remove(new(key, (Entry)value!)));
+        _entries[key] = entry;
         _cache.Set(key, entry, settings);
     }
 
@@ -73,21 +81,62 @@ internal sealed class MemoryCacheStore(SimpleMemoryCacheOptions options, TimePro
         lock (_gate) return Task.FromResult(Read(key, false) is not null);
     }
 
-    public Task RemoveAsync(string key, CancellationToken cancellationToken)
+    public Task RemoveAsync(string key, CancellationToken cancellationToken) => RemoveManagedAsync(key, cancellationToken);
+
+    public Task<bool> RemoveManagedAsync(string key, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        lock (_gate) _cache.Remove(key);
-        return Task.CompletedTask;
+        lock (_gate)
+        {
+            var found = Read(key, false) is not null;
+            _cache.Remove(key);
+            _entries.TryRemove(key, out _);
+            return Task.FromResult(found);
+        }
     }
 
+    public Task<CacheScanPage> ScanAsync(string prefix, string? cursor, int pageSize, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        lock (_gate)
+        {
+            var keys = _entries.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal) &&
+                (cursor is null || StringComparer.Ordinal.Compare(k, cursor) > 0)).Order(StringComparer.Ordinal).ToArray();
+            var items = new List<CacheEntryInfo>();
+            string? last = null;
+            var visited = 0;
+            foreach (var key in keys)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                last = key;
+                visited++;
+                var entry = Read(key, false);
+                if (entry is not null) items.Add(Info(key, entry));
+                if (items.Count == pageSize) break;
+            }
+            return Task.FromResult(new CacheScanPage(items, visited < keys.Length ? last : null));
+        }
+    }
+
+    public Task<CacheEntryDetail?> PeekAsync(string key, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        lock (_gate)
+        {
+            var entry = Read(key, false);
+            return Task.FromResult(entry is null ? null : new CacheEntryDetail(Info(key, entry), Encoding.UTF8.GetString(entry.Value.Payload)));
+        }
+    }
+
+    private static CacheEntryInfo Info(string key, Entry entry) =>
+        new(key, entry.Value.TypeName, entry.Value.Payload.LongLength, entry.ExpiresAt, entry.Absolute, entry.Sliding);
     private static DateTimeOffset Min(DateTimeOffset value, DateTimeOffset? cap) => cap is { } absolute && absolute < value ? absolute : value;
     public void Dispose() => _cache.Dispose();
-
-    private sealed class Entry(CacheStoreValue value, DateTimeOffset? absolute, TimeSpan? sliding, DateTimeOffset? expires)
+    private sealed class Entry(CacheStoreValue value, DateTimeOffset? absolute, TimeSpan? sliding, DateTimeOffset? expiresAt)
     {
         internal CacheStoreValue Value { get; } = value;
         internal DateTimeOffset? Absolute { get; } = absolute;
         internal TimeSpan? Sliding { get; } = sliding;
-        internal DateTimeOffset? ExpiresAt { get; set; } = expires;
+        internal DateTimeOffset? ExpiresAt { get; } = expiresAt;
     }
 }

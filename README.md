@@ -1,5 +1,7 @@
 # M.Helper.Expand
 
+新增 **[M.Simple.Caching.Dashboard](M.Simple.Caching.Dashboard/README.md)**：支持内存、Redis、MongoDB 的缓存管理页面，提供前缀搜索、JSON 详情、删除预览、权限控制和操作日志。[Web 示例](M.Simple.Caching.Dashboard.Sample/README.md)。
+
 新增 **[M.Simple.Caching](M.Simple.Caching/README.md)**：.NET 8 统一缓存接口、内存缓存与进程内异步加载合并；可选 [Redis](M.Simple.Caching.Redis/README.md) 或 [MongoDB](M.Simple.Caching.MongoDB/README.md) 后端，安装对应包并注册一次即可。[可运行示例](M.Simple.Caching.Sample/README.md)。
 
 新增 **[M.Simple.AspNetCore.Response](M.Simple.AspNetCore.Response/README.md)**：.NET 8 MVC 统一返回 `code/message/data`、参数校验与异常处理；可选 [Swagger 适配包](M.Simple.AspNetCore.Response.Swagger/README.md)。通过 `AddUnifiedResponse()` 和 `UseUnifiedResponse()` 接入。
