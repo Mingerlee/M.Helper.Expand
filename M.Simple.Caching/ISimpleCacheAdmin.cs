@@ -1,10 +1,12 @@
 namespace M.Simple.Caching;
 
-/// <summary>Management keys are relative to the configured nonempty KeyPrefix. Reads never renew expiry.</summary>
+/// <summary>Keys are relative in CurrentApplication scope and complete storage keys otherwise. Reads never renew expiry.</summary>
 public interface ISimpleCacheAdmin
 {
     string Backend { get; }
     string KeyPrefix { get; }
+    CacheDashboardScope Scope => CacheDashboardScope.CurrentApplication;
+    IReadOnlyList<string> Prefixes => new[] { KeyPrefix };
     CacheStatistics GetStatistics();
     Task<CacheScanPage> ScanAsync(string prefix = "", string? cursor = null, int pageSize = 50, CancellationToken cancellationToken = default);
     Task<CacheEntryDetail?> PeekAsync(string key, CancellationToken cancellationToken = default);

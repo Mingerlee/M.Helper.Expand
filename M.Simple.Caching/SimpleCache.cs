@@ -122,9 +122,8 @@ public sealed class SimpleCache : ISimpleCache, IDisposable
         finally { gate.Release(); }
     }
 
-    internal async Task<bool> RemoveManagedAsync(string key, ISimpleCacheAdminStore store, CancellationToken cancellationToken)
+    internal async Task<bool> RemoveManagedAsync(string fullKey, ISimpleCacheAdminStore store, CancellationToken cancellationToken)
     {
-        var fullKey = FullKey(key);
         var gate = Gate(fullKey);
         await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try

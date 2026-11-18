@@ -26,7 +26,9 @@ public sealed class DashboardIntegrationTests
     private ISimpleCache Cache => _app.Services.GetRequiredService<ISimpleCache>();
 
     [TestInitialize]
-    public async Task Start()
+    public Task Start() => StartHost();
+
+    private async Task StartHost(Action<SimpleCacheDashboardOptions>? configure = null)
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
@@ -36,7 +38,7 @@ public sealed class DashboardIntegrationTests
         builder.Services.AddAuthorization(o => o.AddPolicy("CacheAdmin", p => p.RequireRole("admin")));
         builder.Services.AddSingleton<TimeProvider>(_clock);
         builder.Services.AddSimpleMemoryCache(o => o.KeyPrefix = "dashboard-test:");
-        builder.Services.AddSimpleCacheDashboard();
+        builder.Services.AddSimpleCacheDashboard(configure);
         _app = builder.Build();
         _app.UsePathBase("/tools");
         _app.UseAuthentication();
@@ -210,6 +212,57 @@ public sealed class DashboardIntegrationTests
         Assert.AreEqual(HttpStatusCode.Conflict, expired.StatusCode);
         Assert.IsTrue(await Cache.ExistsAsync("expiry:1"));
         Assert.AreEqual(0, (await Get("api/operations")).GetArrayLength());
+    }
+
+    [DataTestMethod]
+    [DataRow(CacheDashboardScope.Prefixes), DataRow(CacheDashboardScope.All)]
+    public async Task ExpandedScopeUsesFullKeysAndValidatesEveryManagementEndpoint(CacheDashboardScope scope)
+    {
+        await Stop();
+        await StartHost(o =>
+        {
+            o.Scope = scope;
+            o.Prefixes = scope == CacheDashboardScope.Prefixes ? ["allowed:", "second:"] : [];
+        });
+        var store = _app.Services.GetRequiredService<ISimpleCacheStore>();
+        foreach (var key in new[] { "allowed:1", "allowed:2", "second:1", "outside:1" })
+            await store.WriteAsync(key, new("test", System.Text.Encoding.UTF8.GetBytes("42")), new(null, null), default);
+        var status = await Get("api/status");
+        Assert.AreEqual(scope.ToString(), status.GetProperty("scope").GetString());
+        var items = (await Get("api/entries")).GetProperty("items");
+        Assert.AreEqual(scope == CacheDashboardScope.All ? 4 : 3, items.GetArrayLength());
+        Assert.IsTrue(items.EnumerateArray().Any(i => i.GetProperty("key").GetString() == "second:1"));
+        var detail = await Get("api/entry?key=second:1");
+        Assert.AreEqual("second:1", detail.GetProperty("entry").GetProperty("key").GetString());
+        if (scope == CacheDashboardScope.Prefixes)
+        {
+            using var outsideDetail = await _http.GetAsync("api/entry?key=outside:1");
+            Assert.AreEqual(HttpStatusCode.BadRequest, outsideDetail.StatusCode);
+            // Validate the whole request before deleting even its first in-scope key.
+            using var mixed = await Post("api/remove", new { keys = new[] { "allowed:1", "outside:1" } });
+            Assert.AreEqual(HttpStatusCode.BadRequest, mixed.StatusCode);
+            Assert.IsNotNull(await ((ISimpleCacheAdminStore)store).PeekAsync("allowed:1", default));
+            Assert.AreEqual(0, (await Get("api/entries?prefix=outside:")).GetProperty("items").GetArrayLength());
+        }
+        else
+        {
+            using var emptyClear = await Post("api/preview", new { prefix = "" });
+            Assert.AreEqual(HttpStatusCode.BadRequest, emptyClear.StatusCode);
+            using var whitespaceClear = await Post("api/preview", new { prefix = " " });
+            Assert.AreEqual(HttpStatusCode.BadRequest, whitespaceClear.StatusCode);
+        }
+        using var preview = await Post("api/preview", new { prefix = "allowed:" });
+        preview.EnsureSuccessStatusCode();
+        var plan = await preview.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.AreEqual(2, plan.GetProperty("keys").GetArrayLength());
+        using var clear = await Post("api/clear", new { token = plan.GetProperty("token").GetString() });
+        clear.EnsureSuccessStatusCode();
+        Assert.IsNull(await ((ISimpleCacheAdminStore)store).PeekAsync("allowed:1", default));
+        Assert.IsNotNull(await ((ISimpleCacheAdminStore)store).PeekAsync("outside:1", default));
+        using var remove = await Post("api/remove", new { keys = new[] { "second:1" } });
+        remove.EnsureSuccessStatusCode();
+        var audit = await Get("api/operations");
+        Assert.IsTrue(audit.EnumerateArray().Any(i => i.GetProperty("key").GetString() == "second:1"));
     }
 
     private sealed class ManualClock : TimeProvider

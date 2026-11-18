@@ -1,4 +1,4 @@
-using System.Text;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace M.Simple.Caching;
@@ -7,16 +7,27 @@ internal sealed class SimpleCacheAdmin : ISimpleCacheAdmin
 {
     private readonly ISimpleCacheAdminStore _store;
     private readonly SimpleCache _cache;
+    private readonly string[] _prefixes;
     public string Backend => _store.Backend;
     public string KeyPrefix { get; }
+    public CacheDashboardScope Scope { get; }
+    public IReadOnlyList<string> Prefixes => Array.AsReadOnly(_prefixes);
 
-    public SimpleCacheAdmin(ISimpleCacheStore store, SimpleCache cache, SimpleCacheOptions options)
+    public SimpleCacheAdmin(ISimpleCacheStore store, SimpleCache cache, SimpleCacheOptions options, SimpleCacheManagementOptions management)
     {
         _store = store as ISimpleCacheAdminStore ?? throw new NotSupportedException("This backend does not support cache management.");
         _cache = cache;
         KeyPrefix = options.KeyPrefix;
-        if (string.IsNullOrWhiteSpace(KeyPrefix))
-            throw new InvalidOperationException("Cache management requires a nonempty, application-specific KeyPrefix.");
+        var snapshot = management.Snapshot();
+        Scope = snapshot.Scope;
+        if (Scope == CacheDashboardScope.CurrentApplication && string.IsNullOrWhiteSpace(KeyPrefix))
+            throw new InvalidOperationException("CurrentApplication management requires a nonempty, application-specific KeyPrefix.");
+        _prefixes = Scope switch
+        {
+            CacheDashboardScope.CurrentApplication => [KeyPrefix],
+            CacheDashboardScope.Prefixes => snapshot.Prefixes,
+            _ => [""]
+        };
     }
 
     public CacheStatistics GetStatistics() => _cache.GetStatistics();
@@ -24,48 +35,69 @@ internal sealed class SimpleCacheAdmin : ISimpleCacheAdmin
     public async Task<CacheScanPage> ScanAsync(string prefix = "", string? cursor = null, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(prefix);
-        if (KeyPrefix.Length + prefix.Length > 1024 || pageSize is < 1 or > 200)
+        var query = Scope == CacheDashboardScope.CurrentApplication ? KeyPrefix + prefix : prefix;
+        if (query.Length > 1024 || pageSize is < 1 or > 200)
             throw new ArgumentException("Invalid prefix or page size (1-200).");
-        string? storeCursor = null;
+
+        // Intersect the search with disjoint allowed partitions; never scan outside them.
+        var partitions = _prefixes.Select(p => query.StartsWith(p, StringComparison.Ordinal) ? query :
+                p.StartsWith(query, StringComparison.Ordinal) ? p : null)
+            .Where(p => p is not null).Cast<string>().ToArray();
+        var scope = Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { Scope, Prefixes = _prefixes, Query = query })));
+        var index = 0;
+        string? position = null;
         if (cursor is not null)
         {
             try
             {
                 if (cursor.Length > 8192) throw new FormatException();
                 var state = JsonSerializer.Deserialize<Cursor>(Convert.FromBase64String(cursor)) ?? throw new FormatException();
-                if (state.Scope != KeyPrefix + prefix || state.Backend != Backend) throw new FormatException();
-                storeCursor = state.Position;
+                if (state.Scope != scope || state.Backend != Backend || state.Index < 0 || state.Index >= partitions.Length)
+                    throw new FormatException();
+                index = state.Index;
+                position = state.Position;
             }
             catch (Exception error) when (error is FormatException or JsonException)
-            { throw new ArgumentException("Invalid cursor for this prefix/backend.", nameof(cursor)); }
+            { throw new ArgumentException("Invalid cursor for this scope/backend/query.", nameof(cursor)); }
         }
-        var page = await _store.ScanAsync(KeyPrefix + prefix, storeCursor, pageSize, cancellationToken).ConfigureAwait(false);
-        var entries = page.Items.Where(i => i.Key.StartsWith(KeyPrefix + prefix, StringComparison.Ordinal))
-            .Select(i => i with { Key = i.Key[KeyPrefix.Length..] }).ToArray();
-        var next = page.NextCursor is null ? null : Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(
-            new Cursor(KeyPrefix + prefix, Backend, page.NextCursor)));
-        return new(entries, next);
+        if (partitions.Length == 0) return new([], null);
+
+        var entries = new List<CacheEntryInfo>();
+        Cursor? next = null;
+        while (index < partitions.Length && entries.Count < pageSize)
+        {
+            var page = await _store.ScanAsync(partitions[index], position, pageSize - entries.Count, cancellationToken).ConfigureAwait(false);
+            entries.AddRange(page.Items.Where(i => i.Key.StartsWith(partitions[index], StringComparison.Ordinal))
+                .Select(i => Scope == CacheDashboardScope.CurrentApplication ? i with { Key = i.Key[KeyPrefix.Length..] } : i));
+            if (page.NextCursor is not null)
+            {
+                next = new(scope, Backend, index, page.NextCursor);
+                break; // Redis may return an empty SCAN batch; let the caller continue, keeping work bounded.
+            }
+            position = null;
+            index++;
+            next = index < partitions.Length ? new(scope, Backend, index, null) : null;
+        }
+        return new(entries, next is null ? null : Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(next)));
     }
 
     public async Task<CacheEntryDetail?> PeekAsync(string key, CancellationToken cancellationToken = default)
     {
-        var full = FullKey(key);
-        var detail = await _store.PeekAsync(full, cancellationToken).ConfigureAwait(false);
+        var detail = await _store.PeekAsync(FullKey(key), cancellationToken).ConfigureAwait(false);
         return detail is null ? null : detail with { Entry = detail.Entry with { Key = key } };
     }
 
     public Task<bool> RemoveAsync(string key, CancellationToken cancellationToken = default)
-    {
-        _ = FullKey(key);
-        return _cache.RemoveManagedAsync(key, _store, cancellationToken);
-    }
+        => _cache.RemoveManagedAsync(FullKey(key), _store, cancellationToken);
 
     private string FullKey(string key)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
-        if (key.Length + KeyPrefix.Length > 1024) throw new ArgumentException("Key is too long.", nameof(key));
-        return KeyPrefix + key;
+        var full = Scope == CacheDashboardScope.CurrentApplication ? KeyPrefix + key : key;
+        if (full.Length > 1024 || !_prefixes.Any(p => full.StartsWith(p, StringComparison.Ordinal)))
+            throw new ArgumentException("Key is too long or outside the management scope.", nameof(key));
+        return full;
     }
 
-    private sealed record Cursor(string Scope, string Backend, string Position);
+    private sealed record Cursor(string Scope, string Backend, int Index, string? Position);
 }

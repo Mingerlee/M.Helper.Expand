@@ -20,6 +20,11 @@ public static class SimpleCacheDashboardExtensions
             throw new InvalidOperationException("Register the cache dashboard only once.");
         var options = new SimpleCacheDashboardOptions();
         configure?.Invoke(options);
+        services.AddSimpleCacheManagement(management =>
+        {
+            management.Scope = options.Scope;
+            management.Prefixes = options.Prefixes;
+        });
         services.AddSingleton(options);
         services.AddSingleton<DashboardState>();
         services.AddAuthorization();
@@ -80,7 +85,7 @@ public static class SimpleCacheDashboardExtensions
             return Results.Ok(new { token = antiforgery.GetAndStoreTokens(http).RequestToken, header });
         });
         group.MapGet("/api/status", (ISimpleCacheAdmin admin, SimpleCacheDashboardOptions options) =>
-            Results.Ok(new { admin.Backend, admin.KeyPrefix, options.ReadOnly, Instance = Environment.MachineName + ":" + Environment.ProcessId,
+            Results.Ok(new { admin.Backend, admin.KeyPrefix, Scope = admin.Scope.ToString(), admin.Prefixes, options.ReadOnly, Instance = Environment.MachineName + ":" + Environment.ProcessId,
                 Statistics = admin.GetStatistics() }));
         group.MapGet("/api/entries", async (HttpContext http, ISimpleCacheAdmin admin) =>
         {
@@ -102,7 +107,8 @@ public static class SimpleCacheDashboardExtensions
         group.MapPost("/api/preview", async (HttpContext http, ISimpleCacheAdmin admin, DashboardState state) =>
         {
             var body = await Body<PreviewRequest>(http);
-            if (body.Prefix is null) throw new ArgumentException("Prefix is required.");
+            if (body.Prefix is null || (admin.Scope == CacheDashboardScope.All && string.IsNullOrWhiteSpace(body.Prefix)))
+                throw new ArgumentException("A nonempty prefix is required when managing all entries.");
             var keys = new HashSet<string>(StringComparer.Ordinal);
             string? cursor = null;
             // Bounded scan; a preview may be partial. The exact listed keys are the deletion scope.
@@ -131,7 +137,9 @@ public static class SimpleCacheDashboardExtensions
     private static string[] ValidateKeys(string[]? keys, ISimpleCacheAdmin admin)
     {
         if (keys is null || keys.Length is < 1 or > 200 ||
-            keys.Any(k => string.IsNullOrWhiteSpace(k) || k.Length + admin.KeyPrefix.Length > 1024)) throw new ArgumentException();
+            keys.Any(k => string.IsNullOrWhiteSpace(k) ||
+                (admin.Scope == CacheDashboardScope.CurrentApplication ? k.Length + admin.KeyPrefix.Length > 1024 :
+                    k.Length > 1024 || !admin.Prefixes.Any(p => k.StartsWith(p, StringComparison.Ordinal))))) throw new ArgumentException();
         return keys.Distinct(StringComparer.Ordinal).ToArray();
     }
 

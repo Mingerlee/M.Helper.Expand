@@ -1,7 +1,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 const base = new URL(location.pathname.endsWith('/') ? location.pathname : location.pathname + '/', location.origin);
-let currentPrefix = '', cursors = [null], pageIndex = 0, nextCursor = null, readOnly = true, plan = null, busy = false;
+let currentPrefix = '', cursors = [null], pageIndex = 0, nextCursor = null, readOnly = true, plan = null, busy = false, scope = 'CurrentApplication';
 function message(text, error = false) { $('message').textContent = text; $('message').classList.toggle('error', error); }
 function time(value) { return value ? new Date(value).toLocaleString() : '不主动过期'; }
 async function api(path, body) {
@@ -40,7 +40,10 @@ async function status() {
     readOnly = data.readOnly;
     document.body.classList.toggle('read-only', readOnly);
     $('backend').textContent = data.backend;
-    $('scope').textContent = data.keyPrefix;
+    scope = data.scope;
+    $('scope-mode').textContent = scope === 'All' ? '全部缓存' : scope === 'Prefixes' ? '指定前缀' : '当前应用';
+    $('scope').textContent = scope === 'All' ? '当前后端存储范围' : data.prefixes.join('、');
+    $('prefix').placeholder = scope === 'CurrentApplication' ? '例如 product:' : '完整 Key 前缀，例如 Bams:Excel:';
     $('instance').textContent = '当前实例 ' + data.instance;
     $('mode').textContent = readOnly ? '只读模式' : '管理模式';
     const s = data.statistics, reads = s.hits + s.misses;
@@ -93,8 +96,9 @@ $('batch').onclick = () => run(() => remove([...document.querySelectorAll('#entr
 $('preview').onclick = () => run(async () => {
     if (readOnly) return;
     const prefix = $('prefix').value;
+    if (scope === 'All' && !prefix.trim()) { message('管理全部缓存时，请输入非空的完整 Key 前缀后再清理。', true); return; }
     const data = await api('preview', { prefix }); plan = data.token;
-    $('preview-description').textContent = '相对前缀“' + prefix + '”匹配 ' + data.keys.length + ' 个 Key。' + (data.partial ? '本次为部分结果，后续可再次预览清理。' : '') + ' 预览在两分钟内有效。';
+    $('preview-description').textContent = (scope === 'CurrentApplication' ? '相对前缀' : '完整 Key 前缀') + '“' + prefix + '”匹配 ' + data.keys.length + ' 个 Key。' + (data.partial ? '本次为部分结果，后续可再次预览清理。' : '') + ' 预览在两分钟内有效。';
     $('preview-keys').textContent = data.keys.join('\n') || '暂无匹配项';
     $('confirm-clear').disabled = !data.keys.length; $('clear-dialog').showModal();
 });

@@ -5,6 +5,16 @@ namespace M.Simple.Caching;
 
 public static class SimpleCacheServiceCollectionExtensions
 {
+    /// <summary>Configures administration without changing business cache keys.</summary>
+    public static IServiceCollection AddSimpleCacheManagement(this IServiceCollection services, Action<SimpleCacheManagementOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        var options = new SimpleCacheManagementOptions();
+        configure(options);
+        services.Replace(ServiceDescriptor.Singleton(options.Snapshot()));
+        return services;
+    }
+
     public static IServiceCollection AddSimpleMemoryCache(this IServiceCollection services, Action<SimpleMemoryCacheOptions>? configure = null)
     {
         var options = new SimpleMemoryCacheOptions();
@@ -27,6 +37,7 @@ public static class SimpleCacheServiceCollectionExtensions
         services.AddSingleton<ISimpleCacheStore>(sp => factory(sp));
         services.AddSingleton<SimpleCache>();
         services.AddSingleton<ISimpleCache>(sp => sp.GetRequiredService<SimpleCache>());
+        services.TryAddSingleton<SimpleCacheManagementOptions>();
         services.AddSingleton<ISimpleCacheAdmin, SimpleCacheAdmin>();
         return services;
     }

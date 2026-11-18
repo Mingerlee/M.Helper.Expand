@@ -114,7 +114,9 @@ internal sealed class RedisCacheStore : ISimpleCacheStore, ISimpleCacheAdminStor
         var db = await Database(cancellationToken).ConfigureAwait(false);
         var result = await db.ScriptEvaluateAsync("""
             local t = redis.call('TYPE', KEYS[1])
-            if t.ok ~= 'hash' or redis.call('HEXISTS', KEYS[1], 'type') == 0 or redis.call('HEXISTS', KEYS[1], 'payload') == 0 then return 0 end
+            if t.ok ~= 'hash' then return 0 end
+            local fields = redis.call('HMGET', KEYS[1], 'type', 'payload', 'absolute', 'sliding', 'expires')
+            for i = 1, 5 do if not fields[i] then return 0 end end
             local removed = redis.pcall('UNLINK', KEYS[1])
             if type(removed) == 'table' and removed.err then
                 local message = string.lower(removed.err)

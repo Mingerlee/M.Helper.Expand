@@ -1,14 +1,14 @@
 # M.Simple.Caching.Dashboard
 
-.NET 8 嵌入式缓存管理页面，源码版本 **1.0.0**。支持 Memory、Redis、MongoDB，复用宿主认证授权，无需单独部署前端。
+.NET 8 嵌入式缓存管理页面，项目版本 **1.0.0.2**。支持 Memory、Redis、MongoDB，复用宿主认证授权，无需单独部署前端。本版新增可配置管理范围，默认保持当前应用范围。
 
 ## 安装与接入
 
-安装 Dashboard 和所选后端包。Dashboard 自动依赖核心包；使用内存时无需额外安装其他缓存包。使用 Redis/MongoDB 时，还需安装对应后端包。配套核心及 MongoDB 后端版本为 1.0.0.2，Redis 后端为 1.0.0.3（支持 Redis 3.2+），不能搭配缺少管理接口的旧版 DLL。
+安装 Dashboard 和所选后端包。Dashboard 自动依赖核心包；使用内存时无需额外安装其他缓存包。使用 Redis/MongoDB 时，还需安装对应后端包。配套核心及 MongoDB 后端版本为 1.0.0.3，Redis 后端为 1.0.0.4（支持 Redis 3.2+），不能搭配缺少管理接口的旧版 DLL。
 
 ```powershell
-dotnet add package M.Simple.Caching.Dashboard --version 1.0.0
-# Redis 后端另加 M.Simple.Caching.Redis --version 1.0.0.3；MongoDB 后端另加 M.Simple.Caching.MongoDB --version 1.0.0.2。
+dotnet add package M.Simple.Caching.Dashboard --version 1.0.0.2
+# Redis 后端另加 M.Simple.Caching.Redis --version 1.0.0.4；MongoDB 后端另加 M.Simple.Caching.MongoDB --version 1.0.0.3。
 ```
 
 ```csharp
@@ -21,7 +21,7 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddSimpleMemoryCache(options =>
 {
-    options.KeyPrefix = "MyApi:Production:"; // 管理功能强制要求非空应用前缀
+    options.KeyPrefix = "MyApi:Production:"; // 默认 CurrentApplication 管理模式要求非空应用前缀
 });
 builder.Services.AddSimpleCacheDashboard(options =>
 {
@@ -49,7 +49,55 @@ Redis/MongoDB 项目将 AddSimpleMemoryCache 替换为对应后端注册，不�
 - ReadOnly=true 在服务端禁止删除、预览和确认接口；页面隐藏删除按钮。
 - 缓存值和 Key 使用文本显示，外部脚本/样式为程序集嵌入资源，不依赖 CDN。
 
-非空 KeyPrefix 必须专属于本应用/环境，不能复用其他应用的前缀；嵌套前缀也属于该管理范围。管理接口的 Key 均为去掉 KeyPrefix 后的相对 Key，不具备路径语义。
+默认 CurrentApplication 模式要求非空 KeyPrefix，且应专属于本应用/环境；嵌套前缀也属于该管理范围。该模式的管理接口使用去掉 KeyPrefix 后的相对 Key。Prefixes 和 All 模式使用完整 Key，详见下节；Key 不具备路径语义。
+
+## 管理范围配置
+
+管理范围与业务 KeyPrefix 独立，不改变 ISimpleCache 的业务读写行为。内存、Redis、MongoDB 使用同一套范围规则。
+
+```csharp
+using M.Simple.Caching;
+using M.Simple.Caching.Dashboard;
+
+// 三种方式只选一种注册；不配置 Scope 时保持原有应用范围。
+builder.Services.AddSimpleCacheDashboard();
+
+// 指定完整存储前缀，多个前缀取并集；搜索条件与这个并集取交集。
+builder.Services.AddSimpleCacheDashboard(options =>
+{
+    options.Scope = CacheDashboardScope.Prefixes;
+    options.Prefixes = ["Bams:Excel:", "Bams:Import:"];
+});
+
+// 当前后端存储范围内的所有有效缓存。
+builder.Services.AddSimpleCacheDashboard(options => options.Scope = CacheDashboardScope.All);
+```
+
+| Scope | 管理范围 | 页面及 API 的 Key / 搜索前缀 |
+|---|---|---|
+| CurrentApplication（默认） | 当前业务 KeyPrefix | 相对 Key / 相对前缀 |
+| Prefixes | 配置的一个或多个完整前缀 | 完整 Key / 完整前缀 |
+| All | 当前后端存储范围 | 完整 Key / 完整前缀 |
+
+All 对内存是当前缓存存储实例，对 Redis 是配置的逻辑数据库（集群为配置可访问的主节点），对 MongoDB 是配置的数据库与集合。只展示符合包存储格式且未过期的数据，不是任意业务文档浏览器；不会搜索其他 MongoDB 集合或其他 Redis 逻辑库。
+
+列表、详情、单条/批量删除、前缀预览清理都校验同一范围。越界查询返回空列表，越界详情/删除返回 400；批量删除先检查全部 Key 的范围，再开始逐项删除。游标绑定管理模式、完整前缀集合、搜索条件及后端，改变范围或搜索后必须重新查询。
+
+Prefixes 必须提供 1–64 个非空前缀，单个长度不超过 512；比较区分大小写、按字面匹配。重复或嵌套前缀会归并，多分区游标不会因重叠配置重复显示数据。其他模式不得配置 Prefixes，配置无效时注册即报错。CurrentApplication 继续要求非空业务 KeyPrefix；其他模式允许业务前缀为空。
+
+搜索留空表示当前管理范围内全部有效项。All 模式按前缀清理必须输入非空的完整 Key 前缀，页面和服务端同时限制；仍需预览后确认，不提供清空存储命令。All 可查看、删除其他应用的缓存，应限定管理员权限。页面顶部会显示实际模式和范围。
+
+不接页面、直接使用 ISimpleCacheAdmin 时，可以在后端注册之外调用下面的核心配置方法；接页面时统一在 AddSimpleCacheDashboard 中配置即可：
+
+```csharp
+builder.Services.AddSimpleCacheManagement(options =>
+{
+    options.Scope = CacheDashboardScope.Prefixes;
+    options.Prefixes = ["Bams:Excel:"];
+});
+```
+
+配置在注册及创建管理实例时取快照，运行时修改配置数组不会扩大管理范围。此功能要求核心包 1.0.0.3 和 Dashboard 1.0.0.2；Redis/MongoDB 使用上方列出的配套版本。旧包不包含这些配置项。
 
 内存只管理当前实例。Redis 使用原生 SCAN（COUNT 是服务端提示值）遍历已连接主节点，优先使用 UNLINK 删除，Redis 3.2 不支持该命令时使用 DEL；MongoDB 按 _id 游标分页，始终排除逻辑过期文档，即使 TTL 清理尚未发生。列表不传输 JSON 值，Redis 在服务器计算字节数，MongoDB 使用 $binarySize 投影。
 
@@ -84,7 +132,7 @@ Dashboard 自身不会重复写另一套持久日志。最近操作 API 为当�
 | 方法 | 路径 | 用途 |
 |---|---|---|
 | GET | /api/status | 当前后端、范围及实例统计 |
-| GET | /api/entries?prefix=product:&pageSize=50&cursor=... | 列表；页大小 1–200，cursor 不透明且绑定搜索前缀 |
+| GET | /api/entries?prefix=product:&pageSize=50&cursor=... | 列表；页大小 1–200，cursor 不透明且绑定管理范围和搜索前缀 |
 | GET | /api/entry?key=product:1 | 不续期读取 JSON 详情 |
 | GET | /api/token | 获取防伪令牌及请求头名称 |
 | GET | /api/operations | 最近操作 |
@@ -92,7 +140,7 @@ Dashboard 自身不会重复写另一套持久日志。最近操作 API 为当�
 | POST | /api/preview | {"prefix":"product:"} |
 | POST | /api/clear | {"token":"预览返回的令牌"} |
 
-前缀为空表示已配置 KeyPrefix 内所有匹配项，不会越过该范围。清理仍需预览确认，单次上限不变。无效参数为 400，无权限为 401/403（Cookie 宿主可重定向登录），无详情为 404，失效/重放预览为 409，后端不可用为 503，响应不暴露连接串。
+搜索前缀为空表示当前管理范围内所有匹配项，不会越过该范围；All 模式的清理预览不接受空白前缀。清理仍需预览确认，单次上限不变。无效参数为 400，无权限为 401/403（Cookie 宿主可重定向登录），无详情为 404，失效/重放预览为 409，后端不可用为 503，响应不暴露连接串。
 
 ## 示例与验证
 
