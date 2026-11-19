@@ -5,7 +5,10 @@ public enum CacheDashboardScope
 {
     CurrentApplication,
     Prefixes,
-    All
+    /// <summary>All entries in the configured storage, including data not written by this package.</summary>
+    All,
+    /// <summary>All applications' entries that match this package's storage format.</summary>
+    AllManaged
 }
 
 /// <summary>Shared management scope for memory, Redis and MongoDB.</summary>

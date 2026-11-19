@@ -215,7 +215,7 @@ public sealed class DashboardIntegrationTests
     }
 
     [DataTestMethod]
-    [DataRow(CacheDashboardScope.Prefixes), DataRow(CacheDashboardScope.All)]
+    [DataRow(CacheDashboardScope.Prefixes), DataRow(CacheDashboardScope.All), DataRow(CacheDashboardScope.AllManaged)]
     public async Task ExpandedScopeUsesFullKeysAndValidatesEveryManagementEndpoint(CacheDashboardScope scope)
     {
         await Stop();
@@ -230,7 +230,7 @@ public sealed class DashboardIntegrationTests
         var status = await Get("api/status");
         Assert.AreEqual(scope.ToString(), status.GetProperty("scope").GetString());
         var items = (await Get("api/entries")).GetProperty("items");
-        Assert.AreEqual(scope == CacheDashboardScope.All ? 4 : 3, items.GetArrayLength());
+        Assert.AreEqual(scope == CacheDashboardScope.Prefixes ? 3 : 4, items.GetArrayLength());
         Assert.IsTrue(items.EnumerateArray().Any(i => i.GetProperty("key").GetString() == "second:1"));
         var detail = await Get("api/entry?key=second:1");
         Assert.AreEqual("second:1", detail.GetProperty("entry").GetProperty("key").GetString());

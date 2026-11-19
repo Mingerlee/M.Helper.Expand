@@ -14,7 +14,12 @@ public interface ISimpleCacheAdmin
 }
 
 public sealed record CacheEntryInfo(string Key, string TypeName, long SizeBytes,
-    DateTimeOffset? ExpiresAt, DateTimeOffset? AbsoluteExpiresAt, TimeSpan? SlidingExpiration);
+    DateTimeOffset? ExpiresAt, DateTimeOffset? AbsoluteExpiresAt, TimeSpan? SlidingExpiration)
+{
+    /// <summary>Native backend type; null for package-managed entries.</summary>
+    public string? StorageType { get; init; }
+    public long? ItemCount { get; init; }
+}
 public sealed record CacheEntryDetail(CacheEntryInfo Entry, string Json);
 public sealed record CacheScanPage(IReadOnlyList<CacheEntryInfo> Items, string? NextCursor);
 public sealed record CacheStatistics(DateTimeOffset StartedAt, long Hits, long Misses, long Loads,

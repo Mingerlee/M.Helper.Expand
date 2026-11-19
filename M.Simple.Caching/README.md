@@ -1,11 +1,11 @@
 # M.Simple.Caching
 
-.NET 8 缓存核心包，当前源码版本 **1.0.0.3**。包含统一接口、JSON 快照、独立内存缓存、过期策略及同一进程内的异步加载合并。可用于 ASP.NET Core、Worker 和控制台，不依赖 ASP.NET Core 共享框架。
+.NET 8 缓存核心包，当前源码版本 **1.0.0.4**。包含统一接口、JSON 快照、独立内存缓存、过期策略及同一进程内的异步加载合并。可用于 ASP.NET Core、Worker 和控制台，不依赖 ASP.NET Core 共享框架。
 
 ## 安装与注册
 
 ```powershell
-dotnet add package M.Simple.Caching --version 1.0.0.3
+dotnet add package M.Simple.Caching --version 1.0.0.4
 ```
 
 ```csharp
@@ -120,4 +120,4 @@ dotnet test M.Simple.Caching.Test/M.Simple.Caching.Test.csproj -c Release
 
 ## 可选管理页面
 
-安装 [M.Simple.Caching.Dashboard](../M.Simple.Caching.Dashboard/README.md) 默认管理当前非空 KeyPrefix 内的缓存。管理页面支持 Scope 配置：CurrentApplication 保持默认范围；Prefixes 按配置的完整前缀筛选；All 显示当前后端存储范围内的所有有效缓存。后两种模式的页面与管理 API 使用完整 Key，业务缓存的 KeyPrefix 不变；配置示例见 Dashboard README。内存、Redis、MongoDB 行为一致，查询不续期，所有操作要求宿主认证授权。配置与业务缓存读写独立；使用时请同步升级核心包 1.0.0.3、Dashboard 1.0.0.2，以及所选后端适配包。
+安装 [M.Simple.Caching.Dashboard](../M.Simple.Caching.Dashboard/README.md) 默认管理当前非空 KeyPrefix 内的缓存。管理页面支持 Scope 配置：CurrentApplication 保持默认范围；Prefixes 在全部数据中按配置的完整前缀筛选；All 显示当前后端存储范围内的全部数据（包含非本包数据）；AllManaged 只显示所有应用通过本包存入的有效缓存。除 CurrentApplication 外，页面与管理 API 使用完整 Key，业务缓存的 KeyPrefix 不变；配置示例见 Dashboard README。内存、Redis、MongoDB 行为一致，查询不续期，所有操作要求宿主认证授权。配置与业务缓存读写独立；使用时请同步升级核心包 1.0.0.4、Dashboard 1.0.0.3，以及所选后端适配包。

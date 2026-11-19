@@ -41,8 +41,8 @@ async function status() {
     document.body.classList.toggle('read-only', readOnly);
     $('backend').textContent = data.backend;
     scope = data.scope;
-    $('scope-mode').textContent = scope === 'All' ? '全部缓存' : scope === 'Prefixes' ? '指定前缀' : '当前应用';
-    $('scope').textContent = scope === 'All' ? '当前后端存储范围' : data.prefixes.join('、');
+    $('scope-mode').textContent = scope === 'All' ? '全部数据' : scope === 'AllManaged' ? '所有应用的本包缓存' : scope === 'Prefixes' ? '指定前缀（全部数据）' : '当前应用';
+    $('scope').textContent = scope === 'All' || scope === 'AllManaged' ? '当前后端存储范围' : data.prefixes.join('、');
     $('prefix').placeholder = scope === 'CurrentApplication' ? '例如 product:' : '完整 Key 前缀，例如 Bams:Excel:';
     $('instance').textContent = '当前实例 ' + data.instance;
     $('mode').textContent = readOnly ? '只读模式' : '管理模式';
@@ -61,7 +61,7 @@ async function load() {
         const row = tbody.insertRow();
         const selection = row.insertCell(); selection.className = 'write';
         const check = document.createElement('input'); check.type = 'checkbox'; check.dataset.key = item.key; check.setAttribute('aria-label', '选择 ' + item.key); selection.append(check);
-        cell(row, item.key); cell(row, item.typeName); cell(row, item.sizeBytes + ' B'); cell(row, time(item.expiresAt));
+        cell(row, item.key); cell(row, item.typeName); cell(row, item.sizeBytes >= 0 ? item.sizeBytes + ' B' : item.itemCount != null ? item.itemCount + ' 项' : '—'); cell(row, time(item.expiresAt));
         const actions = row.insertCell();
         actions.append(button('详情', () => detail(item.key)), button('删除', () => remove([item.key]), true));
     }
@@ -72,7 +72,7 @@ async function load() {
 async function detail(key) {
     const data = await api('entry?' + new URLSearchParams({ key }));
     const e = data.entry;
-    $('metadata').textContent = 'Key：' + e.key + '\n类型：' + e.typeName + '\n大小：' + e.sizeBytes + ' B\n当前过期：' + time(e.expiresAt) + '\n绝对上限：' + time(e.absoluteExpiresAt) + '\n滑动期限：' + (e.slidingExpiration || '未设置');
+    $('metadata').textContent = 'Key：' + e.key + '\n类型：' + e.typeName + '\n大小：' + (e.sizeBytes >= 0 ? e.sizeBytes + ' B' : e.itemCount != null ? e.itemCount + ' 项' : '—') + '\n当前过期：' + time(e.expiresAt) + '\n绝对上限：' + time(e.absoluteExpiresAt) + '\n滑动期限：' + (e.slidingExpiration || '未设置');
     try { $('json').textContent = JSON.stringify(JSON.parse(data.json), null, 2); } catch { $('json').textContent = data.json; }
     $('detail').showModal();
 }
@@ -96,7 +96,7 @@ $('batch').onclick = () => run(() => remove([...document.querySelectorAll('#entr
 $('preview').onclick = () => run(async () => {
     if (readOnly) return;
     const prefix = $('prefix').value;
-    if (scope === 'All' && !prefix.trim()) { message('管理全部缓存时，请输入非空的完整 Key 前缀后再清理。', true); return; }
+    if ((scope === 'All' || scope === 'AllManaged') && !prefix.trim()) { message('管理全部数据或所有应用缓存时，请输入非空的完整 Key 前缀后再清理。', true); return; }
     const data = await api('preview', { prefix }); plan = data.token;
     $('preview-description').textContent = (scope === 'CurrentApplication' ? '相对前缀' : '完整 Key 前缀') + '“' + prefix + '”匹配 ' + data.keys.length + ' 个 Key。' + (data.partial ? '本次为部分结果，后续可再次预览清理。' : '') + ' 预览在两分钟内有效。';
     $('preview-keys').textContent = data.keys.join('\n') || '暂无匹配项';

@@ -107,7 +107,7 @@ public static class SimpleCacheDashboardExtensions
         group.MapPost("/api/preview", async (HttpContext http, ISimpleCacheAdmin admin, DashboardState state) =>
         {
             var body = await Body<PreviewRequest>(http);
-            if (body.Prefix is null || (admin.Scope == CacheDashboardScope.All && string.IsNullOrWhiteSpace(body.Prefix)))
+            if (body.Prefix is null || (admin.Scope is CacheDashboardScope.All or CacheDashboardScope.AllManaged && string.IsNullOrWhiteSpace(body.Prefix)))
                 throw new ArgumentException("A nonempty prefix is required when managing all entries.");
             var keys = new HashSet<string>(StringComparer.Ordinal);
             string? cursor = null;

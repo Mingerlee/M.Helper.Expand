@@ -29,6 +29,7 @@ public static class SimpleMongoCacheServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configure);
         var options = new SimpleMongoCacheOptions();
         configure(options);
-        return services.AddSimpleCacheStore(options, _ => new MongoCacheStore(options));
+        return services.AddSimpleCacheStore(options, sp => new MongoCacheStore(options,
+            sp.GetRequiredService<SimpleCacheManagementOptions>().Scope));
     }
 }

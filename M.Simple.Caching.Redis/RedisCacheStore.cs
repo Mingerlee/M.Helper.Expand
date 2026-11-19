@@ -6,14 +6,16 @@ internal sealed class RedisCacheStore : ISimpleCacheStore, ISimpleCacheAdminStor
 {
     private readonly Lazy<Task<ConnectionMultiplexer>> _connection;
     private readonly int _database;
+    private readonly bool _native;
     private int _disposed;
 
-    internal RedisCacheStore(SimpleRedisCacheOptions options)
+    internal RedisCacheStore(SimpleRedisCacheOptions options, CacheDashboardScope scope = CacheDashboardScope.CurrentApplication)
     {
         var configuration = ConfigurationOptions.Parse(options.ConnectionString);
         configuration.AbortOnConnectFail = false;
         _connection = new(() => ConnectionMultiplexer.ConnectAsync(configuration));
         _database = options.Database;
+        _native = scope is CacheDashboardScope.All or CacheDashboardScope.Prefixes;
     }
 
     private async Task<IDatabase> Database(CancellationToken cancellationToken)
@@ -100,7 +102,7 @@ internal sealed class RedisCacheStore : ISimpleCacheStore, ISimpleCacheAdminStor
     {
         var db = await Database(cancellationToken).ConfigureAwait(false);
         var result = await db.ScriptEvaluateAsync(PeekScript, new RedisKey[] { key }, new RedisValue[] { includePayload ? 1 : 0 }).WaitAsync(cancellationToken).ConfigureAwait(false);
-        if (result.IsNull) return null;
+        if (result.IsNull) return _native ? await InspectNativeAsync(db, key, includePayload, cancellationToken).ConfigureAwait(false) : null;
         var values = (RedisResult[])result!;
         var payload = (byte[])values[1]!;
         static DateTimeOffset? Date(RedisResult value) => (long)value is var time && time > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(time) : null;
@@ -114,9 +116,11 @@ internal sealed class RedisCacheStore : ISimpleCacheStore, ISimpleCacheAdminStor
         var db = await Database(cancellationToken).ConfigureAwait(false);
         var result = await db.ScriptEvaluateAsync("""
             local t = redis.call('TYPE', KEYS[1])
+            if ARGV[1] ~= '1' then
             if t.ok ~= 'hash' then return 0 end
             local fields = redis.call('HMGET', KEYS[1], 'type', 'payload', 'absolute', 'sliding', 'expires')
             for i = 1, 5 do if not fields[i] then return 0 end end
+            end
             local removed = redis.pcall('UNLINK', KEYS[1])
             if type(removed) == 'table' and removed.err then
                 local message = string.lower(removed.err)
@@ -126,11 +130,98 @@ internal sealed class RedisCacheStore : ISimpleCacheStore, ISimpleCacheAdminStor
                 return redis.error_reply(removed.err)
             end
             return removed
-            """, new RedisKey[] { key }).WaitAsync(cancellationToken).ConfigureAwait(false);
+            """, new RedisKey[] { key }, new RedisValue[] { _native ? 1 : 0 }).WaitAsync(cancellationToken).ConfigureAwait(false);
         return (long)result > 0;
     }
 
     private static string EscapePattern(string prefix) => System.Text.RegularExpressions.Regex.Replace(prefix, @"([\\*?\[\]])", @"\$1");
+    private async Task<CacheEntryDetail?> InspectNativeAsync(IDatabase db, string key, bool includePayload, CancellationToken cancellationToken)
+    {
+        var result = await db.ScriptEvaluateAsync(NativePeekScript, new RedisKey[] { key },
+            new RedisValue[] { includePayload ? 1 : 0 }).WaitAsync(cancellationToken).ConfigureAwait(false);
+        if (result.IsNull) return null;
+        var fields = (RedisResult[])result!;
+        var type = (string)fields[0]!;
+        var ttl = (long)fields[1];
+        var length = (long)fields[2];
+        var raw = (RedisResult[])fields[3]!;
+        // Base64 preserves arbitrary binary strings, hash fields and collection members losslessly.
+        var utf8 = new System.Text.UTF8Encoding(false, true);
+        var values = raw.Select(value =>
+        {
+            var bytes = (byte[])value!;
+            string? text;
+            try { text = utf8.GetString(bytes); }
+            catch (System.Text.DecoderFallbackException) { text = null; }
+            return new { text, base64 = Convert.ToBase64String(bytes) };
+        }).ToArray();
+        var json = includePayload ? System.Text.Json.JsonSerializer.Serialize(new
+        {
+            redisType = type, length, values,
+            truncated = (long)fields[4] == 1,
+            note = "UTF-8 text plus lossless base64; hash: field/value pairs; zset: member/score pairs; stream: record id followed by field/value pairs. Preview: at most 100 values, 4096 bytes per value; string: first 65536 bytes."
+        }) : "";
+        return new(new(key, "Redis:" + type, type == "string" ? length : -1,
+            ttl >= 0 ? DateTimeOffset.UtcNow.AddMilliseconds(ttl) : null, null, null)
+        { StorageType = type, ItemCount = type == "string" ? null : length >= 0 ? length : null }, json);
+    }
+
+    private const string NativePeekScript = """
+        local kind = redis.call('TYPE', KEYS[1]).ok
+        if kind == 'none' then return false end
+        if kind == 'hash' then
+            local f = redis.call('HMGET', KEYS[1], 'type', 'payload', 'absolute', 'sliding', 'expires')
+            if f[1] and f[2] and f[3] and f[4] and f[5] then
+                local t = redis.call('TIME')
+                local now = tonumber(t[1]) * 1000 + math.floor(tonumber(t[2]) / 1000)
+                if tonumber(f[5]) and tonumber(f[5]) > 0 and tonumber(f[5]) <= now then return false end
+            end
+        end
+        local ttl = redis.call('PTTL', KEYS[1])
+        local count = -1
+        if kind == 'string' then count = redis.call('STRLEN', KEYS[1])
+        elseif kind == 'hash' then count = redis.call('HLEN', KEYS[1])
+        elseif kind == 'list' then count = redis.call('LLEN', KEYS[1])
+        elseif kind == 'set' then count = redis.call('SCARD', KEYS[1])
+        elseif kind == 'zset' then count = redis.call('ZCARD', KEYS[1])
+        elseif kind == 'stream' then count = redis.call('XLEN', KEYS[1]) end
+        local values = {}
+        local truncated = 0
+        if ARGV[1] == '1' then
+            if kind == 'string' then
+                values = {redis.call('GETRANGE', KEYS[1], 0, 65535)}
+                if count > 65536 then truncated = 1 end
+            else
+                local sampled = {}
+                if kind == 'hash' then
+                    local page = redis.call('HSCAN', KEYS[1], 0, 'COUNT', 50)
+                    sampled = page[2]
+                    if page[1] ~= '0' then truncated = 1 end
+                elseif kind == 'list' then sampled = redis.call('LRANGE', KEYS[1], 0, 99)
+                elseif kind == 'set' then
+                    local page = redis.call('SSCAN', KEYS[1], 0, 'COUNT', 100)
+                    sampled = page[2]
+                    if page[1] ~= '0' then truncated = 1 end
+                elseif kind == 'zset' then sampled = redis.call('ZRANGE', KEYS[1], 0, 49, 'WITHSCORES')
+                elseif kind == 'stream' then
+                    local records = redis.call('XRANGE', KEYS[1], '-', '+', 'COUNT', 10)
+                    for _, record in ipairs(records) do
+                        sampled[#sampled + 1] = record[1]
+                        for _, field in ipairs(record[2]) do
+                            if #sampled < 100 then sampled[#sampled + 1] = field else truncated = 1 end
+                        end
+                    end
+                    if count > #records then truncated = 1 end
+                else truncated = 1 end
+                for i = 1, math.min(#sampled, 100) do
+                    values[i] = string.sub(sampled[i], 1, 4096)
+                    if string.len(sampled[i]) > 4096 then truncated = 1 end
+                end
+                if #sampled > 100 or count > ((kind == 'hash' or kind == 'zset') and 50 or 100) then truncated = 1 end
+            end
+        end
+        return {kind, ttl, count, values, truncated}
+        """;
     private sealed record ScanCursor(string Server, string Cursor, int Offset);
     private const string PeekScript = """
         local t = redis.call('TYPE', KEYS[1])

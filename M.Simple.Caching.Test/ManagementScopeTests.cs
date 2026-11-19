@@ -113,7 +113,7 @@ public sealed class ManagementScopeTests
     [DataRow("Memory"), DataRow("Redis"), DataRow("MongoDB")]
     public async Task AllScopeUsesFullKeysAndExcludesExpiredEntriesWithoutRenewal(string backend)
     {
-        var provider = Create(backend, CacheDashboardScope.All);
+        var provider = Create(backend, CacheDashboardScope.AllManaged);
         await Write(provider, "App:one");
         await Write(provider, "Other:one");
         await Write(provider, "expired", TimeSpan.FromMilliseconds(100));
@@ -176,6 +176,95 @@ public sealed class ManagementScopeTests
         services.AddSimpleMemoryCache(); // Either registration order must preserve the configured scope.
         using var provider = services.BuildServiceProvider();
         Assert.AreEqual(CacheDashboardScope.All, provider.GetRequiredService<ISimpleCacheAdmin>().Scope);
+    }
+
+    [DataTestMethod]
+    [DataRow("Redis", CacheDashboardScope.All), DataRow("Redis", CacheDashboardScope.Prefixes)]
+    [DataRow("MongoDB", CacheDashboardScope.All), DataRow("MongoDB", CacheDashboardScope.Prefixes)]
+    public async Task NativeDataCanBeListedInspectedAndDeletedWithoutChangingBusinessCache(string backend, CacheDashboardScope scope)
+    {
+        var provider = Create(backend, scope, scope == CacheDashboardScope.Prefixes ? [_root + "ids:", _root + "urn:", _root + "ids:nested:"] : null);
+        var admin = provider.GetRequiredService<ISimpleCacheAdmin>();
+        await Write(provider, "ids:managed");
+        var nativeKeys = new List<string>();
+        if (backend == "Redis")
+        {
+            using var connection = await ConnectionMultiplexer.ConnectAsync(Environment.GetEnvironmentVariable("M_SIMPLE_TEST_REDIS")!);
+            var db = connection.GetDatabase();
+            foreach (var suffix in new[] { "ids:string", "ids:hash", "urn:list", "urn:set", "urn:zset", "outside:string", "ids:huge" })
+                _keys.Add(_root + suffix);
+            await db.StringSetAsync(_root + "ids:string", new byte[] { 0, 255, 42 }, TimeSpan.FromMinutes(5));
+            await db.HashSetAsync(_root + "ids:hash", [new("field", "value"), new("payload", "ordinary")]);
+            await db.ListRightPushAsync(_root + "urn:list", ["one", "two"]);
+            await db.SetAddAsync(_root + "urn:set", ["one", "two"]);
+            await db.SortedSetAddAsync(_root + "urn:zset", [new("one", 1), new("two", 2)]);
+            await db.StringSetAsync(_root + "outside:string", "outside");
+            await db.StringSetAsync(_root + "ids:huge", new string('x', 100000));
+            nativeKeys.AddRange(new[] { "ids:string", "ids:hash", "urn:list", "urn:set", "urn:zset", "ids:huge" }.Select(s => _root + s));
+            var binary = await admin.PeekAsync(_root + "ids:string");
+            Assert.IsNotNull(binary!.Entry.ExpiresAt);
+            using var json = System.Text.Json.JsonDocument.Parse(binary.Json);
+            Assert.AreEqual(Convert.ToBase64String([0, 255, 42]), json.RootElement.GetProperty("values")[0].GetProperty("base64").GetString());
+            Assert.AreEqual(System.Text.Json.JsonValueKind.Null, json.RootElement.GetProperty("values")[0].GetProperty("text").ValueKind);
+            var large = await admin.PeekAsync(_root + "ids:huge");
+            using var largeJson = System.Text.Json.JsonDocument.Parse(large!.Json);
+            Assert.IsTrue(largeJson.RootElement.GetProperty("truncated").GetBoolean());
+            Assert.IsTrue(large.Json.Length < 170000);
+            if (connection.GetEndPoints().Select(endpoint => connection.GetServer(endpoint)).Any(s => s.Version.Major >= 5))
+            {
+                var streamKey = _root + "urn:stream";
+                _keys.Add(streamKey);
+                await db.ExecuteAsync("XADD", streamKey, "*", "field", "value");
+                nativeKeys.Add(streamKey);
+            }
+        }
+        else
+        {
+            using var client = new MongoClient(Environment.GetEnvironmentVariable("M_SIMPLE_TEST_MONGODB"));
+            var collection = client.GetDatabase(_database).GetCollection<BsonDocument>("CacheEntries");
+            await collection.InsertManyAsync(new BsonDocument[]
+            {
+                new() { ["_id"] = _root + "ids:document", ["name"] = "native", ["expiresAt"] = DateTime.UtcNow.AddDays(-1) },
+                new() { ["_id"] = _root + "urn:document", ["list"] = new BsonArray { 1, 2 } },
+                new() { ["_id"] = _root + "outside:document", ["flag"] = true },
+                new() { ["_id"] = _root + "ids:huge", ["text"] = new string('x', 100000) },
+                new() { ["_id"] = ObjectId.GenerateNewId(), ["name"] = "nonstring identifier" },
+                new() { ["_id"] = 42, ["name"] = "numeric identifier" }
+            });
+            nativeKeys.AddRange(new[] { "ids:document", "urn:document", "ids:huge" }.Select(s => _root + s));
+            var large = await admin.PeekAsync(_root + "ids:huge");
+            using var largeJson = System.Text.Json.JsonDocument.Parse(large!.Json);
+            Assert.IsTrue(largeJson.RootElement.GetProperty("previewOmitted").GetBoolean());
+            if (scope == CacheDashboardScope.All)
+            {
+                var all = await Scan(admin);
+                var typed = all.Where(i => i.Key.StartsWith("~mongo:", StringComparison.Ordinal)).ToArray();
+                Assert.AreEqual(2, typed.Length);
+                foreach (var item in typed)
+                {
+                    Assert.IsNotNull(await admin.PeekAsync(item.Key));
+                    Assert.IsTrue(await admin.RemoveAsync(item.Key));
+                }
+            }
+        }
+        var entries = await Scan(admin, _root);
+        foreach (var key in nativeKeys)
+        {
+            Assert.IsTrue(entries.Any(i => i.Key == key), "Native entry missing: " + key);
+            Assert.IsNotNull(await admin.PeekAsync(key));
+        }
+        Assert.AreEqual(entries.Count, entries.Select(i => i.Key).Distinct().Count());
+        if (scope == CacheDashboardScope.Prefixes)
+        {
+            Assert.IsTrue(entries.All(i => i.Key.StartsWith(_root + "ids:") || i.Key.StartsWith(_root + "urn:")));
+            await Assert.ThrowsExceptionAsync<ArgumentException>(() => admin.RemoveAsync(_root + "outside:string"));
+        }
+        foreach (var key in nativeKeys)
+        {
+            Assert.IsTrue(await admin.RemoveAsync(key));
+            Assert.IsNull(await admin.PeekAsync(key));
+        }
+        Assert.IsNotNull(await admin.PeekAsync(_root + "ids:managed"));
     }
 
     [TestCleanup]

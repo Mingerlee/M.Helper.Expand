@@ -25,6 +25,7 @@ public static class SimpleRedisCacheServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configure);
         var options = new SimpleRedisCacheOptions();
         configure(options);
-        return services.AddSimpleCacheStore(options, _ => new RedisCacheStore(options));
+        return services.AddSimpleCacheStore(options, sp => new RedisCacheStore(options,
+            sp.GetRequiredService<SimpleCacheManagementOptions>().Scope));
     }
 }
