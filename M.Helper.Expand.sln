@@ -69,9 +69,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Caching.Sample", "
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Simple.Cachings", "M.Simple.Cachings", "{69A4D574-0E0F-4E6B-BAF5-9413044A71E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Caching.Dashboard", "M.Simple.Caching.Dashboard\M.Simple.Caching.Dashboard.csproj", "{0ECD255B-C816-4C8F-AF7C-C034441E0713}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Caching.Dashboard", "M.Simple.Caching.Dashboard\M.Simple.Caching.Dashboard.csproj", "{0ECD255B-C816-4C8F-AF7C-C034441E0713}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M.Simple.Caching.Dashboard.Sample", "M.Simple.Caching.Dashboard.Sample\M.Simple.Caching.Dashboard.Sample.csproj", "{4F78DB3A-683F-4E24-9315-A00BB25603AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Caching.Dashboard.Sample", "M.Simple.Caching.Dashboard.Sample\M.Simple.Caching.Dashboard.Sample.csproj", "{4F78DB3A-683F-4E24-9315-A00BB25603AA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Services.Interception", "M.Simple.Services.Interception\M.Simple.Services.Interception.csproj", "{E50D45DF-ABC7-4C31-81CA-58EF2FCC446B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Services.Interception.Test", "M.Simple.Services.Interception.Test\M.Simple.Services.Interception.Test.csproj", "{ED974F35-2791-4101-B866-9415E180742B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "M.Simple.Services.Interception.Sample", "M.Simple.Services.Interception.Sample\M.Simple.Services.Interception.Sample.csproj", "{0BDAD710-1D66-4D77-92F8-D48BFA05311B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "M.Simple.Services.Interceptions", "M.Simple.Services.Interceptions", "{AFA7E222-0565-4818-9ECF-705D3F788C70}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -191,6 +199,18 @@ Global
 		{4F78DB3A-683F-4E24-9315-A00BB25603AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F78DB3A-683F-4E24-9315-A00BB25603AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F78DB3A-683F-4E24-9315-A00BB25603AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E50D45DF-ABC7-4C31-81CA-58EF2FCC446B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E50D45DF-ABC7-4C31-81CA-58EF2FCC446B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E50D45DF-ABC7-4C31-81CA-58EF2FCC446B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E50D45DF-ABC7-4C31-81CA-58EF2FCC446B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED974F35-2791-4101-B866-9415E180742B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED974F35-2791-4101-B866-9415E180742B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED974F35-2791-4101-B866-9415E180742B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED974F35-2791-4101-B866-9415E180742B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0BDAD710-1D66-4D77-92F8-D48BFA05311B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0BDAD710-1D66-4D77-92F8-D48BFA05311B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0BDAD710-1D66-4D77-92F8-D48BFA05311B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0BDAD710-1D66-4D77-92F8-D48BFA05311B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -224,6 +244,9 @@ Global
 		{32A72ED4-18FA-48FE-9EFD-215BB3E4C2B2} = {69A4D574-0E0F-4E6B-BAF5-9413044A71E5}
 		{0ECD255B-C816-4C8F-AF7C-C034441E0713} = {69A4D574-0E0F-4E6B-BAF5-9413044A71E5}
 		{4F78DB3A-683F-4E24-9315-A00BB25603AA} = {69A4D574-0E0F-4E6B-BAF5-9413044A71E5}
+		{E50D45DF-ABC7-4C31-81CA-58EF2FCC446B} = {AFA7E222-0565-4818-9ECF-705D3F788C70}
+		{ED974F35-2791-4101-B866-9415E180742B} = {AFA7E222-0565-4818-9ECF-705D3F788C70}
+		{0BDAD710-1D66-4D77-92F8-D48BFA05311B} = {AFA7E222-0565-4818-9ECF-705D3F788C70}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {495B3D5B-73CE-48C4-9E1C-F11AE185D5A8}

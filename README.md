@@ -1,5 +1,7 @@
 # M.Helper.Expand
 
+新增 **[M.Simple.Services.Interception](M.Simple.Services.Interception/README.md)**：接口 AOP 代理，支持同步/异步方法前后钩子、方法与类型特性筛选及 DI 生命周期。[可运行示例](M.Simple.Services.Interception.Sample/README.md)。1.0.0.2 新增按方法名指定前后置的特性。
+
 新增 **[M.Simple.Caching.Dashboard](M.Simple.Caching.Dashboard/README.md)**：支持内存、Redis、MongoDB 的缓存管理页面，提供前缀搜索、JSON 详情、删除预览、权限控制和操作日志。[Web 示例](M.Simple.Caching.Dashboard.Sample/README.md)。
 
 新增 **[M.Simple.Caching](M.Simple.Caching/README.md)**：.NET 8 统一缓存接口、内存缓存与进程内异步加载合并；可选 [Redis](M.Simple.Caching.Redis/README.md) 或 [MongoDB](M.Simple.Caching.MongoDB/README.md) 后端，安装对应包并注册一次即可。[可运行示例](M.Simple.Caching.Sample/README.md)。
