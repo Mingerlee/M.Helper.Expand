@@ -29,6 +29,12 @@ switch (backend)
     default: throw new ArgumentException("Choose memory, redis or mongo.");
 }
 
+if (args.Skip(1).Any(argument => argument.Equals("native", StringComparison.OrdinalIgnoreCase)))
+{
+    await NativeReadExample.RunAsync(services, backend);
+    return;
+}
+
 await using var provider = services.BuildServiceProvider();
 var cache = provider.GetRequiredService<ISimpleCache>();
 var calls = 0;

@@ -5,7 +5,7 @@ using MongoDB.Bson.IO;
 
 namespace M.Simple.Caching.MongoDB;
 
-internal sealed class MongoCacheStore : ISimpleCacheStore, ISimpleCacheAdminStore, IDisposable
+internal sealed partial class MongoCacheStore : ISimpleCacheStore, ISimpleCacheAdminStore, ISimpleNativeCacheStore, IDisposable
 {
     private readonly IMongoClient _client;
     private readonly IMongoCollection<BsonDocument> _collection;

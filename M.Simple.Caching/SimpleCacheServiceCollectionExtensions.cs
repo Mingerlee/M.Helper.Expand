@@ -5,6 +5,15 @@ namespace M.Simple.Caching;
 
 public static class SimpleCacheServiceCollectionExtensions
 {
+    /// <summary>Configures read-only native data access separately from dashboard permissions.</summary>
+    public static IServiceCollection AddSimpleNativeCache(this IServiceCollection services, Action<SimpleNativeCacheOptions>? configure = null)
+    {
+        var options = new SimpleNativeCacheOptions();
+        configure?.Invoke(options);
+        services.Replace(ServiceDescriptor.Singleton(options.Snapshot()));
+        return services;
+    }
+
     /// <summary>Configures administration without changing business cache keys.</summary>
     public static IServiceCollection AddSimpleCacheManagement(this IServiceCollection services, Action<SimpleCacheManagementOptions> configure)
     {
@@ -38,6 +47,8 @@ public static class SimpleCacheServiceCollectionExtensions
         services.AddSingleton<SimpleCache>();
         services.AddSingleton<ISimpleCache>(sp => sp.GetRequiredService<SimpleCache>());
         services.TryAddSingleton<SimpleCacheManagementOptions>();
+        services.TryAddSingleton<SimpleNativeCacheOptions>();
+        services.AddSingleton<ISimpleNativeCache, SimpleNativeCache>();
         services.AddSingleton<ISimpleCacheAdmin, SimpleCacheAdmin>();
         return services;
     }

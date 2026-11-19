@@ -1,11 +1,11 @@
 # M.Simple.Caching
 
-.NET 8 缓存核心包，当前源码版本 **1.0.0.4**。包含统一接口、JSON 快照、独立内存缓存、过期策略及同一进程内的异步加载合并。可用于 ASP.NET Core、Worker 和控制台，不依赖 ASP.NET Core 共享框架。
+.NET 8 缓存核心包，当前源码版本 **1.0.0.5**。包含统一接口、JSON 快照、独立内存缓存、过期策略及同一进程内的异步加载合并。可用于 ASP.NET Core、Worker 和控制台，不依赖 ASP.NET Core 共享框架。
 
 ## 安装与注册
 
 ```powershell
-dotnet add package M.Simple.Caching --version 1.0.0.4
+dotnet add package M.Simple.Caching --version 1.0.0.5
 ```
 
 ```csharp
@@ -120,4 +120,64 @@ dotnet test M.Simple.Caching.Test/M.Simple.Caching.Test.csproj -c Release
 
 ## 可选管理页面
 
-安装 [M.Simple.Caching.Dashboard](../M.Simple.Caching.Dashboard/README.md) 默认管理当前非空 KeyPrefix 内的缓存。管理页面支持 Scope 配置：CurrentApplication 保持默认范围；Prefixes 在全部数据中按配置的完整前缀筛选；All 显示当前后端存储范围内的全部数据（包含非本包数据）；AllManaged 只显示所有应用通过本包存入的有效缓存。除 CurrentApplication 外，页面与管理 API 使用完整 Key，业务缓存的 KeyPrefix 不变；配置示例见 Dashboard README。内存、Redis、MongoDB 行为一致，查询不续期，所有操作要求宿主认证授权。配置与业务缓存读写独立；使用时请同步升级核心包 1.0.0.4、Dashboard 1.0.0.3，以及所选后端适配包。
+安装 [M.Simple.Caching.Dashboard](../M.Simple.Caching.Dashboard/README.md) 默认管理当前非空 KeyPrefix 内的缓存。管理页面支持 Scope 配置：CurrentApplication 保持默认范围；Prefixes 在全部数据中按配置的完整前缀筛选；All 显示当前后端存储范围内的全部数据（包含非本包数据）；AllManaged 只显示所有应用通过本包存入的有效缓存。除 CurrentApplication 外，页面与管理 API 使用完整 Key，业务缓存的 KeyPrefix 不变；配置示例见 Dashboard README。内存、Redis、MongoDB 行为一致，查询不续期，所有操作要求宿主认证授权。配置与业务缓存读写独立；使用时请同步升级核心包 1.0.0.5、Dashboard 1.0.0.3，以及所选后端适配包。
+
+## 独立原生读取
+
+新增 `ISimpleNativeCache`，专门读取后端原生数据，不改变 `ISimpleCache.TryGetAsync<T>`、写入格式、加载合并或 Dashboard 的管理范围。核心包 1.0.0.5、Redis 包 1.0.0.6、MongoDB 包 1.0.0.5 起提供本节 API。
+
+安装所选后端包后仍只注册一个后端；后端注册自动提供 ISimpleNativeCache。使用默认行为无需额外调用配置方法。可按需增加以下独立配置，注册顺序不限：
+
+```csharp
+using M.Simple.Caching;
+
+builder.Services.AddSimpleNativeCache(options =>
+{
+    options.Scope = NativeCacheScope.Prefixes;
+    options.Prefixes = ["ids:", "urn:"]; // 多前缀取并集，区分大小写，按字面比较
+    options.MaxPayloadBytes = 1024 * 1024;
+    options.MaxCollectionItems = 1000;
+});
+
+// 注入 ISimpleNativeCache nativeCache 后：
+var result = await nativeCache.TryGetAsync<Product>("ids:product:1", cancellationToken);
+if (result.Found) Console.WriteLine(result.Value);
+var exists = await nativeCache.ExistsAsync("urn:product:1", cancellationToken);
+```
+
+| NativeCacheScope | 业务原生读取范围 |
+|---|---|
+| CurrentApplication（默认） | 完整 Key 必须以当前业务 KeyPrefix 开头；业务前缀必须非空 |
+| Prefixes | 完整 Key 必须匹配配置的任一前缀，至少配置一个非空前缀 |
+| All | 当前后端存储范围内的任意完整 Key |
+
+所有模式均传完整 Key，不自动拼接、不依次尝试多个前缀。越界、空白或超过 1024 字符的 Key 抛出 ArgumentException。配置数组和 JSON 序列化选项会取快照；运行时修改调用方配置不会扩大访问范围。Scope/Prefixes 的校验独立于 Dashboard；例如管理页面设置 All 时，业务原生读取仍默认 CurrentApplication。NativeCacheScope 不提供 AllManaged，因为读取协议在这里由原生类型决定。
+
+| 后端 | TryGetAsync<T> 的数据协议 |
+|---|---|
+| Redis | 只读原生 String；byte[] 原样返回，string 严格按 UTF-8 解码，其他 T 使用独立 SerializerOptions 按 JSON 反序列化 |
+| MongoDB | 使用字符串 _id 精确查询整个文档，按 MongoDB BSON 序列化规则映射为 T；支持 BsonDocument，byte[] 返回原始 BSON 文档字节 |
+| 内存 | 读取本包独立存储实例中的 JSON payload；byte[] 返回 JSON 字节，其他 T 按 JSON 映射，不使用本包类型标记校验 |
+
+Redis 中本包写入的 Hash 不会自动解包，使用原有 ISimpleCache 读取；MongoDB 中本包文档也不会自动提取 payload。MongoDB 的字符串 Key 不会自动转换成 ObjectId，不接收管理页面生成的 ~mongo: 标识；本版原生业务接口只支持字符串 _id。若 DTO 不映射 _id 等字段，可使用 BsonIgnoreExtraElements，字段映射使用 BsonElement/BsonId 等驱动规则；JSON SerializerOptions 不影响 BSON 映射。
+
+Redis 集合使用明确的方法，返回原始字节值，不把集合强制转换成任意 DTO：
+
+```csharp
+var hash = await nativeCache.HashGetAllAsync("ids:hash", cancellationToken);
+// hash.Value 是 IReadOnlyDictionary<string, byte[]>；字段名要求有效 UTF-8。
+var list = await nativeCache.ListRangeAsync("urn:list", start: 0, count: 100,
+    cancellationToken: cancellationToken);
+var members = await nativeCache.SetMembersAsync("urn:set", cancellationToken);
+var scores = await nativeCache.SortedSetRangeAsync("urn:sorted", start: 0, count: 100,
+    cancellationToken: cancellationToken);
+// scores.Value 的元素包含 byte[] Member 和 double Score，按分数升序/Redis 排序规则读取。
+```
+
+集合方法均返回 CacheResult；Key 不存在为 Found=false，存在的 List/SortedSet 查询超出末尾时为 Found=true、空列表。HashGetAll/SetMembers 返回整个集合，超过 MaxCollectionItems 会报错；ListRange/SortedSetRange 仅返回显式区间，start 要求非负，count 为 1..MaxCollectionItems。内存和 MongoDB 调用 Redis 集合方法抛出 NotSupportedException。ExistsAsync 在 Redis 中适用于任意原生类型，不要求 String。
+
+未找到才返回 Found=false；JSON null 可返回 Found=true、Value=null。类型错误、JSON/BSON 映射错误、非法 UTF-8、超限和网络异常直接传播，不能将其作为未命中。默认单次读取上限 1 MiB、集合项数上限 1000，可分别配置为 1 字节..64 MiB 和 1..10000 项；Hash 字段名和值、SortedSet 成员和分数字节均计入大小。超限时不返回部分数据，与管理页面的截断预览不同。
+
+原生读取不续期、不增加业务缓存命中/未命中统计，没有写入、删除、GetOrCreate 或自动回填接口。Redis 读取使用原子只读脚本，遵循 Redis TTL；MongoDB 不创建索引、不解释业务文档的 expiresAt 字段，只遵循 MongoDB 的实际存储状态，TTL 物理清理前文档仍可读；内存仍按该存储实例的逻辑过期规则读取。MongoDB 整文档超限在服务器投影时省略正文，随后明确报错。
+
+见[可运行原生读取示例](../M.Simple.Caching.Sample/README.md)。

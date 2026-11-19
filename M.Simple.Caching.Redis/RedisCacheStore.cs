@@ -2,7 +2,7 @@ using StackExchange.Redis;
 
 namespace M.Simple.Caching.Redis;
 
-internal sealed class RedisCacheStore : ISimpleCacheStore, ISimpleCacheAdminStore, IDisposable
+internal sealed partial class RedisCacheStore : ISimpleCacheStore, ISimpleCacheAdminStore, ISimpleNativeCacheStore, ISimpleNativeCollectionStore, IDisposable
 {
     private readonly Lazy<Task<ConnectionMultiplexer>> _connection;
     private readonly int _database;

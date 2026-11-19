@@ -1,9 +1,9 @@
 # M.Simple.Caching.MongoDB
 
-.NET 8 MongoDB 缓存适配包，当前源码版本 **1.0.0.4**。自动依赖同版本核心包，使用 MongoDB.Driver 3.9.0；面向 MongoDB 6.0+。
+.NET 8 MongoDB 缓存适配包，当前源码版本 **1.0.0.5**。自动依赖同版本核心包，使用 MongoDB.Driver 3.9.0；面向 MongoDB 6.0+。
 
 ```powershell
-dotnet add package M.Simple.Caching.MongoDB --version 1.0.0.4
+dotnet add package M.Simple.Caching.MongoDB --version 1.0.0.5
 ```
 
 ```csharp
@@ -41,4 +41,10 @@ dotnet pack M.Simple.Caching.MongoDB/M.Simple.Caching.MongoDB.csproj -c Release 
 
 ## 可选管理页面
 
-安装 [M.Simple.Caching.Dashboard](../M.Simple.Caching.Dashboard/README.md) 默认管理当前非空 KeyPrefix 内的缓存。管理页面支持 Scope 配置：CurrentApplication 保持默认范围；Prefixes 在全部数据中按配置的完整前缀筛选；All 显示当前后端存储范围内的全部数据（包含非本包数据）；AllManaged 只显示所有应用通过本包存入的有效缓存。除 CurrentApplication 外，页面与管理 API 使用完整 Key，业务缓存的 KeyPrefix 不变；配置示例见 Dashboard README。内存、Redis、MongoDB 行为一致，查询不续期，所有操作要求宿主认证授权。配置与业务缓存读写独立；使用时请同步升级核心包 1.0.0.4、Dashboard 1.0.0.3，以及所选后端适配包。
+安装 [M.Simple.Caching.Dashboard](../M.Simple.Caching.Dashboard/README.md) 默认管理当前非空 KeyPrefix 内的缓存。管理页面支持 Scope 配置：CurrentApplication 保持默认范围；Prefixes 在全部数据中按配置的完整前缀筛选；All 显示当前后端存储范围内的全部数据（包含非本包数据）；AllManaged 只显示所有应用通过本包存入的有效缓存。除 CurrentApplication 外，页面与管理 API 使用完整 Key，业务缓存的 KeyPrefix 不变；配置示例见 Dashboard README。内存、Redis、MongoDB 行为一致，查询不续期，所有操作要求宿主认证授权。配置与业务缓存读写独立；使用时请同步升级核心包 1.0.0.5、Dashboard 1.0.0.3，以及所选后端适配包。
+
+## 独立业务原生读取
+
+新增 ISimpleNativeCache，按完整 Key 精确匹配字符串 _id，使用 BSON 驱动映射整文档为 T；可返回 BsonDocument 或原始 BSON byte[]，不会自动读取本包 payload，也不会猜测 ObjectId。不创建 TTL 索引，不刷新有效期，不把业务 expiresAt 字段视为逻辑过期；服务器尚未物理清理的文档仍可读。
+
+读取范围通过 AddSimpleNativeCache 独立配置，默认 CurrentApplication，不受 Dashboard.Scope 扩大影响；超过 MaxPayloadBytes 时通过服务器投影限制正文传输并报错。JSON/BSON 映射规则、范围与可运行示例见[核心说明](../M.Simple.Caching/README.md#独立原生读取)。

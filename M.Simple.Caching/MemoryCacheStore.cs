@@ -4,13 +4,23 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace M.Simple.Caching;
 
-internal sealed class MemoryCacheStore(SimpleMemoryCacheOptions options, TimeProvider clock) : ISimpleCacheStore, ISimpleCacheAdminStore, IDisposable
+internal sealed class MemoryCacheStore(SimpleMemoryCacheOptions options, TimeProvider clock) : ISimpleCacheStore, ISimpleCacheAdminStore, ISimpleNativeCacheStore, IDisposable
 {
     private readonly MemoryCache _cache = new(new MemoryCacheOptions { SizeLimit = options.MaxSizeBytes });
     private readonly ConcurrentDictionary<string, Entry> _entries = new(StringComparer.Ordinal);
     private readonly object _gate = new();
     private readonly int _maxEntries = options.MaxEntryCount;
     public string Backend => "Memory";
+
+    public async Task<CacheResult<T>> ReadNativeAsync<T>(string key, SimpleNativeCacheOptions options, CancellationToken cancellationToken)
+    {
+        var entry = await ReadAsync(key, false, cancellationToken).ConfigureAwait(false);
+        if (entry is null) return new(false, default);
+        if (entry.Payload.Length > options.MaxPayloadBytes) throw new InvalidOperationException("Native payload exceeds MaxPayloadBytes.");
+        return new(true, NativeCacheSerialization.Deserialize<T>(entry.Payload, options.SerializerOptions));
+    }
+
+    public Task<bool> NativeExistsAsync(string key, CancellationToken cancellationToken) => ExistsAsync(key, cancellationToken);
 
     public Task<CacheStoreValue?> ReadAsync(string key, bool refreshSliding, CancellationToken cancellationToken)
     {
