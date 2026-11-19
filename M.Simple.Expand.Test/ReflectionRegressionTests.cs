@@ -1,4 +1,5 @@
 using System.Reflection;
+using M.Simple.Expand;
 using M.Simple.Expand.Attributes;
 
 namespace M.Simple.Expand.Test;
@@ -6,6 +7,42 @@ namespace M.Simple.Expand.Test;
 [TestClass]
 public class ReflectionRegressionTests
 {
+    [TestMethod]
+    public void ReflectionExtensions_FindReadAndWriteMembersSafely()
+    {
+        var type = typeof(Values);
+        Assert.IsNotNull(type.GetPropertyOrNull(nameof(Values.Text)));
+        Assert.IsNull(type.GetPropertyOrNull("Missing"));
+        Assert.IsNotNull(type.GetFieldOrNull(nameof(Values.PublicField)));
+        Assert.IsNull(type.GetFieldOrNull("Missing"));
+        Assert.IsNotNull(type.GetMethodOrNull(nameof(Values.Overload), [typeof(int)]));
+        Assert.AreEqual(typeof(int), type.GetMethodOrNull(nameof(Values.Overload), [typeof(int)])!.GetParameters()[0].ParameterType);
+        Assert.IsNull(type.GetMethodOrNull(nameof(Values.Overload), [typeof(double)]));
+
+        var model = new Values();
+        model.SetPropertyValue(nameof(Values.NullableInt), "42");
+        Assert.AreEqual(42, model.GetPropertyValue<int?>(nameof(Values.NullableInt)));
+        model.SetPropertyValue(nameof(Values.Text), "updated");
+        Assert.AreEqual("updated", model.GetPropertyValue<string>(nameof(Values.Text)));
+        Assert.ThrowsException<MissingMemberException>(() => model.GetPropertyValue<string>("Missing"));
+        Assert.ThrowsException<MissingMemberException>(() => model.SetPropertyValue("ReadOnly", "x"));
+        Assert.ThrowsException<ArgumentException>(() => model.SetPropertyValue(nameof(Values.Byte), 256));
+    }
+
+    [TestMethod]
+    public void ReflectionExtensions_ClassifySimpleTypesAndFindImplementations()
+    {
+        Assert.IsTrue(typeof(int?).IsSimpleType());
+        Assert.IsTrue(typeof(Guid).IsSimpleType());
+        Assert.IsFalse(typeof(List<int>).IsSimpleType());
+        Assert.IsTrue(Assembly.GetExecutingAssembly().GetLoadableTypes().Contains(typeof(ReflectionRegressionTests)));
+        CollectionAssert.AreEqual(new[] { typeof(ReflectionExtensionsContractImpl) },
+            Assembly.GetExecutingAssembly().GetImplementations<IReflectionExtensionsContract>().ToArray());
+    }
+
+    public interface IReflectionExtensionsContract { }
+    public sealed class ReflectionExtensionsContractImpl : IReflectionExtensionsContract { }
+
     [DataTestMethod]
     [DataRow(nameof(Values.Byte), "255")]
     [DataRow(nameof(Values.Short), "-32768")]
@@ -162,6 +199,9 @@ public class ReflectionRegressionTests
 
     public class Values
     {
+        public string PublicField = "field";
+        public string Overload(int value) => value.ToString();
+        public string Overload(string value) => value;
         public byte Byte { get; set; } = 1;
         public short Short { get; set; } = 2;
         public long Long { get; set; }

@@ -27,6 +27,7 @@ dotnet add package M.Simple.Expand --version 3.0.0-preview.1
 | [枚举](usage/enums.md) | 描述、Display、解析与下拉选项 | enums |
 | [DataTable](usage/datatable.md) | 列表转表、表转模型与筛选 | datatable |
 | [实体比较与赋值](usage/comparison.md) | 新旧字段差异、特性筛选与属性赋值 | comparison |
+| [反射扩展（新增源码 API）](usage/reflection.md) | 成员查找、属性访问、特性、类型与程序集扫描 | 反射回归测试 |
 | [加解密与摘要](usage/crypto.md) | AES、RSA 加解密及签名 | crypto |
 | [配置读取](usage/configuration.md) | 配置基准路径与 AppSetting | configuration |
 | [依赖注入与属性装配](usage/di.md) | AppService 扫描和 Autowired | di |

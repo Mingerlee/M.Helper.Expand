@@ -41,6 +41,7 @@ values = values.Merges(new Dictionary<string, int> { ["A"] = 1, ["B"] = 2 });
 | 日期与时间 | 日期格式、月份边界、日期差、区间重叠 |
 | 集合、比较器与字典 | 分批、排除、分组、属性比较、覆盖或忽略合并 |
 | 实体与 DataTable | 差异比较、属性赋值、列表与表的往返转换 |
+| 反射（新增源码 API） | 成员查找、按名称读写属性、特性、对象转字典、泛型类型与程序集扫描 |
 | 枚举与校验 | 描述读取、选项转换、DataAnnotations 范围及格式校验 |
 | 配置 | 配置读取；依赖注入功能使用独立服务包 |
 | 编码与加密 | GUID、短码、加解密及摘要；邮件与 FTP 使用独立服务包 |
@@ -105,6 +106,8 @@ ftp.GotoFtpDirectory("daily", false); // 本实例目录：reports/daily
 - 新摘要使用 `Sha256Hash()`；新RSA签名使用 `RsaSignDataSha256` / `RsaVerifyDataSha256`，默认SHA-256/PSS，支持XML或PEM、至少2048位密钥。旧SHA-1签名及MD5入口保持兼容，`Md5Hash` / `Md5SaltHash` 提供准确命名的旧摘要别名。协议版本由调用方明确记录，算法不会自动替换或降级。
 
 ## 使用手册与示例
+
+- [反射扩展](docs/usage/reflection.md)：新增成员查找、属性访问、类型判断和程序集扫描等 API，含示例及边界；尚未发布新的 NuGet 版本。
 
 - [完整使用手册](https://github.com/Mingerlee/M.Helper.Expand/blob/main/M.Simple.Expand/docs/usage.md)：15 类功能及当前行为边界。
 - [可运行示例](https://github.com/Mingerlee/M.Helper.Expand/blob/main/M.Simple.Expand/docs/samples/README.md)：包含断言的 .NET 8 控制台示例。
