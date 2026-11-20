@@ -24,16 +24,25 @@ public sealed class AfterMethodAttribute(string methodName) : Attribute
     public string MethodName { get; } = methodName;
 }
 
-/// <summary>One invocation, shared between before and after hooks. Arguments and result are not rewritten by the proxy.</summary>
+/// <summary>One invocation. Before hooks can replace arguments; successful after hooks can replace the result.</summary>
 public sealed class MethodInvocationContext
 {
+    private readonly object?[] _arguments;
+    private readonly ParameterInfo[] _parameters;
+    private readonly Type _resultType;
+    private InvocationPhase _phase = InvocationPhase.Before;
     internal MethodInvocationContext(object target, MethodInfo method, MethodInfo implementation, object?[] args)
     {
         Target = target;
         Method = method;
         ImplementationMethod = implementation;
+        _arguments = args;
+        _parameters = method.GetParameters();
+        var returnType = method.ReturnType;
+        _resultType = returnType.IsGenericType && (returnType.GetGenericTypeDefinition() == typeof(Task<>)
+            || returnType.GetGenericTypeDefinition() == typeof(ValueTask<>)) ? returnType.GetGenericArguments()[0]
+            : returnType == typeof(Task) || returnType == typeof(ValueTask) ? typeof(void) : returnType;
         Arguments = Array.AsReadOnly(args);
-        CancellationToken = args.OfType<CancellationToken>().FirstOrDefault();
     }
 
     public object Target { get; }
@@ -41,11 +50,52 @@ public sealed class MethodInvocationContext
     public MethodInfo ImplementationMethod { get; }
     public IReadOnlyList<object?> Arguments { get; }
     /// <summary>First CancellationToken argument, if any. After hooks must still run when it is cancelled.</summary>
-    public CancellationToken CancellationToken { get; }
+    public CancellationToken CancellationToken => _arguments.OfType<CancellationToken>().FirstOrDefault();
     public object? Result { get; internal set; }
     public Exception? Exception { get; internal set; }
     public bool IsCanceled => Exception is OperationCanceledException;
     public IDictionary<string, object?> Items { get; } = new Dictionary<string, object?>();
+
+    /// <summary>Reads an argument by its interface parameter name, without conversion.</summary>
+    public T? GetArgument<T>(string name) => (T?)_arguments[ArgumentIndex(name)];
+
+    /// <summary>Replaces an argument during the before phase. No implicit type conversions are performed.</summary>
+    public void SetArgument(string name, object? value)
+    {
+        if (_phase != InvocationPhase.Before) throw new InvalidOperationException("Arguments can only be replaced in before hooks.");
+        var index = ArgumentIndex(name);
+        ValidateValue(_parameters[index].ParameterType, value);
+        _arguments[index] = value;
+    }
+
+    /// <summary>Replaces the unwrapped return value in successful after hooks; cannot suppress exceptions.</summary>
+    public void SetResult(object? value)
+    {
+        if (_phase != InvocationPhase.After || Exception is not null || _resultType == typeof(void))
+            throw new InvalidOperationException("A result can only be replaced in after hooks following a successful value-returning invocation.");
+        ValidateValue(_resultType, value);
+        Result = value;
+    }
+
+    private int ArgumentIndex(string name)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        var index = Array.FindIndex(_parameters, p => p.Name == name);
+        if (index < 0) throw new ArgumentException($"Unknown interface parameter: {name}.", nameof(name));
+        return index;
+    }
+
+    private static void ValidateValue(Type type, object? value)
+    {
+        var underlying = Nullable.GetUnderlyingType(type);
+        if (value is null ? type.IsValueType && underlying is null : !(underlying ?? type).IsInstanceOfType(value))
+            throw new ArgumentException($"Value must be assignable to {type}; no automatic conversion is performed.", nameof(value));
+    }
+
+    internal void BeginBusiness() => _phase = InvocationPhase.Business;
+    internal void BeginAfter() => _phase = InvocationPhase.After;
+    internal void Finish() => _phase = InvocationPhase.Completed;
+    private enum InvocationPhase { Before, Business, After, Completed }
 }
 
 /// <summary>Use sync hooks for sync methods; async hooks default to their sync equivalents.</summary>

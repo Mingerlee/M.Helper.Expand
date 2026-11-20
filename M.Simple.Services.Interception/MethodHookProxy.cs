@@ -120,7 +120,7 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
 
     private object? RunSync(MethodInvocationContext context, object?[]? args)
     {
-        _interceptor.Before(context);
+        Before(context);
         try { context.Result = InvokeTarget(context.Method, args); }
         catch (Exception error) { context.Exception = error; throw; }
         finally { Complete(context); }
@@ -129,14 +129,30 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
 
     private void Complete(MethodInvocationContext context)
     {
+        context.BeginAfter();
         try { _interceptor.After(context); }
         catch (Exception error) when (context.Exception is not null) { AttachAfterFailure(context.Exception, error); }
+        finally { context.Finish(); }
     }
 
     private async ValueTask CompleteAsync(MethodInvocationContext context)
     {
+        context.BeginAfter();
         try { await _interceptor.AfterAsync(context).ConfigureAwait(false); }
         catch (Exception error) when (context.Exception is not null) { AttachAfterFailure(context.Exception, error); }
+        finally { context.Finish(); }
+    }
+
+    private void Before(MethodInvocationContext context)
+    {
+        try { _interceptor.Before(context); context.BeginBusiness(); }
+        catch { context.Finish(); throw; }
+    }
+
+    private async ValueTask BeforeAsync(MethodInvocationContext context)
+    {
+        try { await _interceptor.BeforeAsync(context).ConfigureAwait(false); context.BeginBusiness(); }
+        catch { context.Finish(); throw; }
     }
 
     private static void AttachAfterFailure(Exception businessError, Exception afterError)
@@ -147,7 +163,7 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
 
     private async Task RunTask(MethodInvocationContext context, object?[]? args)
     {
-        await _interceptor.BeforeAsync(context).ConfigureAwait(false);
+        await BeforeAsync(context).ConfigureAwait(false);
         try
         {
             var result = InvokeTarget(context.Method, args);
@@ -160,27 +176,27 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
 
     private async Task<TResult> RunTaskResult<TResult>(MethodInvocationContext context, object?[]? args)
     {
-        await _interceptor.BeforeAsync(context).ConfigureAwait(false);
+        await BeforeAsync(context).ConfigureAwait(false);
         try
         {
             var result = await ((Task<TResult>)InvokeTarget(context.Method, args)!).ConfigureAwait(false);
             context.Result = result;
-            return result;
         }
         catch (Exception error) { context.Exception = error; throw; }
         finally { await CompleteAsync(context).ConfigureAwait(false); }
+        return (TResult)context.Result!;
     }
 
     private async ValueTask<TResult> RunValueTaskResult<TResult>(MethodInvocationContext context, object?[]? args)
     {
-        await _interceptor.BeforeAsync(context).ConfigureAwait(false);
+        await BeforeAsync(context).ConfigureAwait(false);
         try
         {
             var result = await ((ValueTask<TResult>)InvokeTarget(context.Method, args)!).ConfigureAwait(false);
             context.Result = result;
-            return result;
         }
         catch (Exception error) { context.Exception = error; throw; }
         finally { await CompleteAsync(context).ConfigureAwait(false); }
+        return (TResult)context.Result!;
     }
 }

@@ -15,3 +15,5 @@ dotnet run --project M.Simple.Services.Interception.Sample -c Release
 按方法名特性的示例使用 `AddInterceptedScoped<INamedOrderService, NamedOrderService>()`。该能力从 NuGet 包 1.0.0.2 起提供。
 
 完整规则见[包 README](../M.Simple.Services.Interception/README.md)。
+
+新增第 9 个场景：前置使用 GetArgument/SetArgument 拼接 msg，后置使用 SetResult 追加返回值，断言最终为“你好【前置追加】【后置追加】”。参数和结果替换从 NuGet 包 1.0.0.3 起提供。

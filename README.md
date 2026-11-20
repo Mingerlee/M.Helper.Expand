@@ -1,6 +1,6 @@
 # M.Helper.Expand
 
-新增 **[M.Simple.Services.Interception](M.Simple.Services.Interception/README.md)**：接口 AOP 代理，支持同步/异步方法前后钩子、方法与类型特性筛选及 DI 生命周期。[可运行示例](M.Simple.Services.Interception.Sample/README.md)。1.0.0.2 新增按方法名指定前后置的特性。
+新增 **[M.Simple.Services.Interception](M.Simple.Services.Interception/README.md)**：接口 AOP 代理，支持同步/异步方法前后钩子、方法与类型特性筛选及 DI 生命周期。[可运行示例](M.Simple.Services.Interception.Sample/README.md)。1.0.0.3 支持前置修改参数、后置替换返回值；1.0.0.2 起支持按方法名指定前后置特性。
 
 新增 **[M.Simple.Caching.Dashboard](M.Simple.Caching.Dashboard/README.md)**：支持内存、Redis、MongoDB 的缓存管理页面，提供前缀搜索、JSON 详情、删除预览、权限控制和操作日志。[Web 示例](M.Simple.Caching.Dashboard.Sample/README.md)。
 

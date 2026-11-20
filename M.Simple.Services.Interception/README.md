@@ -1,6 +1,6 @@
 # M.Simple.Services.Interception
 
-.NET 8 接口 AOP 代理，当前源码版本 `1.0.0.2`。基于框架内置 DispatchProxy，只依赖 Microsoft.Extensions.DependencyInjection.Abstractions，不依赖 M.Simple.Expand 或其他服务包。支持方法前置、后置、特性筛选和 DI 生命周期。
+.NET 8 接口 AOP 代理，当前源码版本 `1.0.0.3`。基于框架内置 DispatchProxy，只依赖 Microsoft.Extensions.DependencyInjection.Abstractions，不依赖 M.Simple.Expand 或其他服务包。支持方法前置、后置、特性筛选和 DI 生命周期。
 
 1.0.0.2 新增 BeforeMethod / AfterMethod 与双泛型注册重载，可直接用方法名指定同一服务中的前置、后置方法。
 
@@ -136,10 +136,34 @@ public interface IInventoryService
 
 接口和实现冲突时，同层级 Skip 优先。实现类上的特性按继承规则读取，支持显式接口实现；不通过方法名称猜测实现，按接口映射匹配。
 
+## 前置修改参数、后置替换返回值（1.0.0.3 起）
+
+```csharp
+[BeforeMethod(nameof(RecordBefore))]
+[AfterMethod(nameof(RecordAfter))]
+public Task<string> SayHolle(string msg) => Task.FromResult(msg);
+
+private void RecordBefore(MethodInvocationContext context)
+    => context.SetArgument("msg", context.GetArgument<string>("msg") + "【前置追加】");
+
+private void RecordAfter(MethodInvocationContext context)
+    => context.SetResult((string)context.Result! + "【后置追加】");
+```
+
+传入“你好”，业务收到“你好【前置追加】”，调用方收到“你好【前置追加】【后置追加】”。注册仍使用 `AddInterceptedScoped<IService, Service>()`，无需独立拦截器。
+
+- GetArgument<T>(name) 使用接口声明的参数名，区分大小写，直接读取并强制转换，不做隐式类型转换；接口与实现参数名不同时以接口为准。
+- SetArgument(name, value) 只允许前置阶段，实际调用业务时使用修改后的值。Arguments 仍是只读列表，但会反映修改后的值。替换 CancellationToken 后 context.CancellationToken 也同步反映最新值。
+- SetResult(value) 只允许业务成功后的后置阶段，支持同步返回值、Task<T>、ValueTask<T>，替换的是实际结果 T，不是任务对象。多个后置依次看到最新结果，最后一次有效赋值返回调用方。
+- 值必须可直接赋给声明类型，支持 Nullable<T>；不自动做数值/字符串转换。非可空值类型不接受 null；引用类型的 nullable 注解不在运行时强制校验。参数名不存在、类型不匹配会抛 ArgumentException。
+- void、Task、ValueTask 无返回值，不能调用 SetResult。业务失败或取消也不能用 SetResult 转为成功；后置违规会按现有异常策略处理，保留原业务异常。
+- 后置不能替换业务参数，因为业务已经执行；调用完成后不能再修改参数或结果。不要启动未被 await 的后台任务持有上下文并发修改。
+- 本功能从 1.0.0.3 起提供；1.0.0.2 不包含参数和结果替换 API。
+
 ## 上下文与异常
 
 - `Method`：接口方法，泛型调用为实际构造方法；`ImplementationMethod`：映射到的实现方法。
-- `Target`：真实服务对象；`Arguments`：只读参数列表（对象自身仍可变，第一版不提供参数或结果替换）。
+- `Target`：真实服务对象；`Arguments`：只读参数列表（对象自身仍可变）；前置使用 SetArgument 替换参数，后置使用 SetResult 替换结果。
 - `Result`：业务返回值，Task<T>/ValueTask<T> 为等待后的 T，void/Task/ValueTask 为 null；失败时无有效结果。
 - `Exception`：原始业务异常；`IsCanceled`：业务异常是否为 OperationCanceledException。
 - `CancellationToken`：第一个 CancellationToken 参数；`Items`：本次调用前后共享的数据，可记录 Stopwatch 等。每次调用独立创建上下文。
@@ -152,7 +176,7 @@ public interface IInventoryService
 
 - 同步 void/普通返回值、Task、Task<T>、ValueTask、ValueTask<T>；异步后置等待真实任务完成，不在返回任务对象时提前运行。
 - 支持普通泛型方法、继承接口和显式接口实现。公开属性访问器也会经过代理；默认模式同样执行钩子。
-- 一次注册对应一个拦截器，可在该拦截器内部组合多个逻辑。当前不提供多层拦截器管线、重试、短路返回或事务自动处理。
+- 一次注册对应一个拦截器，可在该拦截器内部组合多个逻辑。当前不提供多层拦截器管线、重试、短路返回或事务自动处理；新增参数/结果替换见上文。
 - 调用真实对象、new 服务类、类内部 this.OtherMethod() 都不经过代理。类不需要 virtual，但必须通过接口调用。
 - 不支持 async void、ref/out/in 参数、ref 返回、指针/Span 等签名、异步流、自定义 awaitable、Task 派生返回类型、静态接口方法。发现不支持的接口签名会在注册/创建时拒绝；async void 在解析实现时拒绝。
 - 服务接口不能继承 IDisposable/IAsyncDisposable，释放方法留在实现类。DI 管理实现类与拦截器的释放，避免代理再次释放真实对象；手动 Create 时由调用者负责其资源生命周期。

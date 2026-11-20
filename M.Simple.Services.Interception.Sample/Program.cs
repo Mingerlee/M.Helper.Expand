@@ -6,6 +6,7 @@ var services = new ServiceCollection();
 services.AddInterceptedScoped<IOrderService, OrderService, ConsoleMethodInterceptor>(attributedOnly: true);
 // 按方法名特性，不再需要单独的拦截器类。
 services.AddInterceptedScoped<INamedOrderService, NamedOrderService>();
+services.AddInterceptedScoped<IMessageService, MessageService>();
 using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
 using var scope = provider.CreateScope();
 var orders = scope.ServiceProvider.GetRequiredService<IOrderService>();
@@ -40,6 +41,9 @@ namedTarget.Events.Clear();
 try { await named.CreateAsync(""); throw new Exception("应当失败"); }
 catch (InvalidOperationException error) when (error.Message == "订单名称不能为空") { }
 Check(namedTarget.Events.SequenceEqual(new[] { "before", "business", "after:failed" }), "失败时执行指定后置方法");
+Console.WriteLine("9. 前置修改参数，后置修改返回值");
+var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
+Check(await messageService.SayHolle("你好") == "你好【前置追加】【后置追加】", "参数与结果修改");
 Console.WriteLine("全部示例验证通过。");
 
 static void Check(bool condition, string message)
@@ -55,6 +59,32 @@ public interface IOrderService
     [MethodHook, SkipMethodHook] void Skip();
     [MethodHook] Task FailAsync();
     [MethodHook] ValueTask<string> QueryAsync(int id);
+}
+
+public interface IMessageService
+{
+    Task<string> SayHolle(string msg);
+}
+
+public sealed class MessageService : IMessageService
+{
+    [BeforeMethod(nameof(RecordBefore))]
+    [AfterMethod(nameof(RecordAfter))]
+    public async Task<string> SayHolle(string msg)
+    {
+        await Task.Yield();
+        Console.WriteLine("  [业务收到参数] " + msg);
+        return msg;
+    }
+
+    private void RecordBefore(MethodInvocationContext context)
+        => context.SetArgument("msg", context.GetArgument<string>("msg") + "【前置追加】");
+
+    private void RecordAfter(MethodInvocationContext context)
+    {
+        context.SetResult((string)context.Result! + "【后置追加】");
+        Console.WriteLine("  [最终返回值] " + context.Result);
+    }
 }
 
 public sealed class OrderService : IOrderService
