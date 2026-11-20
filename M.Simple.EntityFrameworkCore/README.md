@@ -1,15 +1,15 @@
 # M.Simple.EntityFrameworkCore
 
-.NET 8 / EF Core 8 基础数据访问包，首版版本为 `1.0.0.1`。提供单主键实体仓储、工作单元、条件查询、DTO 分页和原生批量写入契约。
+.NET 8 / EF Core 8 基础数据访问包，当前版本为 `1.0.0.2`。提供单主键实体仓储、工作单元、条件查询、DTO 分页和原生批量写入契约。
 
 ## 安装与注册
 
 通常只安装需要的适配包，核心包自动作为依赖引入：
 
 ```powershell
-dotnet add package M.Simple.EntityFrameworkCore.SqlServer --version 1.0.0.1
+dotnet add package M.Simple.EntityFrameworkCore.SqlServer --version 1.0.0.2
 # 或
-dotnet add package M.Simple.EntityFrameworkCore.MySql --version 1.0.0.1
+dotnet add package M.Simple.EntityFrameworkCore.MySql --version 1.0.0.2
 ```
 
 上述安装命令用于包发布后或配置本地包源后。本仓库默认只本地打包，不自动发布 NuGet。
@@ -92,9 +92,9 @@ if (found) await unitOfWork.SaveChangesAsync(token);
 
 `UpdateProperties` 会复用同主键的已跟踪实体，并仅复制指定字段。上下文中其他已有修改仍会随保存提交，不会被清除。对带并发令牌的实体，优先查询跟踪实体后修改，以保留正确的原始令牌；扩展包不隐藏并发冲突或数据库异常。
 
-## 工作单元事务（新增源码功能）
+## 工作单元事务
 
-新增 BeginTransactionAsync、CommitTransactionAsync、RollbackTransactionAsync、SaveChangesAndCommitAsync，适用于 SQL Server / MySQL 关系型上下文。当前已发布的 1.0.0.1 尚不包含这些 API；开发期间使用项目引用。本次不调整版本、不发布 NuGet。
+新增 BeginTransactionAsync、CommitTransactionAsync、RollbackTransactionAsync、SaveChangesAndCommitAsync，适用于 SQL Server / MySQL 关系型上下文。从 1.0.0.2 起提供这些 API。
 
 ```csharp
 await unitOfWork.BeginTransactionAsync(token);
@@ -229,7 +229,7 @@ dotnet test M.Simple.EntityFrameworkCore.Test/M.Simple.EntityFrameworkCore.Test.
 然后给项目添加适配包：
 
 ```powershell
-dotnet add <项目路径> package M.Simple.EntityFrameworkCore.SqlServer --version 1.0.0.1
+dotnet add <项目路径> package M.Simple.EntityFrameworkCore.SqlServer --version 1.0.0.2
 ```
 
 依赖还原还需启用 nuget.org 或具有对应 EF Core / 数据库驱动依赖的包源。源码示例使用项目引用，不依赖公开发布。
