@@ -14,3 +14,5 @@ services.AddSimpleEfCoreSqlServer<AppDbContext>(connectionString);
 首版支持简单单表批量写入，每批 1,000 条，自动创建事务或参与 EF 当前事务，不回填生成主键，生成列由数据库负责。启用约束检查、触发器并保留 NULL。继承、Owned、共享表等复杂映射不支持；批量操作不经过保存拦截器。
 
 支持目标：SQL Server 2016+（兼容级别至少 130）。完整用法、事务规则、限制及测试步骤见核心包 README：`M.Simple.EntityFrameworkCore/README.md`。
+
+核心源码新增工作单元事务接口 BeginTransactionAsync / CommitTransactionAsync / RollbackTransactionAsync / SaveChangesAndCommitAsync；无需修改本适配包注册代码。当前尚未发布包含这些 API 的新版本，见[工作单元事务说明](../M.Simple.EntityFrameworkCore/README.md#工作单元事务新增源码功能)。

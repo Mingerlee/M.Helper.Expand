@@ -1,5 +1,7 @@
 # M.Simple.EntityFrameworkCore.MySql
 
+核心源码新增工作单元事务接口 BeginTransactionAsync / CommitTransactionAsync / RollbackTransactionAsync / SaveChangesAndCommitAsync；无需修改本适配包注册代码。当前尚未发布包含这些 API 的新版本，见[工作单元事务说明](../M.Simple.EntityFrameworkCore/README.md#工作单元事务新增源码功能)。
+
 .NET 8 / EF Core 8 的 MySQL 适配包，自动依赖 `M.Simple.EntityFrameworkCore`，采用 Pomelo 8.0.3，提供基础仓储注册和 `MySqlBulkCopy` 批量新增。
 
 ```csharp

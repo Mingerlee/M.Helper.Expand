@@ -10,3 +10,5 @@ dotnet run --project M.Simple.EntityFrameworkCore.Sample -- sqlserver
 MySQL：填写专用数据库连接，并将参数改为 `mysql`；批量导入需要连接串 `AllowLoadLocalInfile=true` 和服务端 `local_infile=ON`。
 
 示例仅接受名称以 `msimple_ef_sample_` 开头的数据库，必要时创建数据库/表；数据操作放在事务中，结束时回滚。专用数据库及表会保留，不会自动删除。
+
+新增工作单元事务示例（尚未发布）：使用 BeginTransactionAsync 开启，多次 SaveChangesAsync 后 RollbackTransactionAsync；随后独立演示 SaveChangesAndCommitAsync 并按生成主键清理该记录，不删除此前已有数据。SaveChangesAndCommitAsync 未 Begin 时会提示先开启事务。请使用项目引用，现有 NuGet 1.0.0.1 暂不提供这些 API。

@@ -34,9 +34,9 @@ await using var provider = services.BuildServiceProvider();
 using var scope = provider.CreateScope();
 var db = scope.ServiceProvider.GetRequiredService<SampleContext>();
 await db.Database.EnsureCreatedAsync();
-await using var transaction = await db.Database.BeginTransactionAsync();
 var products = scope.ServiceProvider.GetRequiredService<IRepository<Product, long>>();
 var work = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+await work.BeginTransactionAsync();
 
 var product = new Product { Name = "Sample", Price = 10 };
 products.Add(product);
@@ -57,8 +57,20 @@ var bulk = scope.ServiceProvider.GetRequiredService<IBulkWriter>();
 await bulk.BulkInsertAsync(Enumerable.Range(1, 1000)
     .Select(i => new Product { Name = "Bulk " + i, Price = i }));
 Console.WriteLine($"Rows after bulk insert: {await products.CountAsync()}");
-await transaction.RollbackAsync();
+await work.RollbackTransactionAsync();
 Console.WriteLine("Sample row changes rolled back. The dedicated database/schema remains for reuse.");
+
+// 保存并提交的独立演示，再只清理这次示例写入的记录。
+await work.BeginTransactionAsync();
+var committed = new Product { Name = "SaveChangesAndCommitAsync", Price = 30 };
+products.Add(committed);
+int affected = await work.SaveChangesAndCommitAsync();
+Console.WriteLine($"Saved and committed {affected} entry; generated ID: {committed.Id}.");
+db.ChangeTracker.Clear();
+if (!await products.RemoveByIdAsync(committed.Id))
+    throw new InvalidOperationException("Expected committed sample row was not found.");
+await work.SaveChangesAsync();
+Console.WriteLine("Committed sample row removed; pre-existing data was not deleted.");
 
 public sealed class Product : Entity<long>
 {

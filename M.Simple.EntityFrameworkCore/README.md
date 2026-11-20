@@ -92,6 +92,70 @@ if (found) await unitOfWork.SaveChangesAsync(token);
 
 `UpdateProperties` 会复用同主键的已跟踪实体，并仅复制指定字段。上下文中其他已有修改仍会随保存提交，不会被清除。对带并发令牌的实体，优先查询跟踪实体后修改，以保留正确的原始令牌；扩展包不隐藏并发冲突或数据库异常。
 
+## 工作单元事务（新增源码功能）
+
+新增 BeginTransactionAsync、CommitTransactionAsync、RollbackTransactionAsync、SaveChangesAndCommitAsync，适用于 SQL Server / MySQL 关系型上下文。当前已发布的 1.0.0.1 尚不包含这些 API；开发期间使用项目引用。本次不调整版本、不发布 NuGet。
+
+```csharp
+await unitOfWork.BeginTransactionAsync(token);
+try
+{
+    // 通过 AOP 接口代理调用时，会等待前置、业务、后置全部完成。
+    await service.SayHolle(msg, token);
+
+    int affected = await unitOfWork.SaveChangesAndCommitAsync(token);
+}
+catch (Exception original)
+{
+    try { await unitOfWork.RollbackTransactionAsync(CancellationToken.None); }
+    catch (Exception rollback) { original.Data["RollbackException"] = rollback; }
+    throw;
+}
+```
+
+| 方法 | 行为 |
+|---|---|
+| BeginTransactionAsync | 开启工作单元拥有的事务，不支持重复开启或嵌套 |
+| SaveChangesAsync | 保存当前修改；不提交已有事务，无显式事务时保留 EF 原有默认行为 |
+| CommitTransactionAsync | 提交工作单元事务，不自动保存尚未保存的修改 |
+| RollbackTransactionAsync | 回滚工作单元事务，不自动清空或恢复 ChangeTracker |
+| SaveChangesAndCommitAsync | 先校验已开启工作单元事务，再保存并提交；返回本次 SaveChanges 的影响条目数，不包含此前保存的条目 |
+
+没有 Begin 时，后三个事务结束方法均抛 InvalidOperationException，提示“请先调用 BeginTransactionAsync 开启事务。”。SaveChangesAndCommitAsync 会在任何写入前进行此检查。
+
+需要中途取得自增 ID 或查询中间结果时，可以在同一事务内多次 SaveChangesAsync，再通过 CommitTransactionAsync 一起提交；任一阶段失败可全部回滚：
+
+```csharp
+await unitOfWork.BeginTransactionAsync(token);
+try
+{
+    products.Add(new Product { Name = "阶段一", Price = 10 });
+    await unitOfWork.SaveChangesAsync(token);
+    products.Add(new Product { Name = "阶段二", Price = 20 });
+    await unitOfWork.SaveChangesAsync(token);
+    await unitOfWork.CommitTransactionAsync(token);
+}
+catch (Exception original)
+{
+    try { await unitOfWork.RollbackTransactionAsync(CancellationToken.None); }
+    catch (Exception rollback) { original.Data["RollbackException"] = rollback; }
+    throw;
+}
+```
+
+事务边界与限制：
+
+- 工作单元、仓储和前后置方法必须使用同一 Scoped DbContext。事务包含数据库操作，不自动覆盖邮件、HTTP、Redis 等外部副作用。
+- 事务保存或提交失败（包括取消）后，后续保存/提交会被拒绝，必须显式回滚或结束作用域；SaveChangesAndCommitAsync 不自动回滚。业务自身抛错但未调用保存时，仍需调用方按约定回滚，不能吞掉异常后提交。
+- 成功提交或回滚后释放事务，可再开启新事务；事务结束方法没有活动事务时不会静默成功。Commit 发生网络错误时实际提交结果可能不确定，不应自动重试。
+- 只管理由本工作单元 Begin 创建的事务。遇到 DbContext 外部事务或环境事务时拒绝 Begin，不接管、不提交或回滚外部事务；普通 SaveChangesAsync 仍可参与外部事务，由其所有者管理。
+- 工作单元实现 IDisposable/IAsyncDisposable，由 DI 在作用域结束时释放未结束事务（关系型提供程序通常回滚未提交事务），从不自动提交，也不释放由 DI 单独管理的 DbContext。
+- 回滚不会还原跟踪实体的状态、主键或内存对象值；失败后建议结束作用域，重试时使用新 DbContext。若确需复用，由业务明确处理 ChangeTracker。
+- 不支持跨线程并行操作；不要在工作单元之外直接提交、替换或释放它拥有的事务。对这类事务归属变化会在保存/提交前检查并报错。
+- 不自动启用重试。配置提供程序重试策略时，事务与执行策略的组合仍由调用方负责；不要无条件重放含外部副作用的业务。
+- 提交成功后的事务释放也可能抛异常，此时不能视为业务尚未提交；不能据此盲目重试业务。
+- IUnitOfWork 新增接口成员，自定义实现者升级源码时也需实现这些成员。
+
 ## 查询与分页
 
 ```csharp

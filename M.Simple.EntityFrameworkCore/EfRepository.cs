@@ -86,9 +86,3 @@ public sealed class EfRepository<TEntity, TKey>(ISimpleDbContext accessor) : IRe
         }
     }
 }
-
-internal sealed class EfUnitOfWork(ISimpleDbContext accessor) : IUnitOfWork
-{
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-        => accessor.Context.SaveChangesAsync(cancellationToken);
-}

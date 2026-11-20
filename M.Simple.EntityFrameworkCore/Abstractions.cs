@@ -8,6 +8,14 @@ public abstract class Entity<TKey> : IEntity<TKey> { public TKey Id { get; set; 
 public interface IUnitOfWork
 {
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    /// <summary>Begins a unit-of-work-owned transaction. Existing transactions cannot be nested or adopted.</summary>
+    Task BeginTransactionAsync(CancellationToken cancellationToken = default);
+    /// <summary>Commits the owned transaction without saving pending changes.</summary>
+    Task CommitTransactionAsync(CancellationToken cancellationToken = default);
+    /// <summary>Rolls back the owned transaction. Does not restore the EF change tracker.</summary>
+    Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
+    /// <summary>Requires an owned transaction, saves changes, then commits. On failure the caller must roll back.</summary>
+    Task<int> SaveChangesAndCommitAsync(CancellationToken cancellationToken = default);
 }
 public interface IRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>
 {
