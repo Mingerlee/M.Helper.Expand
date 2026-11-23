@@ -19,6 +19,6 @@ services.AddSimpleEfCoreMySql<AppDbContext>(connectionString,
 
 首版仅支持简单单表映射。目标数据库为 MySQL 8.0；MariaDB 未作为首版验证目标。完整用法、事务规则、限制及测试步骤见核心包 README：`M.Simple.EntityFrameworkCore/README.md`。
 
-## 批量写入补充（新增源码功能）
+## 批量写入补充（1.0.0.3）
 
-已实现 BulkUpdateAsync、BulkDeleteAsync、BulkInsertAndReturnKeysAsync，参与已有工作单元事务；尚未发布，1.0.0.2 暂不提供。方法、事务及主键回填限制见[核心包说明](../M.Simple.EntityFrameworkCore/README.md#仓储与批量写入补充新增源码功能)。
+已实现 BulkUpdateAsync、BulkDeleteAsync、BulkInsertAndReturnKeysAsync，参与已有工作单元事务；从 1.0.0.3 起提供。方法、事务及主键回填限制见[核心包说明](../M.Simple.EntityFrameworkCore/README.md#仓储与批量写入补充1003)。
