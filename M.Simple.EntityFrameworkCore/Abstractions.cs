@@ -12,7 +12,7 @@ public interface IUnitOfWork
     Task BeginTransactionAsync(CancellationToken cancellationToken = default);
     /// <summary>Commits the owned transaction without saving pending changes.</summary>
     Task CommitTransactionAsync(CancellationToken cancellationToken = default);
-    /// <summary>Rolls back the owned transaction. Does not restore the EF change tracker.</summary>
+    /// <summary>Rolls back the owned transaction, then detaches all tracked entities, discarding pending changes. Does not restore object values.</summary>
     Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
     /// <summary>Requires an owned transaction, saves changes, then commits. On failure the caller must roll back.</summary>
     Task<int> SaveChangesAndCommitAsync(CancellationToken cancellationToken = default);

@@ -118,7 +118,7 @@ catch (Exception original)
 | BeginTransactionAsync | 开启工作单元拥有的事务，不支持重复开启或嵌套 |
 | SaveChangesAsync | 保存当前修改；不提交已有事务，无显式事务时保留 EF 原有默认行为 |
 | CommitTransactionAsync | 提交工作单元事务，不自动保存尚未保存的修改 |
-| RollbackTransactionAsync | 回滚工作单元事务，不自动清空或恢复 ChangeTracker |
+| RollbackTransactionAsync | 成功回滚工作单元事务后，自动清空 ChangeTracker，放弃所有尚未保存的修改 |
 | SaveChangesAndCommitAsync | 先校验已开启工作单元事务，再保存并提交；返回本次 SaveChanges 的影响条目数，不包含此前保存的条目 |
 
 没有 Begin 时，后三个事务结束方法均抛 InvalidOperationException，提示“请先调用 BeginTransactionAsync 开启事务。”。SaveChangesAndCommitAsync 会在任何写入前进行此检查。
@@ -150,7 +150,7 @@ catch (Exception original)
 - 成功提交或回滚后释放事务，可再开启新事务；事务结束方法没有活动事务时不会静默成功。Commit 发生网络错误时实际提交结果可能不确定，不应自动重试。
 - 只管理由本工作单元 Begin 创建的事务。遇到 DbContext 外部事务或环境事务时拒绝 Begin，不接管、不提交或回滚外部事务；普通 SaveChangesAsync 仍可参与外部事务，由其所有者管理。
 - 工作单元实现 IDisposable/IAsyncDisposable，由 DI 在作用域结束时释放未结束事务（关系型提供程序通常回滚未提交事务），从不自动提交，也不释放由 DI 单独管理的 DbContext。
-- 回滚不会还原跟踪实体的状态、主键或内存对象值；失败后建议结束作用域，重试时使用新 DbContext。若确需复用，由业务明确处理 ChangeTracker。
+- 成功回滚后自动调用 `ChangeTracker.Clear()`，分离当前 DbContext 的全部实体，包括事务前已跟踪的实体和未保存的新增、修改、删除，无需业务再次调用。不会还原实体对象的属性或主键；继续操作应重新查询并跟踪实体。回滚失败时不清理跟踪，修复后可再次回滚；释放工作单元及外部直接回滚不触发此清理。此行为为新增源码功能，已发布的 1.0.0.2 尚不包含。
 - 不支持跨线程并行操作；不要在工作单元之外直接提交、替换或释放它拥有的事务。对这类事务归属变化会在保存/提交前检查并报错。
 - 不自动启用重试。配置提供程序重试策略时，事务与执行策略的组合仍由调用方负责；不要无条件重放含外部副作用的业务。
 - 提交成功后的事务释放也可能抛异常，此时不能视为业务尚未提交；不能据此盲目重试业务。

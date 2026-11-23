@@ -73,8 +73,50 @@ public class UnitOfWorkTransactionTests
         Assert.AreEqual(3, await Products.CountAsync());
         await Work.RollbackTransactionAsync();
         Assert.AreEqual(0, await Products.CountAsync());
-        // Rollback deliberately does not reconstruct or clear the caller's tracking state.
-        Assert.AreEqual(3, Db.ChangeTracker.Entries().Count());
+        Assert.AreEqual(0, Db.ChangeTracker.Entries().Count());
+    }
+
+    [TestMethod]
+    public async Task Rollback_DiscardsAllPendingChangesAndAllowsFreshWork()
+    {
+        var updated = new Product { Name = "original" };
+        var deleted = new Product { Name = "keep" };
+        Products.Add(updated);
+        Products.Add(deleted);
+        await Work.SaveChangesAsync();
+        await Work.BeginTransactionAsync();
+        updated.Name = "changed";
+        Db.Remove(deleted);
+        Products.Add(new Product { Name = "unsaved" });
+
+        await Work.RollbackTransactionAsync();
+
+        Assert.AreEqual(0, Db.ChangeTracker.Entries().Count());
+        Assert.AreEqual("changed", updated.Name); // Detaching does not restore object values.
+        Assert.AreEqual(0, await Work.SaveChangesAsync());
+        Assert.AreEqual("original", (await Products.GetByIdAsync(updated.Id))!.Name);
+        Assert.AreEqual(2, await Products.CountAsync());
+        await Work.BeginTransactionAsync();
+        Products.Add(new Product { Name = "fresh" });
+        Assert.AreEqual(1, await Work.SaveChangesAndCommitAsync());
+        Assert.AreEqual(3, await Products.CountAsync());
+    }
+
+    [TestMethod]
+    public async Task FailedRollback_PreservesTrackingUntilSuccessfulRollback()
+    {
+        await Work.BeginTransactionAsync();
+        var pending = new Product { Name = "pending" };
+        Products.Add(pending);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+        try { await Work.RollbackTransactionAsync(cancellation.Token); Assert.Fail("Expected cancellation"); }
+        catch (OperationCanceledException) { }
+        Assert.AreEqual(EntityState.Added, Db.Entry(pending).State);
+        await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => Work.SaveChangesAsync());
+        await Work.RollbackTransactionAsync(CancellationToken.None);
+        Assert.AreEqual(0, Db.ChangeTracker.Entries().Count());
+        Assert.AreEqual(0, await Work.SaveChangesAsync());
     }
 
     [TestMethod]

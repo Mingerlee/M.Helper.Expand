@@ -57,6 +57,8 @@ internal sealed class EfUnitOfWork(ISimpleDbContext accessor) : IUnitOfWork, IDi
         catch { _rollbackRequired = true; throw; }
         _transaction = null;
         _rollbackRequired = false;
+        // Database rollback does not reset EF's in-memory state. Discard the whole unit of work.
+        accessor.Context.ChangeTracker.Clear();
         await transaction.DisposeAsync().ConfigureAwait(false);
     }
 
