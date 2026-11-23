@@ -1,0 +1,4 @@
+Provider,Build_us,FirstResolve_us,Dispose_us,Iterations
+Simple,43.347,1.906,0.427,100
+Microsoft,24.797,3.272,0.398,100
+Autofac,201.686,88.545,5.989,100
