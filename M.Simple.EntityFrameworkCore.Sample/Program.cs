@@ -72,6 +72,36 @@ if (!await products.RemoveByIdAsync(committed.Id))
 await work.SaveChangesAsync();
 Console.WriteLine("Committed sample row removed; pre-existing data was not deleted.");
 
+// 新增 API 演示：全部操作使用同一事务，结束时回滚，不留下演示记录。
+await work.BeginTransactionAsync();
+try
+{
+    var rows = new[]
+    {
+        new Product { Name = "ReturnKey A", Price = 10 },
+        new Product { Name = "ReturnKey B", Price = 20 }
+    };
+    await bulk.BulkInsertAndReturnKeysAsync(rows);
+    rows[0].Name = "Update";
+    products.Update(rows[0]);
+    rows[1].Name = "UpdateRange";
+    products.UpdateRange(rows.Skip(1));
+    await work.SaveChangesAsync();
+    int updated = await products.ExecuteUpdateAsync(p => p.Id == rows[0].Id,
+        setters => setters.SetProperty(p => p.Price, 40m));
+    int bulkUpdated = await bulk.BulkUpdateAsync(rows,
+        new BulkUpdateOptions<Product> { Properties = [p => p.Price] });
+    int deleted = await products.ExecuteDeleteAsync(p => p.Id == rows[0].Id);
+    int bulkDeleted = await bulk.BulkDeleteAsync(rows.Skip(1));
+    Console.WriteLine($"New APIs: update={updated}, bulk update={bulkUpdated}, delete={deleted}, bulk delete={bulkDeleted}.");
+    await work.RollbackTransactionAsync(); // 自动清空跟踪；实体对象的主键不被还原。
+}
+catch (Exception original)
+{
+    try { await work.RollbackTransactionAsync(CancellationToken.None); }
+    catch (Exception rollback) { original.Data["RollbackException"] = rollback; }
+    throw;
+}
 public sealed class Product : Entity<long>
 {
     public string Name { get; set; } = "";

@@ -205,6 +205,14 @@ public class RepositoryTests
         var repository = serviceScope.ServiceProvider.GetRequiredService<IRepository<Product, long>>();
         var sql = repository.Query().Where(p => p.Id.Equals(1L)).OrderBy(p => p.Id).Skip(10).Take(20).ToQueryString();
         StringAssert.Contains(sql, database == "mysql" ? "LIMIT" : "OFFSET");
+        var db = serviceScope.ServiceProvider.GetRequiredService<TestContext>();
+        var key = db.Model.FindEntityType(typeof(Product))!.FindPrimaryKey()!.Properties.Single();
+        if (database == "mysql")
+            Assert.AreEqual(Microsoft.EntityFrameworkCore.Metadata.MySqlValueGenerationStrategy.IdentityColumn,
+                MySqlPropertyExtensions.GetValueGenerationStrategy(key));
+        else
+            Assert.AreEqual(Microsoft.EntityFrameworkCore.Metadata.SqlServerValueGenerationStrategy.IdentityColumn,
+                SqlServerPropertyExtensions.GetValueGenerationStrategy(key));
         Assert.IsNotNull(serviceScope.ServiceProvider.GetRequiredService<IBulkWriter>());
         Assert.IsNotNull(serviceScope.ServiceProvider.GetRequiredService<IUnitOfWork>());
     }

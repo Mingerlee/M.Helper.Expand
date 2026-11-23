@@ -18,3 +18,7 @@ services.AddSimpleEfCoreMySql<AppDbContext>(connectionString,
 批量新增需要连接串 `AllowLoadLocalInfile=true`、服务端开启 `local_infile`，并使用 InnoDB 事务表。每批 1,000 条，自动创建事务或参与 EF 当前事务，出现导入警告/行数不符会抛错。不回填生成主键，不运行保存拦截器；生成列由数据库负责。
 
 首版仅支持简单单表映射。目标数据库为 MySQL 8.0；MariaDB 未作为首版验证目标。完整用法、事务规则、限制及测试步骤见核心包 README：`M.Simple.EntityFrameworkCore/README.md`。
+
+## 批量写入补充（新增源码功能）
+
+已实现 BulkUpdateAsync、BulkDeleteAsync、BulkInsertAndReturnKeysAsync，参与已有工作单元事务；尚未发布，1.0.0.2 暂不提供。方法、事务及主键回填限制见[核心包说明](../M.Simple.EntityFrameworkCore/README.md#仓储与批量写入补充新增源码功能)。

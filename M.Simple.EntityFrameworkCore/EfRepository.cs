@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace M.Simple.EntityFrameworkCore;
 
@@ -50,6 +51,37 @@ public sealed class EfRepository<TEntity, TKey>(ISimpleDbContext accessor) : IRe
         if (entity is null) return false;
         Remove(entity);
         return true;
+    }
+    public void Update(TEntity entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        var metadata = Context.Entry(entity).Metadata;
+        var properties = metadata.GetProperties().Where(p => !p.IsKey() && !p.IsConcurrencyToken
+            && p.ValueGenerated == ValueGenerated.Never && p.GetAfterSaveBehavior() == PropertySaveBehavior.Save).ToArray();
+        if (properties.Any(p => p.PropertyInfo is null))
+            throw new NotSupportedException("Update requires CLR scalar properties; use a tracked query for shadow properties.");
+        UpdateProperties(entity, properties.Select(p =>
+        {
+            var parameter = Expression.Parameter(typeof(TEntity), "entity");
+            return Expression.Lambda<Func<TEntity, object?>>(Expression.Convert(Expression.Property(parameter, p.PropertyInfo!), typeof(object)), parameter);
+        }).ToArray());
+    }
+    public void UpdateRange(IEnumerable<TEntity> entities)
+    {
+        ArgumentNullException.ThrowIfNull(entities);
+        foreach (var entity in entities) Update(entity);
+    }
+    public Task<int> ExecuteUpdateAsync(Expression<Func<TEntity, bool>> predicate,
+        Expression<Func<SetPropertyCalls<TEntity>, SetPropertyCalls<TEntity>>> setters, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        ArgumentNullException.ThrowIfNull(setters);
+        return Query().Where(predicate).ExecuteUpdateAsync(setters, cancellationToken);
+    }
+    public Task<int> ExecuteDeleteAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        return Query().Where(predicate).ExecuteDeleteAsync(cancellationToken);
     }
     public void UpdateProperties(TEntity entity, params Expression<Func<TEntity, object?>>[] properties)
     {

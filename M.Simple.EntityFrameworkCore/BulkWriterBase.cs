@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 namespace M.Simple.EntityFrameworkCore.Infrastructure;
 
 /// <summary>Shared bounded-memory pipeline for provider adapters. Supports simple single-table entities.</summary>
-public abstract class BulkWriterBase(ISimpleDbContext accessor) : IBulkWriter
+public abstract partial class BulkWriterBase(ISimpleDbContext accessor) : IBulkWriter
 {
     protected DbContext Context => accessor.Context;
 
@@ -16,6 +16,8 @@ public abstract class BulkWriterBase(ISimpleDbContext accessor) : IBulkWriter
     {
         ArgumentNullException.ThrowIfNull(entities);
         cancellationToken.ThrowIfCancellationRequested();
+        if (System.Transactions.Transaction.Current is not null)
+            throw new NotSupportedException("Ambient transactions are unsupported; use an explicit EF transaction.");
         var plan = CreatePlan<TEntity>();
         using var batches = entities.Chunk(1000).GetEnumerator();
         if (!batches.MoveNext()) return;

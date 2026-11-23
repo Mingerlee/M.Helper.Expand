@@ -24,8 +24,16 @@ public static class SqlServerExtensions
     }
 }
 
-internal sealed class SqlServerBulkWriter(ISimpleDbContext accessor) : BulkWriterBase(accessor)
+internal sealed class SqlServerBulkWriter(ISimpleDbContext accessor) : StagedBulkWriterBase(accessor)
 {
+    protected override void ValidateGeneratedKey(Microsoft.EntityFrameworkCore.Metadata.IProperty key)
+    {
+        if (key.GetValueGenerationStrategy() != Microsoft.EntityFrameworkCore.Metadata.SqlServerValueGenerationStrategy.IdentityColumn)
+            throw new NotSupportedException("SQL Server key-return requires a database IDENTITY column.");
+    }
+
+    protected override bool IsMySql => false;
+
     protected override async Task WriteBatchAsync(DataTable data, string table, string? schema,
         DbConnection connection, DbTransaction transaction, CancellationToken cancellationToken)
     {

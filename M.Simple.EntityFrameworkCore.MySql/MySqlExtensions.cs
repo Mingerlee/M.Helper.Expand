@@ -26,8 +26,16 @@ public static class MySqlExtensions
     }
 }
 
-internal sealed class MySqlBulkWriter(ISimpleDbContext accessor) : BulkWriterBase(accessor)
+internal sealed class MySqlBulkWriter(ISimpleDbContext accessor) : StagedBulkWriterBase(accessor)
 {
+    protected override void ValidateGeneratedKey(Microsoft.EntityFrameworkCore.Metadata.IProperty key)
+    {
+        if (key.GetValueGenerationStrategy() != Microsoft.EntityFrameworkCore.Metadata.MySqlValueGenerationStrategy.IdentityColumn)
+            throw new NotSupportedException("MySQL key-return requires an AUTO_INCREMENT identity column.");
+    }
+
+    protected override bool IsMySql => true;
+
     protected override async Task WriteBatchAsync(DataTable data, string table, string? schema,
         DbConnection connection, DbTransaction transaction, CancellationToken cancellationToken)
     {

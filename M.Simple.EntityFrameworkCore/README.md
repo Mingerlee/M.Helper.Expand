@@ -196,6 +196,54 @@ await products.Query().Where(p => p.Price == 0).ExecuteDeleteAsync(token);
 
 普通保存和直接批量操作属于不同执行路径。混用时需自行管理事务和已跟踪实体的刷新，`SaveChangesAsync` 不会自动包含此前已经提交的直接操作。
 
+## 仓储与批量写入补充（新增源码功能）
+
+以下七个方法尚未发布到 NuGet，现有 `1.0.0.2` 不提供；核心、SQL Server、MySQL 源码已同步实现。自定义 `IRepository` / `IBulkWriter` 实现需要补齐新增接口成员。
+
+| 方法 | 执行时机 | 返回 |
+|---|---|---|
+| `repository.Update(entity)` | 标记普通标量字段修改，需 SaveChanges | 无 |
+| `repository.UpdateRange(entities)` | 同上，不是原生批量 SQL | 无 |
+| `repository.ExecuteUpdateAsync(predicate, setters, token)` | 立即执行按条件更新 | 数据库影响行数 |
+| `repository.ExecuteDeleteAsync(predicate, token)` | 立即执行按条件删除 | 数据库影响行数 |
+| `bulk.BulkUpdateAsync(entities, options, token)` | 按主键原生批量更新 | 数据库影响行数 |
+| `bulk.BulkDeleteAsync(entities, token)` | 按主键原生批量删除 | 数据库影响行数 |
+| `bulk.BulkInsertAndReturnKeysAsync(entities, token)` | 立即插入并回填数值生成主键 | Task，主键回填到输入对象 |
+
+```csharp
+// 跟踪更新：复用上下文中相同主键的实体，只复制允许更新的普通标量属性。
+products.Update(product);
+products.UpdateRange(otherProducts);
+await unitOfWork.SaveChangesAsync(token);
+
+// 立即执行，不需要 SaveChanges；遵守 EF 全局查询过滤器。
+int updated = await products.ExecuteUpdateAsync(p => p.Price < 0,
+    setters => setters.SetProperty(p => p.Price, 0m), token);
+int deleted = await products.ExecuteDeleteAsync(p => !p.Enabled, token);
+
+// 强类型字段选择；省略 options 或 Properties 为空时更新全部允许更新的字段。
+int bulkUpdated = await bulkWriter.BulkUpdateAsync(entities,
+    new BulkUpdateOptions<Product> { Properties = [p => p.Price, p => p.Enabled] }, token);
+int bulkDeleted = await bulkWriter.BulkDeleteAsync(entities, token);
+
+// 输入应为主键默认值且未被 DbContext 跟踪的独立对象，不能先调用 Add/AddRange。
+var inserted = new[] { new Product { Name = "new", Price = 10 } };
+await bulkWriter.BulkInsertAndReturnKeysAsync(inserted, token);
+Console.WriteLine(inserted[0].Id);
+```
+
+行为与限制：
+
+- `Update` / `UpdateRange` 不递归更新导航属性；排除主键、数据库生成列及并发令牌，不提供字段选择的属性不会因为本方法而被标记修改。完整更新会覆盖传入对象的默认值；避免用缺少字段的 DTO 直接构造完整更新对象。并发令牌沿用 EF 原有校验，分离实体应携带正确原始令牌；复杂状态请使用跟踪查询后修改。
+- 条件更新、删除由 EF 翻译为集合 SQL，遵守查询过滤器；不执行自动客户端并发校验，需要时将版本条件加入 predicate 并检查影响行数。条件不可为 null，要操作全部数据须显式传入 `p => true`。
+- 原生 bulk 更新、删除按主键定位，**绕过全局查询过滤器、软删除及 EF 并发校验**；仅对调用方已授权的键执行。支持单一 CLR 主键，其他单表、列映射、转换器限制与原生新增相同；不支持复合键、继承或共享表。
+- 原生更新排除主键、计算/生成列和并发令牌，指定非法字段立即抛错；按主键删除为物理删除。不存在的键不报错，也不会插入新记录。重复键不支持；CLR 键跨批次去重校验，单批次额外按数据库排序规则校验。
+- SQL Server / MySQL 原生更新、删除先批量写临时表，再 JOIN 更新或删除。每批最多 1,000 条；不会为了 staging 结束外层事务。MySQL 需要临时表权限及原生导入配置；目标表必须使用 InnoDB 等支持事务的引擎。影响行数沿用提供程序语义，MySQL 的 `UseAffectedRows` 设置会影响“匹配行数/实际变更行数”。
+- 新增主键回填仅支持 `short` / `int` / `long` 的单一数据库生成主键，且至少有一个普通可写列；MySQL 要求 AUTO_INCREMENT，SQL Server 要求 IDENTITY。SQL Server 使用 staging + MERGE OUTPUT 关联输入序号，不依赖输出顺序；MySQL 在同一事务中逐条 INSERT 并读取 LAST_INSERT_ID，不按连续自增值推算，速度低于不回填的 BulkInsertAsync。显式 Guid/string 主键继续使用 BulkInsertAsync。
+- 回填模式只在全部批次成功后修改对象主键；某批失败则不回填，自己的事务会回滚。已有外层事务时只参与、不提交：后续外层回滚不会恢复已回填的对象主键，应重新构造对象。数据库可能因回滚留下自增空洞。回填暂存实体和键、更新删除的重复键校验会占用随输入数量增长的内存；无回填新增仍保持按批控制。
+- 所有直接操作立即执行，不依赖 SaveChanges、不更新或清空 ChangeTracker，也不自动保存上下文中其他修改。混用跟踪实体时应重新加载或明确分离，避免旧状态覆盖数据库；同一个 DbContext 不能并行执行。
+- 异常和取消向上抛出；失败时不返回空集合或 false。无已有事务时整次 bulk 调用统一提交或回滚；有事务时由调用方负责回滚，尤其不能在部分批次成功后继续提交。提交或清理阶段异常可能发生在数据库已提交之后，不应盲目重试。
+
 ## 版本与验证
 
 - 目标框架：.NET 8；EF Core / SQL Server provider：8.0.22；Pomelo MySQL provider：8.0.3。
@@ -235,3 +283,5 @@ dotnet add <项目路径> package M.Simple.EntityFrameworkCore.SqlServer --versi
 依赖还原还需启用 nuget.org 或具有对应 EF Core / 数据库驱动依赖的包源。源码示例使用项目引用，不依赖公开发布。
 
 可运行示例见 `M.Simple.EntityFrameworkCore.Sample`，初版未包含软删除、审计、多租户和缓存。
+
+2026-11-23 新增写入 API 验证：SQLite 共享事务、回填与仓储行为测试通过；本机 SQL Server 独立临时测试库验证原生主键回填（跨 1,000 条批次）、字段选择更新、批量删除、外层回滚及失败无回填通过，测试库已删除。MySQL 仅编译和模型配置验证，真实服务器测试尚未启用。

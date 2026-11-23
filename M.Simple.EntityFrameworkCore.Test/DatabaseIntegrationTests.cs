@@ -91,6 +91,8 @@ public sealed class DatabaseIntegrationTests
             }
             Assert.AreEqual(0, await repository.CountAsync());
 
+            await VerifyNewWriteOperations(repository, work, writer, db);
+
             // A second-chunk error must roll back the successful first chunk too.
             var invalid = Enumerable.Range(0, 1001).Select(i => new Product
                 { Name = i == 1000 ? new string('x', 200) : "valid" }).ToArray();
@@ -104,5 +106,46 @@ public sealed class DatabaseIntegrationTests
         {
             await db.Database.EnsureDeletedAsync();
         }
+    }
+    private static async Task VerifyNewWriteOperations(IRepository<Product, long> repository, IUnitOfWork work,
+        IBulkWriter writer, TestContext db)
+    {
+        var rows = Enumerable.Range(0, 1001).Select(i => new Product { Name = "key_" + i, Price = i }).ToArray();
+        await writer.BulkInsertAndReturnKeysAsync(rows);
+        Assert.AreEqual(1001, rows.Select(p => p.Id).Distinct().Count());
+        Assert.IsTrue(rows.All(p => p.Id > 0));
+        foreach (var row in new[] { rows[0], rows[500], rows[1000] })
+            Assert.AreEqual(row.Name, (await repository.GetByIdAsync(row.Id))!.Name);
+        Assert.AreEqual(0, db.ChangeTracker.Entries().Count());
+
+        // Update/delete must participate in the caller's transaction without any implicit commit.
+        await work.BeginTransactionAsync();
+        var changes = rows.Select(p => new Product { Id = p.Id, Price = 50, Name = "must-not-overwrite" }).ToArray();
+        Assert.AreEqual(1001, await writer.BulkUpdateAsync(changes, new BulkUpdateOptions<Product> { Properties = [p => p.Price] }));
+        Assert.AreEqual("key_500", (await repository.GetByIdAsync(rows[500].Id))!.Name);
+        Assert.AreEqual(50m, (await repository.GetByIdAsync(rows[500].Id))!.Price);
+        Assert.AreEqual(1001, await writer.BulkDeleteAsync(rows));
+        await work.RollbackTransactionAsync();
+        Assert.AreEqual(1001, await repository.CountAsync());
+        Assert.AreEqual(500m, (await repository.GetByIdAsync(rows[500].Id))!.Price);
+
+        // Conversion, default update columns and missing-key behavior.
+        Assert.AreEqual(1, await writer.BulkUpdateAsync([new Product { Id = rows[0].Id, Name = "all", Status = ProductStatus.Ready }]));
+        Assert.AreEqual(ProductStatus.Ready, (await repository.GetByIdAsync(rows[0].Id))!.Status);
+        Assert.AreEqual(0, await writer.BulkDeleteAsync([new Product { Id = long.MaxValue }]));
+        Assert.AreEqual(1, await repository.ExecuteUpdateAsync(p => p.Id == rows[0].Id, s => s.SetProperty(p => p.Name, "direct")));
+        Assert.AreEqual(1, await repository.ExecuteDeleteAsync(p => p.Id == rows[0].Id));
+        await writer.BulkDeleteAsync(rows.Skip(1));
+        Assert.AreEqual(0, await repository.CountAsync());
+
+        // No generated key is returned if a later input chunk fails; the first chunk is rolled back.
+        var invalid = Enumerable.Range(0, 1001).Select(i => new Product
+            { Name = i == 1000 ? new string('x', 200) : "valid" }).ToArray();
+        Exception? failure = null;
+        try { await writer.BulkInsertAndReturnKeysAsync(invalid); }
+        catch (Exception ex) { failure = ex; }
+        Assert.IsNotNull(failure);
+        Assert.IsTrue(invalid.All(p => p.Id == 0));
+        Assert.AreEqual(0, await repository.CountAsync());
     }
 }

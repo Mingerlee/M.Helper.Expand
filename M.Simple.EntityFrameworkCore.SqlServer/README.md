@@ -16,3 +16,7 @@ services.AddSimpleEfCoreSqlServer<AppDbContext>(connectionString);
 支持目标：SQL Server 2016+（兼容级别至少 130）。完整用法、事务规则、限制及测试步骤见核心包 README：`M.Simple.EntityFrameworkCore/README.md`。
 
 1.0.0.2 新增工作单元事务接口 BeginTransactionAsync / CommitTransactionAsync / RollbackTransactionAsync / SaveChangesAndCommitAsync；无需修改本适配包注册代码。见[工作单元事务说明](../M.Simple.EntityFrameworkCore/README.md#工作单元事务)。
+
+## 批量写入补充（新增源码功能）
+
+已实现 BulkUpdateAsync、BulkDeleteAsync、BulkInsertAndReturnKeysAsync，参与已有工作单元事务；尚未发布，1.0.0.2 暂不提供。方法、事务及主键回填限制见[核心包说明](../M.Simple.EntityFrameworkCore/README.md#仓储与批量写入补充新增源码功能)。
