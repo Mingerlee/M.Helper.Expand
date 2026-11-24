@@ -18,7 +18,7 @@ public interface IUnitOfWork
     /// <summary>Requires an owned transaction, saves changes, then commits. On failure the caller must roll back.</summary>
     Task<int> SaveChangesAndCommitAsync(CancellationToken cancellationToken = default);
 }
-public interface IRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>
+public interface IBasicRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>
 {
     IQueryable<TEntity> Query(bool tracking = false);
     Task<TEntity?> GetByIdAsync(TKey id, bool tracking = false, CancellationToken cancellationToken = default);
@@ -41,6 +41,12 @@ public interface IRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>
     void RemoveRange(IEnumerable<TEntity> entities);
     Task<bool> RemoveByIdAsync(TKey id, CancellationToken cancellationToken = default);
 }
+/// <summary>A basic repository for entities with an int primary key.</summary>
+public interface IBasicIntRepository<TEntity> : IBasicRepository<TEntity, int>
+    where TEntity : class, IEntity<int> { }
+/// <summary>A basic repository for entities with a long primary key.</summary>
+public interface IBasicLongRepository<TEntity> : IBasicRepository<TEntity, long>
+    where TEntity : class, IEntity<long> { }
 /// <summary>Immediate relational bulk operations. Existing EF transactions are reused; entities are not tracked.</summary>
 public interface IBulkWriter
 {

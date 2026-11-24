@@ -1,5 +1,7 @@
 # M.Simple.EntityFrameworkCore.SqlServer
 
+1.0.0.4：仓储接口由 `IRepository<TEntity, TKey>` 改名为 `IBasicRepository<TEntity, TKey>`，新增已自动注册的 `IBasicIntRepository<TEntity>` 和 `IBasicLongRepository<TEntity>`。升级时需修改原接口引用。
+
 .NET 8 / EF Core 8 的 SQL Server 适配包，自动依赖 `M.Simple.EntityFrameworkCore`，提供基础仓储注册和 `SqlBulkCopy` 批量新增。
 
 ```csharp
@@ -9,7 +11,7 @@ using M.Simple.EntityFrameworkCore.SqlServer;
 services.AddSimpleEfCoreSqlServer<AppDbContext>(connectionString);
 ```
 
-注入 `IRepository<TEntity, TKey>`、`IUnitOfWork`、`IBulkWriter` 使用。普通新增、修改、删除需调用工作单元保存；批量写入立即执行。
+注入 `IBasicRepository<TEntity, TKey>`、`IUnitOfWork`、`IBulkWriter` 使用。普通新增、修改、删除需调用工作单元保存；批量写入立即执行。
 
 首版支持简单单表批量写入，每批 1,000 条，自动创建事务或参与 EF 当前事务，不回填生成主键，生成列由数据库负责。启用约束检查、触发器并保留 NULL。继承、Owned、共享表等复杂映射不支持；批量操作不经过保存拦截器。
 

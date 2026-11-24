@@ -34,7 +34,7 @@ await using var provider = services.BuildServiceProvider();
 using var scope = provider.CreateScope();
 var db = scope.ServiceProvider.GetRequiredService<SampleContext>();
 await db.Database.EnsureCreatedAsync();
-var products = scope.ServiceProvider.GetRequiredService<IRepository<Product, long>>();
+var products = scope.ServiceProvider.GetRequiredService<IBasicLongRepository<Product>>();
 var work = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 await work.BeginTransactionAsync();
 

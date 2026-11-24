@@ -13,7 +13,7 @@ public class UnitOfWorkTransactionTests
     private IServiceScope _scope = null!;
     private TestContext Db => _scope.ServiceProvider.GetRequiredService<TestContext>();
     private IUnitOfWork Work => _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-    private IRepository<Product, long> Products => _scope.ServiceProvider.GetRequiredService<IRepository<Product, long>>();
+    private IBasicRepository<Product, long> Products => _scope.ServiceProvider.GetRequiredService<IBasicRepository<Product, long>>();
 
     [TestInitialize]
     public async Task Initialize()

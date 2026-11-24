@@ -15,7 +15,7 @@ public sealed class WriteOperationsTests
     private ServiceProvider _provider = null!;
     private IServiceScope _scope = null!;
     private TestContext Db => _scope.ServiceProvider.GetRequiredService<TestContext>();
-    private IRepository<Product, long> Products => _scope.ServiceProvider.GetRequiredService<IRepository<Product, long>>();
+    private IBasicRepository<Product, long> Products => _scope.ServiceProvider.GetRequiredService<IBasicRepository<Product, long>>();
     private IUnitOfWork Work => _scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
     private SqliteOperationWriter Writer => new(_scope.ServiceProvider.GetRequiredService<ISimpleDbContext>());
 

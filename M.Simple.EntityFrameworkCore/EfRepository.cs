@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace M.Simple.EntityFrameworkCore;
 
-public sealed class EfRepository<TEntity, TKey>(ISimpleDbContext accessor) : IRepository<TEntity, TKey>
+public class EfRepository<TEntity, TKey>(ISimpleDbContext accessor) : IBasicRepository<TEntity, TKey>
     where TEntity : class, IEntity<TKey>
 {
     private DbContext Context => accessor.Context;
@@ -118,3 +118,13 @@ public sealed class EfRepository<TEntity, TKey>(ISimpleDbContext accessor) : IRe
         }
     }
 }
+
+/// <summary>EF Core repository for entities with an int primary key.</summary>
+public sealed class EfIntRepository<TEntity>(ISimpleDbContext accessor)
+    : EfRepository<TEntity, int>(accessor), IBasicIntRepository<TEntity>
+    where TEntity : class, IEntity<int> { }
+
+/// <summary>EF Core repository for entities with a long primary key.</summary>
+public sealed class EfLongRepository<TEntity>(ISimpleDbContext accessor)
+    : EfRepository<TEntity, long>(accessor), IBasicLongRepository<TEntity>
+    where TEntity : class, IEntity<long> { }

@@ -17,7 +17,7 @@ public class RepositoryTests
     private ServiceProvider provider = null!;
     private IServiceScope scope = null!;
     private TestContext Db => scope.ServiceProvider.GetRequiredService<TestContext>();
-    private IRepository<Product, long> Products => scope.ServiceProvider.GetRequiredService<IRepository<Product, long>>();
+    private IBasicRepository<Product, long> Products => scope.ServiceProvider.GetRequiredService<IBasicRepository<Product, long>>();
     private IUnitOfWork Work => scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
     [TestInitialize]
@@ -67,7 +67,7 @@ public class RepositoryTests
     public async Task RepositoriesShareOneUnitOfWork()
     {
         Products.AddRange([new() { Name = "a" }, new() { Name = "b" }]);
-        var labels = scope.ServiceProvider.GetRequiredService<IRepository<Label, Guid>>();
+        var labels = scope.ServiceProvider.GetRequiredService<IBasicRepository<Label, Guid>>();
         var id = Guid.NewGuid();
         labels.Add(new Label { Id = id, Text = "label" });
         await Work.SaveChangesAsync();
@@ -202,7 +202,7 @@ public class RepositoryTests
             services.AddSimpleEfCoreSqlServer<TestContext>("Server=localhost;Database=unused;Integrated Security=true;TrustServerCertificate=true");
         using var container = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
         using var serviceScope = container.CreateScope();
-        var repository = serviceScope.ServiceProvider.GetRequiredService<IRepository<Product, long>>();
+        var repository = serviceScope.ServiceProvider.GetRequiredService<IBasicRepository<Product, long>>();
         var sql = repository.Query().Where(p => p.Id.Equals(1L)).OrderBy(p => p.Id).Skip(10).Take(20).ToQueryString();
         StringAssert.Contains(sql, database == "mysql" ? "LIMIT" : "OFFSET");
         var db = serviceScope.ServiceProvider.GetRequiredService<TestContext>();

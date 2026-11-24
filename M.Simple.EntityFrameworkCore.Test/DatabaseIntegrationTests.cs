@@ -43,7 +43,7 @@ public sealed class DatabaseIntegrationTests
         try
         {
             await db.Database.EnsureCreatedAsync();
-            var repository = scope.ServiceProvider.GetRequiredService<IRepository<Product, long>>();
+            var repository = scope.ServiceProvider.GetRequiredService<IBasicRepository<Product, long>>();
             var work = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
             var writer = scope.ServiceProvider.GetRequiredService<IBulkWriter>();
             var product = new Product { Name = "original", Price = 10 };
@@ -107,7 +107,7 @@ public sealed class DatabaseIntegrationTests
             await db.Database.EnsureDeletedAsync();
         }
     }
-    private static async Task VerifyNewWriteOperations(IRepository<Product, long> repository, IUnitOfWork work,
+    private static async Task VerifyNewWriteOperations(IBasicRepository<Product, long> repository, IUnitOfWork work,
         IBulkWriter writer, TestContext db)
     {
         var rows = Enumerable.Range(0, 1001).Select(i => new Product { Name = "key_" + i, Price = i }).ToArray();

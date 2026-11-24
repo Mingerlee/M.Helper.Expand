@@ -3,7 +3,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.0.3</Version>
+    <Version>1.0.0.4</Version>
+    <PackageReleaseNotes>Breaking change: IRepository is renamed to IBasicRepository. Added IBasicIntRepository and IBasicLongRepository with scoped DI registration.</PackageReleaseNotes>
     <Authors>Mr.Sunny</Authors>
     <Description>MySQL provider and native bulk insert for M.Simple.EntityFrameworkCore.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>

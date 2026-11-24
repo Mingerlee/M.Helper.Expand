@@ -1,15 +1,29 @@
 # M.Simple.EntityFrameworkCore
 
-.NET 8 / EF Core 8 基础数据访问包，当前版本为 `1.0.0.3`。提供单主键实体仓储、工作单元、条件查询、DTO 分页和原生批量写入契约。
+.NET 8 / EF Core 8 基础数据访问包，当前版本为 `1.0.0.4`。提供单主键实体仓储、工作单元、条件查询、DTO 分页和原生批量写入契约。
+
+## 仓储接口（1.0.0.4）
+
+通用仓储接口由 `IRepository<TEntity, TKey>` 改名为 `IBasicRepository<TEntity, TKey>`，保留主键类型参数和原有方法。升级时需要同步修改使用方的接口引用及自定义实现。
+
+常用主键类型可直接使用简写接口：
+
+```csharp
+IBasicIntRepository<Category> categories; // Category 实现 IEntity<int>
+IBasicLongRepository<Product> products;  // Product 实现 IEntity<long>
+IBasicRepository<Label, Guid> labels;    // 其他主键类型继续使用通用接口
+```
+
+两个简写接口分别继承 `IBasicRepository<TEntity, int>` 和 `IBasicRepository<TEntity, long>`，拥有相同方法。`AddSimpleEfCore` 及 SQL Server / MySQL 适配包注册方法会自动注册三种接口，均为 Scoped，共用当前作用域的 DbContext 和工作单元；通用接口与简写接口不保证是同一个仓储对象。
 
 ## 安装与注册
 
 通常只安装需要的适配包，核心包自动作为依赖引入：
 
 ```powershell
-dotnet add package M.Simple.EntityFrameworkCore.SqlServer --version 1.0.0.3
+dotnet add package M.Simple.EntityFrameworkCore.SqlServer --version 1.0.0.4
 # 或
-dotnet add package M.Simple.EntityFrameworkCore.MySql --version 1.0.0.3
+dotnet add package M.Simple.EntityFrameworkCore.MySql --version 1.0.0.4
 ```
 
 上述安装命令用于包发布后或配置本地包源后。本仓库默认只本地打包，不自动发布 NuGet。
@@ -58,7 +72,7 @@ services.AddSimpleEfCore<AppDbContext>(); // 只注册核心仓储与工作单�
 
 ## 基础 CRUD
 
-通过构造函数注入 `IRepository<Product, long>` 与 `IUnitOfWork`：
+通过构造函数注入 `IBasicRepository<Product, long>` 与 `IUnitOfWork`：
 
 ```csharp
 var product = new Product { Name = "示例商品", Price = 10 };
@@ -198,7 +212,7 @@ await products.Query().Where(p => p.Price == 0).ExecuteDeleteAsync(token);
 
 ## 仓储与批量写入补充（1.0.0.3）
 
-以下七个方法从 `1.0.0.3` 起提供，核心、SQL Server、MySQL 包已同步实现。自定义 `IRepository` / `IBulkWriter` 实现需要补齐新增接口成员。
+以下七个方法从 `1.0.0.3` 起提供，核心、SQL Server、MySQL 包已同步实现。自定义 `IBasicRepository` / `IBulkWriter` 实现需要补齐新增接口成员。
 
 | 方法 | 执行时机 | 返回 |
 |---|---|---|
@@ -277,7 +291,7 @@ dotnet test M.Simple.EntityFrameworkCore.Test/M.Simple.EntityFrameworkCore.Test.
 然后给项目添加适配包：
 
 ```powershell
-dotnet add <项目路径> package M.Simple.EntityFrameworkCore.SqlServer --version 1.0.0.3
+dotnet add <项目路径> package M.Simple.EntityFrameworkCore.SqlServer --version 1.0.0.4
 ```
 
 依赖还原还需启用 nuget.org 或具有对应 EF Core / 数据库驱动依赖的包源。源码示例使用项目引用，不依赖公开发布。
