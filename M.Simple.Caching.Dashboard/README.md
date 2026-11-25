@@ -1,13 +1,13 @@
 # M.Simple.Caching.Dashboard
 
-.NET 8 嵌入式缓存管理页面，项目版本 **1.0.0.3**。支持 Memory、Redis、MongoDB，复用宿主认证授权，无需单独部署前端。本版扩展为四种管理范围，默认保持当前应用范围。All 的含义已变更为全部数据，原 All 行为改用 AllManaged。
+.NET 8 嵌入式缓存管理页面，项目版本 **1.0.0.4**。支持 Memory、Redis、MongoDB，复用宿主认证授权，无需单独部署前端。本版扩展为四种管理范围，默认保持当前应用范围。All 的含义已变更为全部数据，原 All 行为改用 AllManaged。
 
 ## 安装与接入
 
 安装 Dashboard 和所选后端包。Dashboard 自动依赖核心包；使用内存时无需额外安装其他缓存包。使用 Redis/MongoDB 时，还需安装对应后端包。配套核心及 MongoDB 后端版本为 1.0.0.4，Redis 后端为 1.0.0.5（支持 Redis 3.2+），不能搭配缺少管理接口的旧版 DLL。
 
 ```powershell
-dotnet add package M.Simple.Caching.Dashboard --version 1.0.0.3
+dotnet add package M.Simple.Caching.Dashboard --version 1.0.0.4
 # Redis 后端另加 M.Simple.Caching.Redis --version 1.0.0.5；MongoDB 后端另加 M.Simple.Caching.MongoDB --version 1.0.0.4。
 ```
 
@@ -34,7 +34,7 @@ app.UseAuthorization();
 app.MapSimpleCacheDashboard("/cache").RequireAuthorization("CacheAdmin");
 ```
 
-浏览器访问 /cache/。页面、脚本、样式及全部 API 默认要求登录，可在返回的路由组增加权限策略。Cookie 登录适合浏览器直接访问；JWT 宿主需要让页面请求能够通过宿主认证（例如宿主认证 Cookie 或代理），页面不保存或拼接访问令牌。不要对管理路由使用 AllowAnonymous。
+浏览器访问 /cache/。页面、脚本、样式及全部 API 默认要求登录，可在返回的路由组增加权限策略。Cookie 登录适合浏览器直接访问；JWT 宿主需要让页面请求能够通过宿主认证（例如宿主认证 Cookie 或代理），页面不保存或拼接访问令牌。如需匿名访问，可显式调用 `app.MapSimpleCacheDashboard("/cache").AllowAnonymous()`；只读面板可同时设置 `ReadOnly = true`，删除及预览接口仍返回 403。未配置 AllowAnonymous 时继续要求登录。
 
 Redis/MongoDB 项目将 AddSimpleMemoryCache 替换为对应后端注册，不要同时注册两个后端。仅使用业务缓存、不接管理页面时，原有注册方式不受影响。自定义后端需要额外实现 ISimpleCacheAdminStore。
 

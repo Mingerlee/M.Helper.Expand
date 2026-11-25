@@ -28,7 +28,7 @@ public sealed class DashboardIntegrationTests
     [TestInitialize]
     public Task Start() => StartHost();
 
-    private async Task StartHost(Action<SimpleCacheDashboardOptions>? configure = null)
+    private async Task StartHost(Action<SimpleCacheDashboardOptions>? configure = null, bool allowAnonymous = false)
     {
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:0");
@@ -43,7 +43,8 @@ public sealed class DashboardIntegrationTests
         _app.UsePathBase("/tools");
         _app.UseAuthentication();
         _app.UseAuthorization();
-        _app.MapSimpleCacheDashboard("/cache").RequireAuthorization("CacheAdmin");
+        var dashboard = _app.MapSimpleCacheDashboard("/cache").RequireAuthorization("CacheAdmin");
+        if (allowAnonymous) dashboard.AllowAnonymous();
         await _app.StartAsync();
         var address = _app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
         _http = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false }) { BaseAddress = new Uri(address + "/tools/cache/") };
@@ -71,6 +72,26 @@ public sealed class DashboardIntegrationTests
         var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = JsonContent.Create(body) };
         request.Headers.Add(token.GetProperty("header").GetString()!, token.GetProperty("token").GetString());
         return await _http.SendAsync(request);
+    }
+
+    [TestMethod]
+    public async Task ExplicitAllowAnonymousOpensPageAssetsAndReadApisButKeepsReadOnlyProtection()
+    {
+        await Stop();
+        await StartHost(o => o.ReadOnly = true, allowAnonymous: true);
+        _http.DefaultRequestHeaders.Remove("X-Test-User");
+        await Cache.SetAsync("a", 1);
+        foreach (var path in new[] { "", "dashboard.js", "dashboard.css", "api/token", "api/status", "api/entries", "api/entry?key=a", "api/operations" })
+        {
+            using var response = await _http.GetAsync(path);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, path);
+        }
+        foreach (var path in new[] { "api/remove", "api/preview", "api/clear" })
+        {
+            using var response = await _http.PostAsJsonAsync(path, new { keys = new[] { "a" } });
+            Assert.AreEqual(HttpStatusCode.Forbidden, response.StatusCode, path);
+        }
+        Assert.IsTrue(await Cache.ExistsAsync("a"));
     }
 
     [TestMethod]

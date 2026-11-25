@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -50,7 +51,8 @@ public static class SimpleCacheDashboardExtensions
             http.Response.Headers["X-Content-Type-Options"] = "nosniff";
             http.Response.Headers["Referrer-Policy"] = "no-referrer";
             http.Response.Headers["Content-Security-Policy"] = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
-            if (http.User.Identity?.IsAuthenticated != true) return Results.Unauthorized();
+            if (http.GetEndpoint()?.Metadata.GetMetadata<IAllowAnonymous>() is null &&
+                http.User.Identity?.IsAuthenticated != true) return Results.Unauthorized();
             try
             {
                 if (HttpMethods.IsPost(http.Request.Method))
