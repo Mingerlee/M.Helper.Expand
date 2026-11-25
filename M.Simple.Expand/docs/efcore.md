@@ -14,6 +14,22 @@ dotnet add package M.Simple.EntityFrameworkCore --version 1.0.0.4
 
 包源需包含该版本。安装包不会自动执行注册；保留项目原有配置，无需添加示例接口。
 
+## appsettings.json 配置
+
+在 API 项目的 `appsettings.json` 中合并以下示例，替换为实际环境值：
+
+```json
+{
+  "ConnectionStrings": {
+    "Default": "Server=localhost;Database=your_database;Integrated Security=true;TrustServerCertificate=true;"
+  }
+}
+```
+
+本页核心包示例选择 SQL Server 提供程序，连接串通过 GetConnectionString("Default") 读取。MySQL 项目改用对应适配包页面的配置；同一示例中的 Default 只配置当前选用的数据库。
+
+真实凭据可通过 User Secrets 或环境变量覆盖，不必写入配置文件；环境变量将键中的冒号替换为双下划线，例如 `ConnectionStrings__Default`。
+
 ## Program.cs 配置
 
 ```csharp
@@ -23,6 +39,9 @@ using Microsoft.EntityFrameworkCore; // 本次新增：引入本包接入所需�
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+// 本次新增：读取数据库连接串。
+var connectionString = builder.Configuration.GetConnectionString("Default")
+    ?? throw new InvalidOperationException("ConnectionStrings:Default is not configured.");
 // 本次新增：使用已有数据库提供程序配置上下文，随后注册核心仓储和工作单元。
 builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddSimpleEfCore<AppDbContext>();

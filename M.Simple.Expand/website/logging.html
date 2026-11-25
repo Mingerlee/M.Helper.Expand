@@ -25,6 +25,41 @@ app.MapControllers();
 app.MapSimpleLogDashboard(&quot;/logs&quot;).RequireAuthorization(&quot;LogAdmin&quot;); // 本次新增（可选）：映射受 LogAdmin 策略保护的日志工作台。
 app.Run();</code></pre></div>
 <p>认证方案及上述授权策略由宿主已有配置提供，示例不代替认证注册。</p>
+<h2 id="按日志级别和分类筛选">按日志级别和分类筛选</h2>
+<p>在已有 AddSimpleLogging() 之后、builder.Build() 之前添加。普通日志只记录 Error/Critical，指定分类额外保留 Information：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Logging; // 本次新增：SimpleLoggerProvider 类型。
+using Microsoft.Extensions.Logging; // 本次新增：日志级别与筛选扩展。
+
+// 本次新增：设置本包日志提供程序的默认最低级别。
+builder.Logging.AddFilter&lt;SimpleLoggerProvider&gt;((_, level) =&gt; level &gt;= LogLevel.Error);
+// 本次新增：覆盖包内 Microsoft.AspNetCore 默认 Warning 规则。
+builder.Logging.AddFilter&lt;SimpleLoggerProvider&gt;(&quot;Microsoft.AspNetCore&quot;, LogLevel.Error);
+// 本次新增：保留缓存管理操作的 Information 日志。
+builder.Logging.AddFilter&lt;SimpleLoggerProvider&gt;(&quot;M.Simple.Caching.Dashboard&quot;, LogLevel.Information);
+// 本次新增：为指定 AOP 业务类放行 Information，替换为实际日志分类。
+builder.Logging.AddFilter&lt;SimpleLoggerProvider&gt;(
+    &quot;M.Simple.Example.Api.Services.ExampleMethodInterceptor&quot;, LogLevel.Information);
+builder.Logging.AddFilter&lt;SimpleLoggerProvider&gt;(
+    &quot;M.Simple.Example.Api.Services.NamedMethodOrderExample&quot;, LogLevel.Information);</code></pre></div>
+<p>这些规则只影响 SimpleLoggerProvider，不改变 Console 等其他提供程序。ILogger&lt;T&gt; 的分类通常为 T 的完整名称；CreateLogger(name) 则使用传入名称。放行分类不会自动生成日志，业务仍需调用 LogInformation 等方法。</p>
+<p>分类按名称前缀匹配，更长、更具体的规则优先；同一提供程序和同长度分类规则采用后注册的规则。因此放在 AddSimpleLogging() 之后，才能覆盖包内 Microsoft.AspNetCore 的默认筛选。</p>
+<p><strong>包内 MinimumLevel 仍是另一道最低级别限制。</strong> 保留默认 Information，才能使用上述分类放行；若 options.MinimumLevel 为 Error，分类允许 Information 也不会保存。需要 Debug/Trace 时，包内 MinimumLevel 和宿主筛选必须同时允许。</p>
+<h3 id="appsettingsjson-配置替代写法">appsettings.json 配置替代写法</h3>
+<p>可使用标准 ASP.NET Core Logging 配置为提供程序别名 Simple 设置筛选。与上方代码选择一种方式管理同一批规则：</p>
+<div class="code-block"><div class="code-toolbar"><span>json</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="json">{
+  &quot;Logging&quot;: {
+    &quot;Simple&quot;: {
+      &quot;LogLevel&quot;: {
+        &quot;Default&quot;: &quot;Error&quot;,
+        &quot;Microsoft.AspNetCore&quot;: &quot;Error&quot;,
+        &quot;M.Simple.Caching.Dashboard&quot;: &quot;Information&quot;,
+        &quot;M.Simple.Example.Api.Services.ExampleMethodInterceptor&quot;: &quot;Information&quot;,
+        &quot;M.Simple.Example.Api.Services.NamedMethodOrderExample&quot;: &quot;Information&quot;
+      }
+    }
+  }
+}</code></pre></div>
+<p>Simple 对应本包的 ProviderAlias。此配置不自动绑定 DatabasePath、DashboardTitle 或请求上下文开关；业务类的分类名称按实际项目替换。</p>
 <h2 id="使用说明">使用说明</h2>
 <p>日志目录需要写入权限，相对路径基于 AppContext.BaseDirectory。注册不会清除宿主已有日志提供程序。请求采集为可选功能；不采集请求头、Cookie 或响应体。与统一响应包协作去重需核对两个实际安装版本；Response 1.0.0.1 不应直接视为具备 README 中标注的 1.0.1 去重能力。</p>
 <h2 id="自动附带错误请求参数可选">自动附带错误请求参数（可选）</h2>
@@ -109,4 +144,26 @@ logger.LogError(false, &quot;无需请求上下文的错误&quot;); // 单独关
     options.IncludeContextInUnhandledExceptions = true; // 本次新增：仅开启未处理异常自动日志的上下文。
 });</code></pre></div>
 <p>IncludeContextInUnhandledExceptions 为可空布尔值：true 开启、false 关闭，未配置（null）跟随 IncludeInErrorLogs，保持原行为。它只影响事件号 1001 的自动异常日志，不改变普通 Error/Critical 或单条日志开关。配置合并到已有的请求中间件调用中。</p>
-<p>上下文位于日志详情的结构化属性 Request；仍遵循 ShouldCapture 路径筛选、IncludeBody、脱敏与大小限制。LogUnhandledExceptions=false 时不生成自动异常日志，单独开启上下文不会额外生成日志。中间件需位于宿主异常处理之后、接口执行之前，使其能够捕获异常；采用统一响应时推荐 UseUnifiedResponse() → UseSimpleLoggingRequestContext() → 接口执行。该选项从 1.0.1.6 起提供，也可使用当前源码引用。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#自动附带错误请求参数可选">自动附带错误请求参数（可选）</a><a class="toc-level-3" href="#与统一响应包配合">与统一响应包配合</a><a class="toc-level-3" href="#按单条错误日志开启或关闭">按单条错误日志开启或关闭</a><a class="toc-level-2" href="#配置">配置</a><a class="toc-level-2" href="#页面与-api">页面与 API</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a><a class="toc-level-2" href="#浏览器标签页标题">浏览器标签页标题</a><a class="toc-level-2" href="#单独控制未处理异常的上下文">单独控制未处理异常的上下文</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
+<p>上下文位于日志详情的结构化属性 Request；仍遵循 ShouldCapture 路径筛选、IncludeBody、脱敏与大小限制。LogUnhandledExceptions=false 时不生成自动异常日志，单独开启上下文不会额外生成日志。中间件需位于宿主异常处理之后、接口执行之前，使其能够捕获异常；采用统一响应时推荐 UseUnifiedResponse() → UseSimpleLoggingRequestContext() → 接口执行。该选项从 1.0.1.6 起提供，也可使用当前源码引用。</p>
+<h2 id="业务日志使用示例">业务日志使用示例</h2>
+<p>业务类通过构造函数注入 ILogger&lt;T&gt;，不需要自行创建日志提供程序：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using Microsoft.Extensions.Logging;
+using M.Simple.Logging;
+
+public sealed class OrderAuditService(ILogger&lt;OrderAuditService&gt; logger)
+{
+    public void RecordCreated(long orderId)
+    {
+        using var scope = logger.BeginScope(new Dictionary&lt;string, object?&gt;
+        {
+            [&quot;OrderId&quot;] = orderId
+        });
+        logger.LogInformation(&quot;订单 {OrderId} 创建成功&quot;, orderId);
+    }
+
+    public void RecordFailure(long orderId, Exception exception)
+    {
+        logger.LogError(true, exception, &quot;订单 {OrderId} 保存失败&quot;, orderId);
+    }
+}</code></pre></div>
+<p>在 Build() 前注册 AddScoped&lt;OrderAuditService&gt;()，由现有业务流程注入并调用 RecordCreated / RecordFailure。方法内不再抛出或吞掉业务异常，异常传播由调用方决定。单条 true 仅在已安装请求采集中间件、当前请求允许采集时附带上下文；后台调用仍可写日志，但不会凭空生成请求上下文。Information 需满足前述分类筛选和 MinimumLevel 才会保存。登录具备 LogAdmin 权限的账号后访问 /logs，按 OrderAuditService 完整分类或 OrderId 关键词查询记录。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#按日志级别和分类筛选">按日志级别和分类筛选</a><a class="toc-level-3" href="#appsettingsjson-配置替代写法">appsettings.json 配置替代写法</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#自动附带错误请求参数可选">自动附带错误请求参数（可选）</a><a class="toc-level-3" href="#与统一响应包配合">与统一响应包配合</a><a class="toc-level-3" href="#按单条错误日志开启或关闭">按单条错误日志开启或关闭</a><a class="toc-level-2" href="#配置">配置</a><a class="toc-level-2" href="#页面与-api">页面与 API</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a><a class="toc-level-2" href="#浏览器标签页标题">浏览器标签页标题</a><a class="toc-level-2" href="#单独控制未处理异常的上下文">单独控制未处理异常的上下文</a><a class="toc-level-2" href="#业务日志使用示例">业务日志使用示例</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

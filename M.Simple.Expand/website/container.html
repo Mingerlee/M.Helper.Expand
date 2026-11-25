@@ -63,4 +63,28 @@ app.Run();</code></pre></div>
 <p>此配置可替换无参数的 <code>UseSimpleContainer()</code>，通常保留默认值即可。</p>
 <ol><li>找不到业务程序集：检查 API 项目是否引用 Business / Repository 项目，程序集名称是否与输出文件一致。</li><li>无法解析业务接口：检查实现类是否在传入的程序集内、是否实现该接口，以及筛选条件是否排除了该类型。</li><li>提示缺少构造函数依赖：检查数据库上下文、配置及其他依赖是否均已注册；程序集扫描不会替代数据库等基础服务的配置。</li><li>已有 Autofac：使用本容器接入时移除原 Autofac 服务提供程序工厂接入，并将其扫描注册迁移为相应配置，避免多个容器工厂覆盖。</li></ol>
 <h2 id="适用范围">适用范围</h2>
-<p>支持标准命名服务注册、同步及异步资源释放。尚不支持 Native AOT、属性注入、拦截器、子容器注册覆盖或运行期间修改注册。它与 <code>M.Simple.Services.DependencyInjection</code> 是不同的包，使用各自对应的命名空间和 API。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#接入与扫描的区别">接入与扫描的区别</a><a class="toc-level-2" href="#程序集扫描规则">程序集扫描规则</a><a class="toc-level-2" href="#按接口筛选与指定生命周期">按接口筛选与指定生命周期</a><a class="toc-level-2" href="#默认校验与常见问题">默认校验与常见问题</a><a class="toc-level-2" href="#适用范围">适用范围</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
+<p>支持标准命名服务注册、同步及异步资源释放。尚不支持 Native AOT、属性注入、拦截器、子容器注册覆盖或运行期间修改注册。它与 <code>M.Simple.Services.DependencyInjection</code> 是不同的包，使用各自对应的命名空间和 API。</p>
+<h2 id="业务服务注入与调用示例">业务服务注入与调用示例</h2>
+<p>下面的接口和实现放在项目已有业务程序集中；无需新增控制器：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">public interface IPriceService
+{
+    decimal Calculate(decimal price, int quantity);
+}
+
+public sealed class PriceService : IPriceService
+{
+    public decimal Calculate(decimal price, int quantity) =&gt; price * quantity;
+}
+
+public sealed class CheckoutService(IPriceService prices)
+{
+    public decimal GetTotal() =&gt; prices.Calculate(19.90m, 2);
+}</code></pre></div>
+<p>Build() 前显式注册，或用前述扫描注册 IPriceService；两种方式选一种，CheckoutService 没有接口时需要注册自身：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">builder.Services.AddScoped&lt;IPriceService, PriceService&gt;();
+builder.Services.AddScoped&lt;CheckoutService&gt;();</code></pre></div>
+<p>现有业务类注入 CheckoutService 后调用 GetTotal()，结果为 39.80。控制台或后台任务可按作用域解析：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">await using var scope = app.Services.CreateAsyncScope();
+var checkout = scope.ServiceProvider.GetRequiredService&lt;CheckoutService&gt;();
+decimal total = checkout.GetTotal();</code></pre></div>
+<p>app 为已构建的应用，解析扩展需要 Microsoft.Extensions.DependencyInjection。Web 请求内优先构造函数注入，不要从根容器直接获取 Scoped 服务。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#接入与扫描的区别">接入与扫描的区别</a><a class="toc-level-2" href="#程序集扫描规则">程序集扫描规则</a><a class="toc-level-2" href="#按接口筛选与指定生命周期">按接口筛选与指定生命周期</a><a class="toc-level-2" href="#默认校验与常见问题">默认校验与常见问题</a><a class="toc-level-2" href="#适用范围">适用范围</a><a class="toc-level-2" href="#业务服务注入与调用示例">业务服务注入与调用示例</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

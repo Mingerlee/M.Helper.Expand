@@ -141,3 +141,23 @@ Dashboard 自身不会重复写另一套持久日志。最近操作 API 为当�
 ## 接入注意事项
 
 使用当前配套版本：核心 1.0.0.5、Redis 1.0.0.6、MongoDB 1.0.0.5、Dashboard 1.0.0.3。只选择一个后端。ReadOnly=false 才启用修改操作，删除需经过服务端防伪校验。
+
+## 工作台实际使用流程
+
+完成前述后端注册、认证和 CacheAdmin 策略配置后，先通过现有业务流程写入一条缓存。下面 cache 为已注入的 ISimpleCache：
+
+```csharp
+await cache.SetAsync("demo:customer:1", new { Id = 1, Name = "客户 A" },
+    new SimpleCacheEntryOptions
+    {
+        AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+    }, token);
+```
+
+1. 使用具备 CacheAdmin 权限的账号登录宿主，打开 /cache/。
+2. 默认 CurrentApplication 模式下搜索 demo:customer:，查看条目及 JSON 详情；前缀由后端 KeyPrefix 指定，不需要在搜索中重复输入。
+3. ReadOnly=true 时只能查看。如业务需要管理删除，在已有 AddSimpleCacheDashboard 配置中设置 ReadOnly=false。
+4. 删除单条缓存，或输入前缀后先预览、再确认删除。页面负责携带防伪令牌。
+5. 再次执行 ExistsAsync("demo:customer:1") 应为 false；若后台业务同时重建缓存，该键可能重新出现。
+
+示例对象用于工作台查看；业务读取时应使用与写入一致的类型。Prefixes、All、AllManaged 模式的搜索和操作使用完整 Key，按页面显示范围操作。不要为了访问页面将管理端点改成匿名。

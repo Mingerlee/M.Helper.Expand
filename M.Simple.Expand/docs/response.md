@@ -93,3 +93,25 @@ return BadRequest(new ApiResponse<object?>(400, "业务校验失败", null));
 ## 接入注意事项
 
 仅 AddUnifiedResponseSwagger 不会修改实际响应。文件、重定向、显式文本和流式结果保留协议语义；不自动包装 Minimal API。
+
+## 已有控制器中的实际返回示例
+
+以下代码分别放在现有控制器方法中，根据业务结果选择一个返回，不需要新增 HTTP 接口：
+
+```csharp
+return Ok(product);
+```
+
+product 为已有业务对象；统一响应会自动将它放入 data。业务校验失败可以继续返回原有 HTTP 错误结果：
+
+```csharp
+return BadRequest(new { reason = "商品状态不允许修改" });
+```
+
+返回 HTTP 400，code 为 400，业务对象放入 data；message 使用该状态的默认消息。需要自定义顶层 message 时手动返回 ApiResponse，过滤器不会再次包装：
+
+```csharp
+return BadRequest(new ApiResponse<object?>(400, "商品状态不允许修改", null));
+```
+
+ApiResponse 位于 M.Simple.AspNetCore.Response。使用现有客户端或 Swagger 执行原接口，检查 HTTP 状态和 code 一致，并核对 data；异常处理示例无需人为新增抛错接口。

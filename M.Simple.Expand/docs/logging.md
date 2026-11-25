@@ -37,6 +37,55 @@ app.Run();
 
 认证方案及上述授权策略由宿主已有配置提供，示例不代替认证注册。
 
+## 按日志级别和分类筛选
+
+在已有 AddSimpleLogging() 之后、builder.Build() 之前添加。普通日志只记录 Error/Critical，指定分类额外保留 Information：
+
+```csharp
+using M.Simple.Logging; // 本次新增：SimpleLoggerProvider 类型。
+using Microsoft.Extensions.Logging; // 本次新增：日志级别与筛选扩展。
+
+// 本次新增：设置本包日志提供程序的默认最低级别。
+builder.Logging.AddFilter<SimpleLoggerProvider>((_, level) => level >= LogLevel.Error);
+// 本次新增：覆盖包内 Microsoft.AspNetCore 默认 Warning 规则。
+builder.Logging.AddFilter<SimpleLoggerProvider>("Microsoft.AspNetCore", LogLevel.Error);
+// 本次新增：保留缓存管理操作的 Information 日志。
+builder.Logging.AddFilter<SimpleLoggerProvider>("M.Simple.Caching.Dashboard", LogLevel.Information);
+// 本次新增：为指定 AOP 业务类放行 Information，替换为实际日志分类。
+builder.Logging.AddFilter<SimpleLoggerProvider>(
+    "M.Simple.Example.Api.Services.ExampleMethodInterceptor", LogLevel.Information);
+builder.Logging.AddFilter<SimpleLoggerProvider>(
+    "M.Simple.Example.Api.Services.NamedMethodOrderExample", LogLevel.Information);
+```
+
+这些规则只影响 SimpleLoggerProvider，不改变 Console 等其他提供程序。ILogger<T> 的分类通常为 T 的完整名称；CreateLogger(name) 则使用传入名称。放行分类不会自动生成日志，业务仍需调用 LogInformation 等方法。
+
+分类按名称前缀匹配，更长、更具体的规则优先；同一提供程序和同长度分类规则采用后注册的规则。因此放在 AddSimpleLogging() 之后，才能覆盖包内 Microsoft.AspNetCore 的默认筛选。
+
+**包内 MinimumLevel 仍是另一道最低级别限制。** 保留默认 Information，才能使用上述分类放行；若 options.MinimumLevel 为 Error，分类允许 Information 也不会保存。需要 Debug/Trace 时，包内 MinimumLevel 和宿主筛选必须同时允许。
+
+### appsettings.json 配置替代写法
+
+可使用标准 ASP.NET Core Logging 配置为提供程序别名 Simple 设置筛选。与上方代码选择一种方式管理同一批规则：
+
+```json
+{
+  "Logging": {
+    "Simple": {
+      "LogLevel": {
+        "Default": "Error",
+        "Microsoft.AspNetCore": "Error",
+        "M.Simple.Caching.Dashboard": "Information",
+        "M.Simple.Example.Api.Services.ExampleMethodInterceptor": "Information",
+        "M.Simple.Example.Api.Services.NamedMethodOrderExample": "Information"
+      }
+    }
+  }
+}
+```
+
+Simple 对应本包的 ProviderAlias。此配置不自动绑定 DatabasePath、DashboardTitle 或请求上下文开关；业务类的分类名称按实际项目替换。
+
 ## 使用说明
 
 日志目录需要写入权限，相对路径基于 AppContext.BaseDirectory。注册不会清除宿主已有日志提供程序。请求采集为可选功能；不采集请求头、Cookie 或响应体。与统一响应包协作去重需核对两个实际安装版本；Response 1.0.0.1 不应直接视为具备 README 中标注的 1.0.1 去重能力。
@@ -200,3 +249,31 @@ app.UseSimpleLoggingRequestContext(options =>
 IncludeContextInUnhandledExceptions 为可空布尔值：true 开启、false 关闭，未配置（null）跟随 IncludeInErrorLogs，保持原行为。它只影响事件号 1001 的自动异常日志，不改变普通 Error/Critical 或单条日志开关。配置合并到已有的请求中间件调用中。
 
 上下文位于日志详情的结构化属性 Request；仍遵循 ShouldCapture 路径筛选、IncludeBody、脱敏与大小限制。LogUnhandledExceptions=false 时不生成自动异常日志，单独开启上下文不会额外生成日志。中间件需位于宿主异常处理之后、接口执行之前，使其能够捕获异常；采用统一响应时推荐 UseUnifiedResponse() → UseSimpleLoggingRequestContext() → 接口执行。该选项从 1.0.1.6 起提供，也可使用当前源码引用。
+
+## 业务日志使用示例
+
+业务类通过构造函数注入 ILogger<T>，不需要自行创建日志提供程序：
+
+```csharp
+using Microsoft.Extensions.Logging;
+using M.Simple.Logging;
+
+public sealed class OrderAuditService(ILogger<OrderAuditService> logger)
+{
+    public void RecordCreated(long orderId)
+    {
+        using var scope = logger.BeginScope(new Dictionary<string, object?>
+        {
+            ["OrderId"] = orderId
+        });
+        logger.LogInformation("订单 {OrderId} 创建成功", orderId);
+    }
+
+    public void RecordFailure(long orderId, Exception exception)
+    {
+        logger.LogError(true, exception, "订单 {OrderId} 保存失败", orderId);
+    }
+}
+```
+
+在 Build() 前注册 AddScoped<OrderAuditService>()，由现有业务流程注入并调用 RecordCreated / RecordFailure。方法内不再抛出或吞掉业务异常，异常传播由调用方决定。单条 true 仅在已安装请求采集中间件、当前请求允许采集时附带上下文；后台调用仍可写日志，但不会凭空生成请求上下文。Information 需满足前述分类筛选和 MinimumLevel 才会保存。登录具备 LogAdmin 权限的账号后访问 /logs，按 OrderAuditService 完整分类或 OrderId 关键词查询记录。

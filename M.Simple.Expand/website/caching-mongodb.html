@@ -7,6 +7,15 @@
 <p>在使用方项目目录执行，或通过 --project 指定项目：</p>
 <div class="code-block"><div class="code-toolbar"><span>powershell</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="powershell">dotnet add package M.Simple.Caching.MongoDB --version 1.0.0.5</code></pre></div>
 <p>包源需包含该版本。安装包不会自动执行注册；保留项目原有配置，无需添加示例接口。</p>
+<h2 id="appsettingsjson-配置">appsettings.json 配置</h2>
+<p>在 API 项目的 <code>appsettings.json</code> 中合并以下示例，替换为实际环境值：</p>
+<div class="code-block"><div class="code-toolbar"><span>json</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="json">{
+  &quot;ConnectionStrings&quot;: {
+    &quot;MongoDB&quot;: &quot;mongodb://127.0.0.1:27017/&quot;
+  }
+}</code></pre></div>
+<p>对应 GetConnectionString(&quot;MongoDB&quot;) 读取的 ConnectionStrings:MongoDB。数据库名和集合名由下方 DatabaseName、CollectionName 指定；如需认证或 TLS，在连接串中配置相应选项。</p>
+<p>真实凭据可通过 User Secrets 或环境变量覆盖，不必写入配置文件；环境变量将键中的冒号替换为双下划线，例如 <code>ConnectionStrings__MongoDB</code>。</p>
 <h2 id="programcs-配置">Program.cs 配置</h2>
 <div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Caching.MongoDB; // 本次新增：引入本包接入所需扩展或类型。
 
@@ -34,4 +43,34 @@ app.Run();</code></pre></div>
 <p>新增 ISimpleNativeCache，按完整 Key 精确匹配字符串 _id，使用 BSON 驱动映射整文档为 T；可返回 BsonDocument 或原始 BSON byte[]，不会自动读取本包 payload，也不会猜测 ObjectId。不创建 TTL 索引，不刷新有效期，不把业务 expiresAt 字段视为逻辑过期；服务器尚未物理清理的文档仍可读。</p>
 <p>读取范围通过 AddSimpleNativeCache 独立配置，默认 CurrentApplication，不受 Dashboard.Scope 扩大影响；超过 MaxPayloadBytes 时通过服务器投影限制正文传输并报错。JSON/BSON 映射规则、范围与可运行示例见<a href="caching.html#独立原生读取">核心说明</a>。</p>
 <h2 id="接入注意事项">接入注意事项</h2>
-<p>只注册一个后端。首次缓存操作创建 TTL 索引，账号需具备目标集合的索引创建和读写权限。TTL 后台清理有延迟，但缓存接口会过滤逻辑过期项。原生文档读取与缓存 payload 读取是不同接口。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#独立业务原生读取">独立业务原生读取</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
+<p>只注册一个后端。首次缓存操作创建 TTL 索引，账号需具备目标集合的索引创建和读写权限。TTL 后台清理有延迟，但缓存接口会过滤逻辑过期项。原生文档读取与缓存 payload 读取是不同接口。</p>
+<h2 id="业务缓存使用示例">业务缓存使用示例</h2>
+<p>MongoDB 后端仍通过 ISimpleCache 读写，无需在业务类中直接调用 MongoDB 驱动：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Caching;
+
+public sealed record CustomerDto(long Id, string Name);
+
+public sealed class CustomerCacheService(ISimpleCache cache)
+{
+    public Task SaveAsync(CustomerDto customer, CancellationToken token = default)
+        =&gt; cache.SetAsync($&quot;customer:{customer.Id}&quot;, customer,
+            new SimpleCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            }, token);
+
+    public Task&lt;CacheResult&lt;CustomerDto&gt;&gt; FindAsync(long id, CancellationToken token = default)
+        =&gt; cache.TryGetAsync&lt;CustomerDto&gt;($&quot;customer:{id}&quot;, token);
+
+    public Task RemoveAsync(long id, CancellationToken token = default)
+        =&gt; cache.RemoveAsync($&quot;customer:{id}&quot;, token);
+}</code></pre></div>
+<p>Build() 前注册 AddScoped&lt;CustomerCacheService&gt;()，在现有业务类中注入后调用：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">await customers.SaveAsync(new CustomerDto(1, &quot;客户 A&quot;), token);
+var result = await customers.FindAsync(1, token);
+if (result.Found)
+{
+    CustomerDto? customer = result.Value;
+}
+await customers.RemoveAsync(1, token);</code></pre></div>
+<p>customers 为已注入服务，token 为取消令牌。仅传相对 Key，前缀由包添加；读取泛型类型与写入保持一致。未命中加载、空值缓存和滑动过期用法与<a href="caching.html">缓存核心示例</a>一致。数据库提交成功后再删除相关缓存，缓存不参与数据库事务。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#appsettingsjson-配置">appsettings.json 配置</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#独立业务原生读取">独立业务原生读取</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a><a class="toc-level-2" href="#业务缓存使用示例">业务缓存使用示例</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

@@ -28,6 +28,20 @@ static partial class Demo
 
 示例与其他文件共享 Demo.Check 和辅助模型；完整上下文见[示例项目](../samples/README.md)。
 
+## JSON 配置文件示例
+
+上方示例实际读取 `sample-settings.json`，文件内容如下：
+
+```json
+{
+  "Demo": {
+    "Name": "M.Simple.Expand"
+  }
+}
+```
+
+使用 AppSetting 静态入口时，将相同结构放入当前工作目录的 `appsettings.json`；Demo:Name 对应 JSON 中 Demo 下的 Name。上方 ConfigurationBuilder 示例不会自动改为读取 appsettings.json，需相应修改 AddJsonFileWithBasePath 的文件名。
+
 ## 使用规则与边界
 
 - SetConfigurationBasePath 记录基础路径；AddJsonFileWithBasePath 按路径组合后调用标准 AddJsonFile。示例将 sample-settings.json 复制到输出目录并从 AppContext.BaseDirectory 读取。

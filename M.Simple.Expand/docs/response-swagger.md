@@ -86,3 +86,26 @@ Swagger 的 `Server response / Response body` 显示真实请求结果，下面�
 3. 如仍未包装，检查请求是否命中当前项目、控制器或操作是否有 `[SkipUnifiedResponse]`，以及是否返回文件、文本或其他不包装的结果。
 
 自定义 Swagger 分组继续使用项目原来的 `SwaggerDoc` 和 `SwaggerEndpoint`，无需为接入统一响应增加控制器或测试接口。
+
+## 已有接口的使用与验证
+
+在现有控制器方法中正常返回业务结果，例如把原先的返回语句保留为：
+
+```csharp
+return Ok(product);
+```
+
+product 为已有查询结果，运行时会包装为 code、message、data。已知的业务错误也可正常返回：
+
+```csharp
+return NotFound();
+```
+
+配置完整时它返回 HTTP 404，响应体为统一结构。以上为现有方法中的独立返回示例，不是要求新增接口。
+
+1. 启动项目，打开现有 Swagger UI，找到原有业务接口。
+2. 查看成功响应 Schema，原 DTO 应位于 data 下。
+3. 点击 Try it out 执行原接口，核对 Server response 中的真实响应也是 code、message、data。
+4. 如果只有 Schema 包装而实际返回实体，检查 AddUnifiedResponse / UseUnifiedResponse 的运行时配置。
+
+不经过 JSON 返回的文件、文本接口，按前述 SkipUnifiedResponse 或 Produces 规则声明，避免文档与实际协议不一致。

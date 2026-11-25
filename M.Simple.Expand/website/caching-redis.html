@@ -7,19 +7,54 @@
 <p>在使用方项目目录执行，或通过 --project 指定项目：</p>
 <div class="code-block"><div class="code-toolbar"><span>powershell</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="powershell">dotnet add package M.Simple.Caching.Redis --version 1.0.0.6</code></pre></div>
 <p>包源需包含该版本。安装包不会自动执行注册；保留项目原有配置，无需添加示例接口。</p>
+<h2 id="appsettingsjson-配置">appsettings.json 配置</h2>
+<p>在 API 项目的 appsettings.json 中合并以下完整配置。数值时间分别按分钟、秒读取：</p>
+<div class="code-block"><div class="code-toolbar"><span>json</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="json">{
+  &quot;SimpleCache&quot;: {
+    &quot;Redis&quot;: {
+      &quot;ConnectionString&quot;: &quot;127.0.0.1:6379&quot;,
+      &quot;Database&quot;: 4,
+      &quot;KeyPrefix&quot;: &quot;MyApi:&quot;,
+      &quot;DefaultExpirationMinutes&quot;: 2,
+      &quot;CacheNullValues&quot;: false,
+      &quot;NullExpirationSeconds&quot;: 30,
+      &quot;FactoryTimeoutSeconds&quot;: 30,
+      &quot;MaxPayloadBytes&quot;: 1048576,
+      &quot;SerializerOptions&quot;: {
+        &quot;PropertyNameCaseInsensitive&quot;: true,
+        &quot;WriteIndented&quot;: false
+      }
+    }
+  }
+}</code></pre></div>
+<p>地址、端口和数据库编号按实际环境替换。需要密码时连接串可写为 <code>127.0.0.1:6379,password=your_password</code>；使用 TLS 时按服务要求增加 <code>ssl=true</code> 等选项。真实凭据可使用 User Secrets 或环境变量 <code>SimpleCache__Redis__ConnectionString</code> 覆盖。</p>
+<p>此示例统一使用 SimpleCache:Redis 配置节，由下面的代码显式读取，不是包自动绑定。原先 ConnectionStrings:Redis 的方式仍可用，只需将连接串读取改为 GetConnectionString(&quot;Redis&quot;)，两种方式选择一种即可。</p>
 <h2 id="programcs-配置">Program.cs 配置</h2>
-<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Caching.Redis; // 本次新增：引入本包接入所需扩展或类型。
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Caching.Redis; // 本次新增：Redis 缓存注册扩展。
+using System.Text.Json; // 本次新增：缓存 JSON 序列化配置。
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
-// 本次新增：注册 Redis 后端，自动提供 ISimpleCache。
+
+// 本次新增：读取 Redis 配置节，只注册一个缓存后端。
+var redis = builder.Configuration.GetSection(&quot;SimpleCache:Redis&quot;);
 builder.Services.AddSimpleRedisCache(options =&gt;
 {
-    options.ConnectionString = builder.Configuration.GetConnectionString(&quot;Redis&quot;)
-        ?? throw new InvalidOperationException(&quot;ConnectionStrings:Redis is not configured.&quot;);
-    options.KeyPrefix = &quot;MyApi:Production:&quot;;
-    options.Database = -1;
+    options.ConnectionString = redis[&quot;ConnectionString&quot;]
+        ?? throw new InvalidOperationException(&quot;SimpleCache:Redis:ConnectionString is not configured.&quot;);
+    options.Database = redis.GetValue&lt;int&gt;(&quot;Database&quot;, -1);
+    options.KeyPrefix = $&quot;{redis[&quot;KeyPrefix&quot;] ?? &quot;MyApi:&quot;}{builder.Environment.EnvironmentName}:&quot;;
+    options.DefaultExpiration = TimeSpan.FromMinutes(redis.GetValue&lt;double&gt;(&quot;DefaultExpirationMinutes&quot;, 10));
+    options.CacheNullValues = redis.GetValue&lt;bool&gt;(&quot;CacheNullValues&quot;, false);
+    options.NullExpiration = TimeSpan.FromSeconds(redis.GetValue&lt;double&gt;(&quot;NullExpirationSeconds&quot;, 30));
+    options.FactoryTimeout = TimeSpan.FromSeconds(redis.GetValue&lt;double&gt;(&quot;FactoryTimeoutSeconds&quot;, 30));
+    options.MaxPayloadBytes = redis.GetValue&lt;int&gt;(&quot;MaxPayloadBytes&quot;, 1024 * 1024);
+    options.SerializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+    {
+        PropertyNameCaseInsensitive = redis.GetValue&lt;bool&gt;(&quot;SerializerOptions:PropertyNameCaseInsensitive&quot;, true),
+        WriteIndented = redis.GetValue&lt;bool&gt;(&quot;SerializerOptions:WriteIndented&quot;, false)
+    };
 });
 
 var app = builder.Build();
@@ -27,8 +62,101 @@ var app = builder.Build();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();</code></pre></div>
+<h2 id="完整注册参数与默认值">完整注册参数与默认值</h2>
+<p>以下包含 SimpleRedisCacheOptions 自身和继承自 SimpleCacheOptions 的全部注册参数。上方 JSON 中数据库 4、默认过期 2 分钟是示例值，非包的默认值。</p>
+<div class="table-scroll"><table><thead><tr><th>参数</th><th>包默认值</th><th>作用</th></tr></thead><tbody><tr><td>ConnectionString</td><td>空，必须配置</td><td>StackExchange.Redis 连接串，支持密码、TLS 等客户端选项</td></tr><tr><td>Database</td><td>-1</td><td>使用连接串指定的默认数据库；非负值显式选择数据库</td></tr><tr><td>KeyPrefix</td><td>空字符串</td><td>应用隔离前缀，最长 512 字符；示例另追加运行环境，默认工作台管理模式要求非空</td></tr><tr><td>DefaultExpiration</td><td>10 分钟</td><td>未提供单条过期策略时的默认过期时间</td></tr><tr><td>CacheNullValues</td><td>false</td><td>GetOrCreateAsync 是否自动缓存工厂返回的 null</td></tr><tr><td>NullExpiration</td><td>30 秒</td><td>null 缓存项的绝对有效期上限</td></tr><tr><td>FactoryTimeout</td><td>30 秒</td><td>共享加载工厂超时，范围 1 毫秒至 1 天</td></tr><tr><td>MaxPayloadBytes</td><td>1048576（1 MiB）</td><td>单次写入 JSON 的字节数上限，必须大于 0</td></tr><tr><td>SerializerOptions</td><td>JsonSerializerDefaults.Web</td><td>System.Text.Json 选项；上方展示其中常用的大小写匹配和格式化设置</td></tr></tbody></table></div>
+<p>DefaultExpiration、NullExpiration 的有效范围为 1 毫秒至 3650 天。SerializerOptions 还可设置转换器等标准 JSON 选项，代码与读写两端应保持兼容；它不止包含示例中的两个属性。</p>
+<p>CacheNullValues=false 不会禁止显式 SetAsync 存储 null。GetOrCreateAsync 的单条策略也可覆盖是否缓存 null；所有 null 项仍受 NullExpiration 上限约束。单条绝对/滑动过期和 NeverExpires 使用 SimpleCacheEntryOptions，不属于注册参数，详见<a href="caching.html">缓存核心用法</a>。MaxEntryCount、MaxSizeBytes 是内存后端参数，不适用于 Redis。</p>
 <h2 id="使用说明">使用说明</h2>
 <p>只调用 AddSimpleRedisCache，不额外调用 AddSimpleMemoryCache 或 AddSimpleMongoCache。首次使用建立并复用连接，随容器释放。缓存项以 Hash 存储；并发加载合并仅限当前进程，不提供分布式加载锁。取消等待不保证已发送命令未执行。</p>
+<h2 id="实际使用示例">实际使用示例</h2>
+<p>注册 Redis 后端后，业务类注入核心接口 <code>ISimpleCache</code>，无需自行创建 Redis 连接。以下为普通业务服务，不增加 HTTP 接口。</p>
+<h3 id="构造函数注入与缓存读写">构造函数注入与缓存读写</h3>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Caching;
+
+public sealed record ProductDto(long Id, string Name, decimal Price);
+
+public sealed class ProductCacheService(ISimpleCache cache)
+{
+    private static string Key(long id) =&gt; $&quot;product:{id}&quot;;
+
+    public Task SetAsync(ProductDto product, CancellationToken token = default)
+        =&gt; cache.SetAsync(Key(product.Id), product,
+            new SimpleCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            }, token);
+
+    public Task&lt;CacheResult&lt;ProductDto&gt;&gt; GetAsync(long id, CancellationToken token = default)
+        =&gt; cache.TryGetAsync&lt;ProductDto&gt;(Key(id), token);
+
+    public Task&lt;bool&gt; ExistsAsync(long id, CancellationToken token = default)
+        =&gt; cache.ExistsAsync(Key(id), token);
+
+    public Task RemoveAsync(long id, CancellationToken token = default)
+        =&gt; cache.RemoveAsync(Key(id), token);
+}</code></pre></div>
+<p>在 Program.cs 的 Build() 之前注册业务服务；已有程序集扫描覆盖该类型时按项目实际注册方式处理：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">builder.Services.AddScoped&lt;ProductCacheService&gt;();</code></pre></div>
+<p>在现有业务类中通过构造函数注入 ProductCacheService，下面 productCache 为已注入实例，token 为当前取消令牌：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">await productCache.SetAsync(new ProductDto(1, &quot;商品 A&quot;, 19.90m), token);
+
+var result = await productCache.GetAsync(1, token);
+if (result.Found)
+{
+    ProductDto? product = result.Value;
+    // 使用命中的数据；Found 用于区分未命中和有效的 null、0、false。
+}
+
+bool exists = await productCache.ExistsAsync(1, token);
+await productCache.RemoveAsync(1, token);</code></pre></div>
+<p>业务只传相对 Key，如 product:1，不要重复拼接 KeyPrefix。若配置前缀为 MyApi:Development:，实际 Redis Key 为 MyApi:Development:product:1。写入和读取必须使用相同泛型类型；例如写 ProductDto，就读取 ProductDto，而非 object 或其他结构相似的类型。</p>
+<h3 id="未命中时加载数据库并自动缓存">未命中时加载数据库并自动缓存</h3>
+<p>以下接口由项目实际仓储实现并注册。工厂仅在缓存未命中时执行，数据库返回的结果由缓存自动保存：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Caching;
+
+public interface IProductReader
+{
+    Task&lt;ProductDto?&gt; FindAsync(long id, CancellationToken token);
+}
+
+public sealed class ProductQueryService(ISimpleCache cache, IProductReader products)
+{
+    public Task&lt;ProductDto?&gt; GetAsync(long id, CancellationToken token = default)
+        =&gt; cache.GetOrCreateAsync&lt;ProductDto?&gt;(
+            $&quot;product:{id}&quot;,
+            ct =&gt; products.FindAsync(id, ct),
+            new SimpleCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                CacheNullValues = true
+            },
+            token);
+}</code></pre></div>
+<p>注册 ProductQueryService 和项目的 IProductReader 实现后，在现有业务流程中调用 GetAsync 即可。不存在的商品可短时缓存 null，实际有效期仍受全局 NullExpiration 上限约束（默认 30 秒）。不需要缓存 null 时将 CacheNullValues 设为 false。</p>
+<p>GetOrCreateAsync 在同一缓存实例、同一 Key 的并发未命中时合并加载；不同应用实例仍可能分别访问数据库。工厂应使用传入的 ct，单个调用方取消等待不会取消其他调用方共享的加载。</p>
+<h3 id="更新数据库后删除缓存">更新数据库后删除缓存</h3>
+<p>先完成数据库保存或事务提交，再删除缓存，让下次查询重新加载：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">await unitOfWork.SaveChangesAsync(token);
+await cache.RemoveAsync($&quot;product:{product.Id}&quot;, token);</code></pre></div>
+<p>unitOfWork、cache 和 product 为现有业务对象；如开启了显式事务，应在提交成功后删除。缓存不参与数据库事务，缓存删除失败会向调用方抛出，业务需按一致性要求处理；不要在提交前删除后认为数据库与缓存已保持一致。</p>
+<h3 id="单条过期策略">单条过期策略</h3>
+<p>以下写法分别展示不同策略，按业务选择：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">// 滑动两分钟，且总有效期不超过三十分钟。
+await cache.SetAsync(&quot;product:hot&quot;, product, new SimpleCacheEntryOptions
+{
+    SlidingExpiration = TimeSpan.FromMinutes(2),
+    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(30)
+}, token);
+
+// 不主动过期；不可同时设置绝对或滑动期限。
+await cache.SetAsync(&quot;product:catalog&quot;, product, new SimpleCacheEntryOptions
+{
+    NeverExpires = true
+}, token);</code></pre></div>
+<p>不传 SimpleCacheEntryOptions 时采用全局 DefaultExpiration。ExistsAsync 不刷新滑动期限；TryGetAsync 和 GetOrCreateAsync 命中会刷新。缓存是 JSON 快照，修改返回对象不会自动更新 Redis，需要再次 SetAsync。</p>
+<h3 id="读取已有-redis-原生数据">读取已有 Redis 原生数据</h3>
+<p>ISimpleCache 用于本包写入的缓存格式。已有 Redis String、Hash、List 等数据应使用 <code>ISimpleNativeCache</code>，具体类型读取及完整 Key 范围规则见下方“独立业务原生读取”和<a href="caching.html#独立原生读取">核心原生读取示例</a>。不要使用 ISimpleCache 直接读取其他系统写入的普通 Redis String。</p>
 <h2 id="redis-32-兼容">Redis 3.2 兼容</h2>
 <p>从 1.0.0.3 起支持 Redis 3.2：</p>
 <ul><li>多字段写入使用 HMSET，保持原有 Hash 字段和 JSON 格式，已有缓存无需迁移。</li><li>使用服务端 TIME 后可能写入的脚本启用 redis.replicate_commands()，兼容 3.2 的命令效果复制要求；滑动过期和绝对上限规则不变。</li><li>管理删除优先使用 UNLINK。服务器不认识该命令时使用 DEL；权限和其他服务端错误仍向调用方传播。Redis 3.2 的 DEL 为同步删除，单条 JSON 大小继续受 MaxPayloadBytes 限制。</li><li>普通删除、列表 SCAN 和不续期详情读取均保持原接口。客户端配置 Database 可显式选择 db11 等逻辑数据库。</li></ul>
@@ -40,4 +168,4 @@ dotnet test M.Simple.Caching.Test/M.Simple.Caching.Test.csproj -c Release --filt
 <p>新增 ISimpleNativeCache，与管理页面的范围无关，使用完整 Key；默认只允许业务 KeyPrefix，可通过 AddSimpleNativeCache 独立选择 NativeCacheScope.Prefixes 或 All。TryGetAsync&lt;T&gt; 读取 Redis String：byte[] 原样返回、string 严格 UTF-8 解码、其他 T 按 JSON 映射。Hash/List/Set/SortedSet 分别使用 HashGetAllAsync、ListRangeAsync、SetMembersAsync、SortedSetRangeAsync；不自动解包本包的 Hash。</p>
 <p>只读脚本兼容 Redis 3.2，不修改 TTL。返回数据受字节数、集合项数上限约束，超限或类型错误明确报错，不返回管理页面那样的截断预览。配置、协议与可运行示例见<a href="caching.html#独立原生读取">核心说明</a>。</p>
 <h2 id="接入注意事项">接入注意事项</h2>
-<p>只调用 AddSimpleRedisCache，不额外调用 AddSimpleMemoryCache 或 AddSimpleMongoCache。首次使用建立并复用连接，随容器释放。缓存项以 Hash 存储；并发加载合并仅限当前进程，不提供分布式加载锁。取消等待不保证已发送命令未执行。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#redis-32-兼容">Redis 3.2 兼容</a><a class="toc-level-2" href="#独立业务原生读取">独立业务原生读取</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
+<p>只调用 AddSimpleRedisCache，不额外调用 AddSimpleMemoryCache 或 AddSimpleMongoCache。首次使用建立并复用连接，随容器释放。缓存项以 Hash 存储；并发加载合并仅限当前进程，不提供分布式加载锁。取消等待不保证已发送命令未执行。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#appsettingsjson-配置">appsettings.json 配置</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#完整注册参数与默认值">完整注册参数与默认值</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#实际使用示例">实际使用示例</a><a class="toc-level-3" href="#构造函数注入与缓存读写">构造函数注入与缓存读写</a><a class="toc-level-3" href="#未命中时加载数据库并自动缓存">未命中时加载数据库并自动缓存</a><a class="toc-level-3" href="#更新数据库后删除缓存">更新数据库后删除缓存</a><a class="toc-level-3" href="#单条过期策略">单条过期策略</a><a class="toc-level-3" href="#读取已有-redis-原生数据">读取已有 Redis 原生数据</a><a class="toc-level-2" href="#redis-32-兼容">Redis 3.2 兼容</a><a class="toc-level-2" href="#独立业务原生读取">独立业务原生读取</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

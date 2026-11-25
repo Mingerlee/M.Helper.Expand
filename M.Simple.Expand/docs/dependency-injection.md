@@ -60,3 +60,48 @@ provider 为服务提供程序，Consumer 为项目中带 Autowired 属性的类
 ## 接入注意事项
 
 AppService 默认 Singleton，有 Scoped 依赖时显式选择 Scoped。AutowiredService 为 Scoped，需从相应作用域解析。多接口实现建议明确 ServiceType。无参数扫描只覆盖当前已加载程序集；推荐显式传入程序集。
+
+## 完整装配与业务调用示例
+
+以下类型放在同一业务程序集中：
+
+```csharp
+using M.Simple.Services.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+
+public interface IGreetingService
+{
+    string Greet(string name);
+}
+
+[AppService(ServiceType = typeof(IGreetingService), Lifetime = ServiceLifetime.Scoped)]
+public sealed class GreetingService : IGreetingService
+{
+    public string Greet(string name) => $"你好，{name}";
+}
+
+public sealed class GreetingConsumer
+{
+    [Autowired]
+    public IGreetingService Greetings { get; set; } = null!;
+
+    public string Run() => Greetings.Greet("张三");
+}
+```
+
+在 Build() 前扫描上方类型所在程序集：
+
+```csharp
+builder.Services.AddAppServices(typeof(GreetingService).Assembly);
+```
+
+构建应用后，在独立作用域内显式装配并调用：
+
+```csharp
+using var scope = app.Services.CreateScope();
+var consumer = new GreetingConsumer();
+scope.ServiceProvider.GetRequiredService<AutowiredService>().Autowired(consumer);
+string message = consumer.Run();
+```
+
+message 为“你好，张三”。app 为已构建应用；consumer 不能在该作用域释放后继续使用 Scoped 依赖。若使用普通构造函数注入 IGreetingService，则无需手动属性装配。

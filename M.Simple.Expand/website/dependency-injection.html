@@ -35,4 +35,35 @@ var consumer = new Consumer();
 scope.ServiceProvider.GetRequiredService&lt;AutowiredService&gt;().Autowired(consumer);</code></pre></div>
 <p>provider 为服务提供程序，Consumer 为项目中带 Autowired 属性的类型。只需手动装配时，可用 AddSimpleDependencyInjection() 替代扫描注册。</p>
 <h2 id="接入注意事项">接入注意事项</h2>
-<p>AppService 默认 Singleton，有 Scoped 依赖时显式选择 Scoped。AutowiredService 为 Scoped，需从相应作用域解析。多接口实现建议明确 ServiceType。无参数扫描只覆盖当前已加载程序集；推荐显式传入程序集。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
+<p>AppService 默认 Singleton，有 Scoped 依赖时显式选择 Scoped。AutowiredService 为 Scoped，需从相应作用域解析。多接口实现建议明确 ServiceType。无参数扫描只覆盖当前已加载程序集；推荐显式传入程序集。</p>
+<h2 id="完整装配与业务调用示例">完整装配与业务调用示例</h2>
+<p>以下类型放在同一业务程序集中：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Services.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+
+public interface IGreetingService
+{
+    string Greet(string name);
+}
+
+[AppService(ServiceType = typeof(IGreetingService), Lifetime = ServiceLifetime.Scoped)]
+public sealed class GreetingService : IGreetingService
+{
+    public string Greet(string name) =&gt; $&quot;你好，{name}&quot;;
+}
+
+public sealed class GreetingConsumer
+{
+    [Autowired]
+    public IGreetingService Greetings { get; set; } = null!;
+
+    public string Run() =&gt; Greetings.Greet(&quot;张三&quot;);
+}</code></pre></div>
+<p>在 Build() 前扫描上方类型所在程序集：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">builder.Services.AddAppServices(typeof(GreetingService).Assembly);</code></pre></div>
+<p>构建应用后，在独立作用域内显式装配并调用：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using var scope = app.Services.CreateScope();
+var consumer = new GreetingConsumer();
+scope.ServiceProvider.GetRequiredService&lt;AutowiredService&gt;().Autowired(consumer);
+string message = consumer.Run();</code></pre></div>
+<p>message 为“你好，张三”。app 为已构建应用；consumer 不能在该作用域释放后继续使用 Scoped 依赖。若使用普通构造函数注入 IGreetingService，则无需手动属性装配。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a><a class="toc-level-2" href="#完整装配与业务调用示例">完整装配与业务调用示例</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

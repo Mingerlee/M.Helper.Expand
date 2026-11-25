@@ -7,6 +7,15 @@
 <p>在使用方项目目录执行，或通过 --project 指定项目：</p>
 <div class="code-block"><div class="code-toolbar"><span>powershell</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="powershell">dotnet add package M.Simple.EntityFrameworkCore --version 1.0.0.4</code></pre></div>
 <p>包源需包含该版本。安装包不会自动执行注册；保留项目原有配置，无需添加示例接口。</p>
+<h2 id="appsettingsjson-配置">appsettings.json 配置</h2>
+<p>在 API 项目的 <code>appsettings.json</code> 中合并以下示例，替换为实际环境值：</p>
+<div class="code-block"><div class="code-toolbar"><span>json</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="json">{
+  &quot;ConnectionStrings&quot;: {
+    &quot;Default&quot;: &quot;Server=localhost;Database=your_database;Integrated Security=true;TrustServerCertificate=true;&quot;
+  }
+}</code></pre></div>
+<p>本页核心包示例选择 SQL Server 提供程序，连接串通过 GetConnectionString(&quot;Default&quot;) 读取。MySQL 项目改用对应适配包页面的配置；同一示例中的 Default 只配置当前选用的数据库。</p>
+<p>真实凭据可通过 User Secrets 或环境变量覆盖，不必写入配置文件；环境变量将键中的冒号替换为双下划线，例如 <code>ConnectionStrings__Default</code>。</p>
 <h2 id="programcs-配置">Program.cs 配置</h2>
 <div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.EntityFrameworkCore; // 本次新增：引入本包接入所需扩展或类型。
 using Microsoft.EntityFrameworkCore; // 本次新增：引入本包接入所需扩展或类型。
@@ -14,6 +23,9 @@ using Microsoft.EntityFrameworkCore; // 本次新增：引入本包接入所需�
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+// 本次新增：读取数据库连接串。
+var connectionString = builder.Configuration.GetConnectionString(&quot;Default&quot;)
+    ?? throw new InvalidOperationException(&quot;ConnectionStrings:Default is not configured.&quot;);
 // 本次新增：使用已有数据库提供程序配置上下文，随后注册核心仓储和工作单元。
 builder.Services.AddDbContext&lt;AppDbContext&gt;(options =&gt; options.UseSqlServer(connectionString));
 builder.Services.AddSimpleEfCore&lt;AppDbContext&gt;();
@@ -141,4 +153,4 @@ Console.WriteLine(inserted[0].Id);</code></pre></div>
 <p>行为与限制：</p>
 <ul><li><code>Update</code> / <code>UpdateRange</code> 不递归更新导航属性；排除主键、数据库生成列及并发令牌，不提供字段选择的属性不会因为本方法而被标记修改。完整更新会覆盖传入对象的默认值；避免用缺少字段的 DTO 直接构造完整更新对象。并发令牌沿用 EF 原有校验，分离实体应携带正确原始令牌；复杂状态请使用跟踪查询后修改。</li><li>条件更新、删除由 EF 翻译为集合 SQL，遵守查询过滤器；不执行自动客户端并发校验，需要时将版本条件加入 predicate 并检查影响行数。条件不可为 null，要操作全部数据须显式传入 <code>p =&gt; true</code>。</li><li>原生 bulk 更新、删除按主键定位，<strong>绕过全局查询过滤器、软删除及 EF 并发校验</strong>；仅对调用方已授权的键执行。支持单一 CLR 主键，其他单表、列映射、转换器限制与原生新增相同；不支持复合键、继承或共享表。</li><li>原生更新排除主键、计算/生成列和并发令牌，指定非法字段立即抛错；按主键删除为物理删除。不存在的键不报错，也不会插入新记录。重复键不支持；CLR 键跨批次去重校验，单批次额外按数据库排序规则校验。</li><li>SQL Server / MySQL 原生更新、删除先批量写临时表，再 JOIN 更新或删除。每批最多 1,000 条；不会为了 staging 结束外层事务。MySQL 需要临时表权限及原生导入配置；目标表必须使用 InnoDB 等支持事务的引擎。影响行数沿用提供程序语义，MySQL 的 <code>UseAffectedRows</code> 设置会影响“匹配行数/实际变更行数”。</li><li>新增主键回填仅支持 <code>short</code> / <code>int</code> / <code>long</code> 的单一数据库生成主键，且至少有一个普通可写列；MySQL 要求 AUTO_INCREMENT，SQL Server 要求 IDENTITY。SQL Server 使用 staging + MERGE OUTPUT 关联输入序号，不依赖输出顺序；MySQL 在同一事务中逐条 INSERT 并读取 LAST_INSERT_ID，不按连续自增值推算，速度低于不回填的 BulkInsertAsync。显式 Guid/string 主键继续使用 BulkInsertAsync。</li><li>回填模式只在全部批次成功后修改对象主键；某批失败则不回填，自己的事务会回滚。已有外层事务时只参与、不提交：后续外层回滚不会恢复已回填的对象主键，应重新构造对象。数据库可能因回滚留下自增空洞。回填暂存实体和键、更新删除的重复键校验会占用随输入数量增长的内存；无回填新增仍保持按批控制。</li><li>所有直接操作立即执行，不依赖 SaveChanges、不更新或清空 ChangeTracker，也不自动保存上下文中其他修改。混用跟踪实体时应重新加载或明确分离，避免旧状态覆盖数据库；同一个 DbContext 不能并行执行。</li><li>异常和取消向上抛出；失败时不返回空集合或 false。无已有事务时整次 bulk 调用统一提交或回滚；有事务时由调用方负责回滚，尤其不能在部分批次成功后继续提交。提交或清理阶段异常可能发生在数据库已提交之后，不应盲目重试。</li></ul>
 <h2 id="接入注意事项">接入注意事项</h2>
-<p>实体需实现 IEntity&lt;TKey&gt;，主键类型与仓储泛型参数一致；可继承 Entity&lt;TKey&gt;。只有一个名为 Id 的属性并不等于实现接口。核心注册不提供 IBulkWriter；使用适配包时不要重复注册默认上下文。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#仓储接口1004">仓储接口（1.0.0.4）</a><a class="toc-level-2" href="#基础-crud">基础 CRUD</a><a class="toc-level-2" href="#工作单元事务">工作单元事务</a><a class="toc-level-2" href="#查询与分页">查询与分页</a><a class="toc-level-2" href="#大量数据操作">大量数据操作</a><a class="toc-level-2" href="#仓储与批量写入补充1003">仓储与批量写入补充（1.0.0.3）</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
+<p>实体需实现 IEntity&lt;TKey&gt;，主键类型与仓储泛型参数一致；可继承 Entity&lt;TKey&gt;。只有一个名为 Id 的属性并不等于实现接口。核心注册不提供 IBulkWriter；使用适配包时不要重复注册默认上下文。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#appsettingsjson-配置">appsettings.json 配置</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#仓储接口1004">仓储接口（1.0.0.4）</a><a class="toc-level-2" href="#基础-crud">基础 CRUD</a><a class="toc-level-2" href="#工作单元事务">工作单元事务</a><a class="toc-level-2" href="#查询与分页">查询与分页</a><a class="toc-level-2" href="#大量数据操作">大量数据操作</a><a class="toc-level-2" href="#仓储与批量写入补充1003">仓储与批量写入补充（1.0.0.3）</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

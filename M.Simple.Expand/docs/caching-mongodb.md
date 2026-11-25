@@ -14,6 +14,22 @@ dotnet add package M.Simple.Caching.MongoDB --version 1.0.0.5
 
 包源需包含该版本。安装包不会自动执行注册；保留项目原有配置，无需添加示例接口。
 
+## appsettings.json 配置
+
+在 API 项目的 `appsettings.json` 中合并以下示例，替换为实际环境值：
+
+```json
+{
+  "ConnectionStrings": {
+    "MongoDB": "mongodb://127.0.0.1:27017/"
+  }
+}
+```
+
+对应 GetConnectionString("MongoDB") 读取的 ConnectionStrings:MongoDB。数据库名和集合名由下方 DatabaseName、CollectionName 指定；如需认证或 TLS，在连接串中配置相应选项。
+
+真实凭据可通过 User Secrets 或环境变量覆盖，不必写入配置文件；环境变量将键中的冒号替换为双下划线，例如 `ConnectionStrings__MongoDB`。
+
 ## Program.cs 配置
 
 ```csharp
@@ -53,3 +69,43 @@ app.Run();
 ## 接入注意事项
 
 只注册一个后端。首次缓存操作创建 TTL 索引，账号需具备目标集合的索引创建和读写权限。TTL 后台清理有延迟，但缓存接口会过滤逻辑过期项。原生文档读取与缓存 payload 读取是不同接口。
+
+## 业务缓存使用示例
+
+MongoDB 后端仍通过 ISimpleCache 读写，无需在业务类中直接调用 MongoDB 驱动：
+
+```csharp
+using M.Simple.Caching;
+
+public sealed record CustomerDto(long Id, string Name);
+
+public sealed class CustomerCacheService(ISimpleCache cache)
+{
+    public Task SaveAsync(CustomerDto customer, CancellationToken token = default)
+        => cache.SetAsync($"customer:{customer.Id}", customer,
+            new SimpleCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5)
+            }, token);
+
+    public Task<CacheResult<CustomerDto>> FindAsync(long id, CancellationToken token = default)
+        => cache.TryGetAsync<CustomerDto>($"customer:{id}", token);
+
+    public Task RemoveAsync(long id, CancellationToken token = default)
+        => cache.RemoveAsync($"customer:{id}", token);
+}
+```
+
+Build() 前注册 AddScoped<CustomerCacheService>()，在现有业务类中注入后调用：
+
+```csharp
+await customers.SaveAsync(new CustomerDto(1, "客户 A"), token);
+var result = await customers.FindAsync(1, token);
+if (result.Found)
+{
+    CustomerDto? customer = result.Value;
+}
+await customers.RemoveAsync(1, token);
+```
+
+customers 为已注入服务，token 为取消令牌。仅传相对 Key，前缀由包添加；读取泛型类型与写入保持一致。未命中加载、空值缓存和滑动过期用法与[缓存核心示例](caching.md)一致。数据库提交成功后再删除相关缓存，缓存不参与数据库事务。

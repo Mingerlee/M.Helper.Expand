@@ -40,6 +40,55 @@ using (logger.BeginScope(new Dictionary<string, object?> { ["UserId"] = userId }
 
 自动保存当前 Activity 的 TraceId / SpanId；无 Activity 时为空。默认不采集请求参数，按下述方式显式启用。不会采集响应体、请求头、Cookie 或用户身份。
 
+## 按日志级别和分类筛选
+
+在已有 AddSimpleLogging() 之后、builder.Build() 之前添加。普通日志只记录 Error/Critical，指定分类额外保留 Information：
+
+```csharp
+using M.Simple.Logging; // 本次新增：SimpleLoggerProvider 类型。
+using Microsoft.Extensions.Logging; // 本次新增：日志级别与筛选扩展。
+
+// 本次新增：设置本包日志提供程序的默认最低级别。
+builder.Logging.AddFilter<SimpleLoggerProvider>((_, level) => level >= LogLevel.Error);
+// 本次新增：覆盖包内 Microsoft.AspNetCore 默认 Warning 规则。
+builder.Logging.AddFilter<SimpleLoggerProvider>("Microsoft.AspNetCore", LogLevel.Error);
+// 本次新增：保留缓存管理操作的 Information 日志。
+builder.Logging.AddFilter<SimpleLoggerProvider>("M.Simple.Caching.Dashboard", LogLevel.Information);
+// 本次新增：为指定 AOP 业务类放行 Information，替换为实际日志分类。
+builder.Logging.AddFilter<SimpleLoggerProvider>(
+    "M.Simple.Example.Api.Services.ExampleMethodInterceptor", LogLevel.Information);
+builder.Logging.AddFilter<SimpleLoggerProvider>(
+    "M.Simple.Example.Api.Services.NamedMethodOrderExample", LogLevel.Information);
+```
+
+这些规则只影响 SimpleLoggerProvider，不改变 Console 等其他提供程序。ILogger<T> 的分类通常为 T 的完整名称；CreateLogger(name) 则使用传入名称。放行分类不会自动生成日志，业务仍需调用 LogInformation 等方法。
+
+分类按名称前缀匹配，更长、更具体的规则优先；同一提供程序和同长度分类规则采用后注册的规则。因此放在 AddSimpleLogging() 之后，才能覆盖包内 Microsoft.AspNetCore 的默认筛选。
+
+**包内 MinimumLevel 仍是另一道最低级别限制。** 保留默认 Information，才能使用上述分类放行；若 options.MinimumLevel 为 Error，分类允许 Information 也不会保存。需要 Debug/Trace 时，包内 MinimumLevel 和宿主筛选必须同时允许。
+
+### appsettings.json 配置替代写法
+
+可使用标准 ASP.NET Core Logging 配置为提供程序别名 Simple 设置筛选。与上方代码选择一种方式管理同一批规则：
+
+```json
+{
+  "Logging": {
+    "Simple": {
+      "LogLevel": {
+        "Default": "Error",
+        "Microsoft.AspNetCore": "Error",
+        "M.Simple.Caching.Dashboard": "Information",
+        "M.Simple.Example.Api.Services.ExampleMethodInterceptor": "Information",
+        "M.Simple.Example.Api.Services.NamedMethodOrderExample": "Information"
+      }
+    }
+  }
+}
+```
+
+Simple 对应本包的 ProviderAlias。此配置不自动绑定 DatabasePath、DashboardTitle 或请求上下文开关；业务类的分类名称按实际项目替换。
+
 ## 自动附带错误请求参数（可选）
 
 ```csharp

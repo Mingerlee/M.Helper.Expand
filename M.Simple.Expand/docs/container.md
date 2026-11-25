@@ -113,3 +113,41 @@ builder.Host.UseSimpleContainer(options =>
 ## 适用范围
 
 支持标准命名服务注册、同步及异步资源释放。尚不支持 Native AOT、属性注入、拦截器、子容器注册覆盖或运行期间修改注册。它与 `M.Simple.Services.DependencyInjection` 是不同的包，使用各自对应的命名空间和 API。
+
+## 业务服务注入与调用示例
+
+下面的接口和实现放在项目已有业务程序集中；无需新增控制器：
+
+```csharp
+public interface IPriceService
+{
+    decimal Calculate(decimal price, int quantity);
+}
+
+public sealed class PriceService : IPriceService
+{
+    public decimal Calculate(decimal price, int quantity) => price * quantity;
+}
+
+public sealed class CheckoutService(IPriceService prices)
+{
+    public decimal GetTotal() => prices.Calculate(19.90m, 2);
+}
+```
+
+Build() 前显式注册，或用前述扫描注册 IPriceService；两种方式选一种，CheckoutService 没有接口时需要注册自身：
+
+```csharp
+builder.Services.AddScoped<IPriceService, PriceService>();
+builder.Services.AddScoped<CheckoutService>();
+```
+
+现有业务类注入 CheckoutService 后调用 GetTotal()，结果为 39.80。控制台或后台任务可按作用域解析：
+
+```csharp
+await using var scope = app.Services.CreateAsyncScope();
+var checkout = scope.ServiceProvider.GetRequiredService<CheckoutService>();
+decimal total = checkout.GetTotal();
+```
+
+app 为已构建的应用，解析扩展需要 Microsoft.Extensions.DependencyInjection。Web 请求内优先构造函数注入，不要从根容器直接获取 Scoped 服务。

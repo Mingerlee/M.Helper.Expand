@@ -7,6 +7,15 @@
 <p>在使用方项目目录执行，或通过 --project 指定项目：</p>
 <div class="code-block"><div class="code-toolbar"><span>powershell</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="powershell">dotnet add package M.Simple.Services.Ftp --version 1.0.0.1</code></pre></div>
 <p>包源需包含该版本。安装包不会自动执行注册；保留项目原有配置，无需添加示例接口。</p>
+<h2 id="appsettingsjson-配置">appsettings.json 配置</h2>
+<p>在 API 项目的 <code>appsettings.json</code> 中合并以下示例，替换为实际环境值：</p>
+<div class="code-block"><div class="code-toolbar"><span>json</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="json">{
+  &quot;Ftp&quot;: {
+    &quot;Password&quot;: &quot;your_ftp_password&quot;
+  }
+}</code></pre></div>
+<p>对应 builder.Configuration[&quot;Ftp:Password&quot;]。FTP 主机、账号、远端目录仍按下方代码配置；本包不会自动绑定名为 Ftp 的配置节。</p>
+<p>真实凭据可通过 User Secrets 或环境变量覆盖，不必写入配置文件；环境变量将键中的冒号替换为双下划线，例如 <code>Ftp__Password</code>。</p>
 <h2 id="programcs-配置">Program.cs 配置</h2>
 <div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Services.Ftp; // 本次新增：引入本包接入所需扩展或类型。
 
@@ -34,4 +43,17 @@ app.Run();</code></pre></div>
 bool downloaded = await ftp.FtpDownloadAsync(@&quot;D:\downloads&quot;, &quot;report.xlsx&quot;, token);</code></pre></div>
 <p>上传和下载为独立调用示例，按业务选择；也提供目录查询、创建、删除及文件重命名等操作。</p>
 <h2 id="接入注意事项">接入注意事项</h2>
-<p>服务和配置均为 Transient，实例持有配置副本和当前目录。并行多步目录流程应分别解析实例。取消不能撤销远端已执行操作，中断上传可能留下部分文件。注册不会连接外部 FTP。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
+<p>服务和配置均为 Transient，实例持有配置副本和当前目录。并行多步目录流程应分别解析实例。取消不能撤销远端已执行操作，中断上传可能留下部分文件。注册不会连接外部 FTP。</p>
+<h2 id="构造函数注入与上传调用">构造函数注入与上传调用</h2>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Services.Ftp;
+
+public sealed class FileTransferService(IFtpClientService ftp)
+{
+    public async Task UploadAsync(string localPath, CancellationToken token)
+    {
+        bool uploaded = await ftp.FtpUploadAsync(localPath, token);
+        if (!uploaded)
+            throw new InvalidOperationException(&quot;FTP 上传未成功。&quot;);
+    }
+}</code></pre></div>
+<p>Build() 前注册 AddTransient&lt;FileTransferService&gt;()，现有业务类注入后调用 UploadAsync，并传入实际本地文件绝对路径及取消令牌。异常和取消向调用方传播；业务类不自行创建 FTP 连接。远端目录由注册时的 FtpRemotePath 决定。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#appsettingsjson-配置">appsettings.json 配置</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a><a class="toc-level-2" href="#构造函数注入与上传调用">构造函数注入与上传调用</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>
