@@ -198,6 +198,7 @@ public sealed class LoggingIntegrationTests
         var page = await client.GetAsync("nested/logs");
         Assert.AreEqual(HttpStatusCode.OK, page.StatusCode);
         StringAssert.Contains(await page.Content.ReadAsStringAsync(), "日志工作台");
+        StringAssert.Contains(await page.Content.ReadAsStringAsync(), "<title>Logging Dashboard</title>");
         Assert.IsTrue(page.Headers.CacheControl!.NoStore);
         Assert.IsTrue(page.Headers.Contains("Content-Security-Policy"));
         foreach (var query in new[] { "pageSize=201", "level=no", "from=bad", "beforeId=-1", "level=2&level=3", "minimumLevel=7" })
@@ -206,6 +207,31 @@ public sealed class LoggingIntegrationTests
         Assert.AreEqual(HttpStatusCode.NotFound, (await client.GetAsync("nested/logs/api/logs/999999")).StatusCode);
         Assert.AreEqual(HttpStatusCode.OK, (await client.GetAsync("nested/logs/api/statistics")).StatusCode);
         Assert.IsNotNull(await client.GetFromJsonAsync<LoggingStatus>("nested/logs/api/status"));
+        await app.StopAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow("业务日志", "业务日志")]
+    [DataRow("</title><script>alert(1)</script>", "&lt;/title&gt;&lt;script&gt;alert(1)&lt;/script&gt;")]
+    [DataRow("  ", "Logging Dashboard")]
+    [DataRow(null, "Logging Dashboard")]
+    public async Task DashboardTitle_UsesConfiguredEncodedTitle_OrDefault(string? title, string expected)
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Logging.ClearProviders();
+        builder.Services.AddSimpleLogging(o =>
+        {
+            o.DatabasePath = Database;
+            o.DashboardTitle = title!;
+        });
+        await using var app = builder.Build();
+        app.MapSimpleLogDashboard().AllowAnonymous();
+        await app.StartAsync();
+        var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
+        using var client = new HttpClient();
+        var html = await client.GetStringAsync(address + "/logs");
+        StringAssert.Contains(html, "<title>" + expected + "</title>");
         await app.StopAsync();
     }
 

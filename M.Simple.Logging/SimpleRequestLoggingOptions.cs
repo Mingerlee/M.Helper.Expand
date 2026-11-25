@@ -10,6 +10,8 @@ public sealed class SimpleRequestLoggingOptions
     public bool IncludeBody { get; set; } = true;
     /// <summary>普通 Error/Critical 日志是否默认附带请求信息；可由单条 LogError 的重载覆盖。</summary>
     public bool IncludeInErrorLogs { get; set; } = true;
+    /// <summary>未处理异常的自动日志是否附带请求上下文；null 时跟随 IncludeInErrorLogs。</summary>
+    public bool? IncludeContextInUnhandledExceptions { get; set; }
     /// <summary>记录未处理异常并重新抛出；与统一响应包协作时按请求和异常实例自动去重。</summary>
     public bool LogUnhandledExceptions { get; set; } = true;
     /// <summary>可选路径筛选，例如只采集 /api；返回 false 时完全跳过。</summary>

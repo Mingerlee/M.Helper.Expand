@@ -31,7 +31,8 @@ internal sealed class SimpleRequestLoggingMiddleware(RequestDelegate next, Simpl
             if (options.LogUnhandledExceptions && logger.IsEnabled(LogLevel.Error) &&
                 !ReferenceEquals(http.Items[loggedExceptionItemKey], ex))
             {
-                logger.LogError(new EventId(1001, "UnhandledRequestException"), ex, "接口发生未处理异常");
+                logger.LogError(options.IncludeContextInUnhandledExceptions ?? options.IncludeInErrorLogs,
+                    new EventId(1001, "UnhandledRequestException"), ex, "接口发生未处理异常");
                 http.Items[loggedExceptionItemKey] = ex;
             }
             throw;

@@ -6,6 +6,8 @@ namespace M.Simple.Logging;
 public sealed class SimpleLoggingOptions
 {
     public string ApplicationName { get; set; } = AppDomain.CurrentDomain.FriendlyName;
+    /// <summary>浏览器标签页标题；未配置或为空白时使用 Logging Dashboard。</summary>
+    public string DashboardTitle { get; set; } = "Logging Dashboard";
     public string DatabasePath { get; set; } = "App_Data/helper-logs.db";
     public LogLevel MinimumLevel { get; set; } = LogLevel.Information;
     public int RetentionDays { get; set; } = 15;

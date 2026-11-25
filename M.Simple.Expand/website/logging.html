@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="M.Simple 使用文档、API 说明与可运行示例"><title>日志与日志工作台 · M.Simple.Expand</title><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/site.css?v=20261125-nav2"><script defer src="assets/search-index.js"></script><script defer src="assets/site.js"></script></head>
+<body data-root=""><a class="skip-link" href="#main-content">跳到正文</a><aside class="sidebar" id="sidebar"><a class="brand" href="index.html"><span class="brand-icon">M.</span><span>M.Simple.Expand<small>Expand 原版手册</small></span></a><div class="nav-scroll"><div class="nav-label">开始</div><a class="nav-item " href="index.html">文档首页</a><a class="nav-item " href="quickstart.html">快速开始</a><a class="nav-item " href="samples.html">运行示例</a><a class="nav-item " href="sample-output.html">示例运行结果</a><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Expand</summary><a class="nav-item " href="guides/strings.html">字符串</a><a class="nav-item " href="guides/chinese.html">中文与拼音</a><a class="nav-item " href="guides/datetime.html">日期与时间</a><a class="nav-item " href="guides/money.html">金额</a><a class="nav-item " href="guides/collections.html">集合与比较器</a><a class="nav-item " href="guides/dictionary.html">字典</a><a class="nav-item " href="guides/enums.html">枚举</a><a class="nav-item " href="guides/datatable.html">DataTable</a><a class="nav-item " href="guides/comparison.html">实体比较与赋值</a><a class="nav-item " href="guides/crypto.html">加解密与摘要</a><a class="nav-item " href="guides/configuration.html">配置读取</a><a class="nav-item " href="guides/identifiers.html">GUID 与编码</a><a class="nav-item " href="guides/validation.html">校验特性</a></details><details class="nav-package-group" open><summary class="nav-label nav-package">M.Simple.Logging</summary><a class="nav-item active" href="logging.html" aria-current="page">日志与日志工作台</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Caching</summary><a class="nav-item " href="caching.html">内存缓存与统一缓存接口</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Caching.Redis</summary><a class="nav-item " href="caching-redis.html">Redis 缓存接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Caching.MongoDB</summary><a class="nav-item " href="caching-mongodb.html">MongoDB 缓存接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Caching.Dashboard</summary><a class="nav-item " href="caching-dashboard.html">缓存管理工作台</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Services.Interception</summary><a class="nav-item " href="interception.html">接口 AOP 与前后置钩子</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Services.Email</summary><a class="nav-item " href="email.html">邮件服务接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Services.Ftp</summary><a class="nav-item " href="ftp.html">FTP 文件服务接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Services.DependencyInjection</summary><a class="nav-item " href="dependency-injection.html">特性注册与属性装配</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.AspNetCore.Response</summary><a class="nav-item " href="response.html">MVC 统一响应</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.EntityFrameworkCore</summary><a class="nav-item " href="efcore.html">基础仓储与工作单元</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.EntityFrameworkCore.SqlServer</summary><a class="nav-item " href="efcore-sqlserver.html">SQL Server 数据访问接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Helper.Expand</summary><a class="nav-item " href="helper-expand.html">旧综合扩展包</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.EntityFrameworkCore.MySql</summary><a class="nav-item " href="efcore-mysql.html">MySQL 数据访问接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Container</summary><a class="nav-item " href="container.html">容器接入与程序集扫描</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.AspNetCore.Response.Swagger</summary><a class="nav-item " href="response-swagger.html">统一响应与 Swagger</a></details><div class="nav-label">参考</div><a class="nav-item " href="api.html">API 与源码索引</a><a class="nav-item " href="publishing.html">本地站点发布</a></div><div class="sidebar-footer"><span class="status-dot"></span>.NET 8 · 3.0.0.1</div></aside><div class="nav-backdrop" hidden></div><div class="workspace"><header class="topbar"><div class="topbar-left"><button class="menu-button" type="button" aria-label="切换导航" aria-controls="sidebar" aria-expanded="false">☰</button><span class="breadcrumb">文档<span>/</span>M.Simple.Logging</span></div><div class="topbar-actions"><button class="search-trigger" type="button"><span>搜索文档与 API</span><kbd>Ctrl K</kbd></button><a href="https://github.com/Mingerlee/M.Helper.Expand" target="_blank" rel="noopener" class="repository-link">原版项目 ↗</a></div></header><div class="content-grid"><main id="main-content" class="document"><div class="document-label">M.Simple.Logging</div><h1 id="msimplelogging-接入与使用">M.Simple.Logging 接入与使用</h1>
+<p>通过标准 ILogger&lt;T&gt; 记录日志，使用本地 SQLite 持久化并提供内嵌工作台。宿主需已有认证方案和 LogAdmin 授权策略；无需页面时可省略工作台映射。</p>
+<p>当前项目版本 <code>1.0.1.6</code>，目标框架 .NET 8。</p>
+<h2 id="安装包">安装包</h2>
+<p>在使用方项目目录执行，或通过 --project 指定项目：</p>
+<div class="code-block"><div class="code-toolbar"><span>powershell</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="powershell">dotnet add package M.Simple.Logging --version 1.0.1.6</code></pre></div>
+<p>包源需包含该版本。安装包不会自动执行注册；保留项目原有配置，无需添加示例接口。</p>
+<h2 id="programcs-配置">Program.cs 配置</h2>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.Logging; // 本次新增：引入本包接入所需扩展或类型。
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddSimpleLogging(); // 本次新增：注册日志提供程序和 SQLite 存储。
+
+var app = builder.Build();
+
+app.UseSimpleLoggingRequestContext(); // 本次新增（可选）：为错误日志附带脱敏请求上下文。
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+app.MapSimpleLogDashboard(&quot;/logs&quot;).RequireAuthorization(&quot;LogAdmin&quot;); // 本次新增（可选）：映射受 LogAdmin 策略保护的日志工作台。
+app.Run();</code></pre></div>
+<p>认证方案及上述授权策略由宿主已有配置提供，示例不代替认证注册。</p>
+<h2 id="使用说明">使用说明</h2>
+<p>日志目录需要写入权限，相对路径基于 AppContext.BaseDirectory。注册不会清除宿主已有日志提供程序。请求采集为可选功能；不采集请求头、Cookie 或响应体。与统一响应包协作去重需核对两个实际安装版本；Response 1.0.0.1 不应直接视为具备 README 中标注的 1.0.1 去重能力。</p>
+<h2 id="自动附带错误请求参数可选">自动附带错误请求参数（可选）</h2>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">builder.Services.AddSimpleLogging();
+var app = builder.Build();
+// 已有 UseExceptionHandler 或业务异常处理中间件应放在这里，包会将异常继续向外抛出。
+app.UseSimpleLoggingRequestContext(options =&gt;
+{
+    options.MaxBodyBytes = 16 * 1024;
+    options.ShouldCapture = context =&gt; context.Request.Path.StartsWithSegments(&quot;/api&quot;);
+    options.SensitiveFields.Add(&quot;IdentityNumber&quot;);
+});
+// 之后是认证、授权、Controller/接口等原有配置。</code></pre></div>
+<p>仅调用 <code>AddSimpleLogging</code> 不启用采集。安装 <code>UseSimpleLoggingRequestContext</code> 后，在接口执行范围内调用的 <code>LogError</code> / <code>LogCritical</code> 自动将请求信息放入 <code>PropertiesJson.Request</code>，在工作台详情的“结构化属性”查看；Information / Warning 等日志不附带参数。</p>
+<ul><li>包含 Method、Path（不含原始 QueryString）、Query、RouteValues、RequestId、TraceId、Body 和 BodyStatus；已有业务结构化属性保留，<code>Request</code> 为本包保留字段。</li><li>JSON（含 <code>+json</code>）和 URL 编码表单在接口执行前有界读取，并复位到原位置，保持 Controller / Minimal API 参数绑定。即使最后没有错误，也会发生这次有界读取，但不会额外生成日志。</li><li>默认最多读取 16 KiB；已知超大或读取超过上限时不保存请求体，标记 <code>TooLarge</code>。无效或深度超过 32 层的 JSON 标记 <code>UnavailableOrInvalid</code>，不存原始文本；其他类型（如二进制、纯文本、压缩请求体）跳过。解压中间件需要先于本中间件执行。</li><li>JSON 嵌套字段、Query、路由及表单字段按名称脱敏，不区分大小写，忽略标点；默认覆盖含 password、passwd、pwd、token、secret、authorization、cookie、apikey 的名称，可通过 <code>SensitiveFields</code> 追加。仅按字段名称处理，不能识别普通字符串内容里嵌入的密码，路径本身也不做业务语义脱敏；不应把秘密放进 URL 路径或无名称字符串。</li><li>multipart 文件上传不预读。错误发生时如果下游已解析表单，则记录脱敏字段及文件名/大小，不读取文件内容；下游尚未解析时标记 <code>FormNotParsed</code>。采集不会主动触发表单解析。</li><li><code>IncludeBody=false</code> 可只记录路径、Query 等元数据；<code>ShouldCapture</code> 可排除登录、上传等接口。不采集任何请求头，Authorization 和 Cookie 不进入请求快照。</li><li>请求上下文也使用 <code>MaxBodyBytes</code> 作为 JSON 字节预算，超限时省略 Body/Query/RouteValues，并标记 <code>ContextTooLarge</code>；集合和字段还有单项限制。日志原有的 <code>MaxFieldLength</code> 总属性长度限制仍生效，过小可能使整个 PropertiesJson 变为截断标记。</li><li>LogUnhandledExceptions=true 默认记录未处理异常并重新抛出。跨包去重是否可用需核对实际安装的统一响应版本，不能仅因启用请求采集就认定已去重。</li><li>仅返回 HTTP 500 而没有错误日志或异常，不自动生成日志。后台任务在请求结束后不再携带该请求上下文。</li></ul>
+<p>请求缓冲使用 ASP.NET Core 的 <code>EnableBuffering</code>；服务本身的请求体大小、表单和上传限制仍由宿主配置。本功能不是审计记录，不改变磁盘容量保护策略。</p>
+<h3 id="与统一响应包配合">与统一响应包配合</h3>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">builder.Services.AddSimpleLogging();
+builder.Services.AddUnifiedResponse();
+var app = builder.Build();
+app.UseUnifiedResponse();
+app.UseSimpleLoggingRequestContext();</code></pre></div>
+<p>需引用 M.Simple.AspNetCore.Response 1.0.1 或更高兼容版本，并导入对应命名空间。本包 1.0.1.5 起记录未处理异常后，会在当前 HttpContext.Items 中标记该异常引用；响应包跳过相同异常的自动日志，继续返回统一 500。</p>
+<p>此标记仅针对自动记录的未处理异常。业务主动写入的错误、其他请求和其他异常不会被合并。请求上下文与脱敏规则不变；单独使用本日志包仍保持记录异常并重新抛出的原有行为。两包一起使用时，无需通过关闭 LogUnhandledExceptions 来去重。</p>
+<h3 id="按单条错误日志开启或关闭">按单条错误日志开启或关闭</h3>
+<p>引入 <code>using M.Simple.Logging;</code> 后，可以在标准 <code>LogError</code> 的参数前加 <code>includeRequestContext</code>：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">logger.LogError(true, &quot;订单 {OrderId} 保存失败&quot;, orderId);   // 本条附带请求参数
+logger.LogError(false, &quot;订单 {OrderId} 校验失败&quot;, orderId); // 本条不附带请求参数
+logger.LogError(true, exception, &quot;订单 {OrderId} 保存异常&quot;, orderId);
+logger.LogError(false, new EventId(2001, &quot;SaveFailed&quot;), exception,
+    &quot;订单 {OrderId} 保存异常&quot;, orderId);</code></pre></div>
+<p>支持消息、异常、EventId、EventId + 异常四种重载，保留消息模板与结构化属性。开关仅影响当前这一条日志，不影响下一条、并发请求或其他日志提供程序。</p>
+<p>如果多数地方不需要附带，可以关闭全局默认，再由个别 <code>LogError(true, ...)</code> 开启：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">app.UseSimpleLoggingRequestContext(options =&gt;
+{
+    options.IncludeInErrorLogs = false;
+});
+
+logger.LogError(&quot;普通错误&quot;);                  // 跟随全局默认，不附带
+logger.LogError(true, &quot;需要请求上下文的错误&quot;); // 单独开启
+logger.LogError(false, &quot;无需请求上下文的错误&quot;); // 单独关闭</code></pre></div>
+<p>默认 <code>IncludeInErrorLogs=true</code>，原有 <code>LogError(...)</code> / <code>LogCritical(...)</code> 写法保持自动附带；当前单条重载仅为 <code>LogError</code> 提供。该开关控制是否写入请求快照，不控制错误日志本身是否生成。</p>
+<p>单条开启仍需安装请求中间件并处于请求执行范围；不会突破 <code>ShouldCapture</code> 路径排除、<code>IncludeBody=false</code>、大小限制或脱敏规则。<code>IncludeInErrorLogs=false</code> 仍会准备有界请求快照，以便单条调用开启；如果整个应用都不需要采集，不安装中间件即可。</p>
+<h2 id="配置">配置</h2>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">builder.Services.AddSimpleLogging(options =&gt;
+{
+    options.ApplicationName = &quot;BAMS.Api&quot;;
+    options.DatabasePath = &quot;App_Data/logs.db&quot;;
+    options.MinimumLevel = LogLevel.Information;
+    options.RetentionDays = 15;
+    options.QueueCapacity = 10_000;
+    options.BatchSize = 200;
+    options.FlushInterval = TimeSpan.FromSeconds(1);
+    options.ShutdownTimeout = TimeSpan.FromSeconds(5);
+    options.MaxStorageBytes = 512L * 1024 * 1024;
+    options.MinFreeDiskSpaceBytes = 256L * 1024 * 1024;
+    options.DiskSpaceRecoveryMarginBytes = 64L * 1024 * 1024;
+    options.StorageCheckInterval = TimeSpan.FromSeconds(30);
+});</code></pre></div>
+<ul><li>相对路径基于 <code>AppContext.BaseDirectory</code>，目录自动创建；启动时检查数据库权限。</li><li>默认过滤 <code>Microsoft.AspNetCore</code> 分类低于 Warning 的框架请求日志，避免页面轮询产生大量自身日志。可通过后续 <code>builder.Logging.AddFilter&lt;SimpleLoggerProvider&gt;(...)</code> 覆盖。</li><li>宿主 Logging 过滤配置仍生效；开启 Debug / Trace 时需要同时允许宿主过滤器和本包 MinimumLevel。</li><li>字段默认最多 32,768 字符；属性和 Scope 超限保存有效 JSON 截断标识。普通对象通过 <code>ToString()</code> 快照，不深度遍历对象。</li><li><code>Enrich</code> 回调可在入队前脱敏消息、异常、属性和 Scope；需线程安全，不得保留并异步修改日志对象。业务主动写入的敏感信息需自行处理。</li><li>选项在注册时配置，运行期间不要修改；每个宿主仅调用一次 <code>AddSimpleLogging</code>。</li></ul>
+<h2 id="页面与-api">页面与 API</h2>
+<p>访问 <code>/logs</code> 或 <code>/logs/</code>，支持宿主 PathBase。所有页面/API 共用路由组授权配置。</p>
+<ul><li>保留期总数、今日日志、今日错误（含 Critical）、最近一小时。</li><li>时间、级别、日志来源精确匹配、消息/异常/属性关键词、TraceId 筛选。</li><li>日志详情、异常堆栈、结构化属性、Scope、复制 JSON、TraceId 关联查询。</li><li>自动刷新默认关闭，每 10 秒刷新；仅在第一页、详情关闭时生效。</li><li>当前进程的采集、落库、丢弃、采集失败、写入失败和运行状态，以及日志文件用量、磁盘可用空间、容量清理条数、暂停原因。</li></ul>
+<div class="table-scroll"><table><thead><tr><th>Dashboard 下的相对路径</th><th>用途</th></tr></thead><tbody><tr><td><code>GET /api/logs</code></td><td><code>from/to/level/minimumLevel/category/keyword/traceId/beforeId/pageSize</code> 筛选</td></tr><tr><td><code>GET /api/logs/{id}</code></td><td>单条详情</td></tr><tr><td><code>GET /api/statistics?utcOffsetMinutes=480</code></td><td>统计，默认 UTC 今日边界</td></tr><tr><td><code>GET /api/status</code></td><td>当前进程状态</td></tr></tbody></table></div>
+<p>时间统一存 UTC，范围为 <code>[from,to)</code>，建议传携带时区的 ISO 8601。页面今日边界按浏览器当前 UTC 偏移计算。列表按 Id 倒序游标分页，每页默认 50 条、最大 200 条；API 默认不限时间，页面默认最近 24 小时。关键词采用区分大小写的字面量匹配，SQL 参数绑定。</p>
+<p>日志内容通过文本 DOM 展示，不当作 HTML 执行；响应禁止缓存，页面不依赖 CDN。</p>
+<h2 id="接入注意事项">接入注意事项</h2>
+<p>日志目录需要写入权限，相对路径基于 AppContext.BaseDirectory。注册不会清除宿主已有日志提供程序。请求采集为可选功能；不采集请求头、Cookie 或响应体。与统一响应包协作去重需核对两个实际安装版本；Response 1.0.0.1 不应直接视为具备 README 中标注的 1.0.1 去重能力。</p>
+<h2 id="浏览器标签页标题">浏览器标签页标题</h2>
+<p>通过 DashboardTitle 配置日志工作台的浏览器标题；未配置、null 或空白时使用默认值 <code>Logging Dashboard</code>。此选项不改变页内标题或日志中的 ApplicationName。</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">builder.Services.AddSimpleLogging(options =&gt;
+{
+    options.DashboardTitle = &quot;业务日志&quot;; // 本次新增：自定义浏览器标签页标题。
+});</code></pre></div>
+<p>将配置合并到项目已有的 AddSimpleLogging 调用中，不要重复注册。标题按文本编码后输出。该选项从 1.0.1.6 起提供，也可使用当前源码引用。</p>
+<h2 id="单独控制未处理异常的上下文">单独控制未处理异常的上下文</h2>
+<p>普通错误默认不附带上下文，但未处理异常的自动日志附带上下文：</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">app.UseSimpleLoggingRequestContext(options =&gt;
+{
+    options.IncludeInErrorLogs = false;
+    options.LogUnhandledExceptions = true;
+    options.IncludeContextInUnhandledExceptions = true; // 本次新增：仅开启未处理异常自动日志的上下文。
+});</code></pre></div>
+<p>IncludeContextInUnhandledExceptions 为可空布尔值：true 开启、false 关闭，未配置（null）跟随 IncludeInErrorLogs，保持原行为。它只影响事件号 1001 的自动异常日志，不改变普通 Error/Critical 或单条日志开关。配置合并到已有的请求中间件调用中。</p>
+<p>上下文位于日志详情的结构化属性 Request；仍遵循 ShouldCapture 路径筛选、IncludeBody、脱敏与大小限制。LogUnhandledExceptions=false 时不生成自动异常日志，单独开启上下文不会额外生成日志。中间件需位于宿主异常处理之后、接口执行之前，使其能够捕获异常；采用统一响应时推荐 UseUnifiedResponse() → UseSimpleLoggingRequestContext() → 接口执行。该选项从 1.0.1.6 起提供，也可使用当前源码引用。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#使用说明">使用说明</a><a class="toc-level-2" href="#自动附带错误请求参数可选">自动附带错误请求参数（可选）</a><a class="toc-level-3" href="#与统一响应包配合">与统一响应包配合</a><a class="toc-level-3" href="#按单条错误日志开启或关闭">按单条错误日志开启或关闭</a><a class="toc-level-2" href="#配置">配置</a><a class="toc-level-2" href="#页面与-api">页面与 API</a><a class="toc-level-2" href="#接入注意事项">接入注意事项</a><a class="toc-level-2" href="#浏览器标签页标题">浏览器标签页标题</a><a class="toc-level-2" href="#单独控制未处理异常的上下文">单独控制未处理异常的上下文</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

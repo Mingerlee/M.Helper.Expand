@@ -6,7 +6,7 @@ NuGet 包仅包含 `net8.0` 程序集，仓库构建需 .NET 8 SDK。
 
 ## 快速接入
 
-包发布后安装：`dotnet add package M.Simple.Logging`。仓库内可使用项目引用，当前尚未发布到 NuGet。
+安装：`dotnet add package M.Simple.Logging --version 1.0.1.6`。仓库内也可使用项目引用。
 
 ```csharp
 using M.Simple.Logging;
@@ -225,3 +225,33 @@ dotnet pack M.Simple.Logging --configuration Release --output artifacts/packages
 ```
 
 测试使用真实临时 SQLite 和本地 HTTP 服务，覆盖并发采集、停机排空、重启恢复、Scope/TraceId、游标分页、过期清理、失败重试、字段限长、授权、容量清理/缩容、长读事务阻塞 WAL、低磁盘/空间未知暂停与恢复、SQLITE_FULL 回滚及旧库兼容。磁盘不足通过可替换的内部探针模拟，不会实际填满开发机磁盘；Linux Docker 尚未实测。
+
+## 浏览器标签页标题
+
+通过 DashboardTitle 配置日志工作台的浏览器标题；未配置、null 或空白时使用默认值 `Logging Dashboard`。此选项不改变页内标题或日志中的 ApplicationName。
+
+```csharp
+builder.Services.AddSimpleLogging(options =>
+{
+    options.DashboardTitle = "业务日志"; // 本次新增：自定义浏览器标签页标题。
+});
+```
+
+将配置合并到项目已有的 AddSimpleLogging 调用中，不要重复注册。标题按文本编码后输出。该选项从 1.0.1.6 起提供，也可使用当前源码引用。
+
+## 单独控制未处理异常的上下文
+
+普通错误默认不附带上下文，但未处理异常的自动日志附带上下文：
+
+```csharp
+app.UseSimpleLoggingRequestContext(options =>
+{
+    options.IncludeInErrorLogs = false;
+    options.LogUnhandledExceptions = true;
+    options.IncludeContextInUnhandledExceptions = true; // 本次新增：仅开启未处理异常自动日志的上下文。
+});
+```
+
+IncludeContextInUnhandledExceptions 为可空布尔值：true 开启、false 关闭，未配置（null）跟随 IncludeInErrorLogs，保持原行为。它只影响事件号 1001 的自动异常日志，不改变普通 Error/Critical 或单条日志开关。配置合并到已有的请求中间件调用中。
+
+上下文位于日志详情的结构化属性 Request；仍遵循 ShouldCapture 路径筛选、IncludeBody、脱敏与大小限制。LogUnhandledExceptions=false 时不生成自动异常日志，单独开启上下文不会额外生成日志。中间件需位于宿主异常处理之后、接口执行之前，使其能够捕获异常；采用统一响应时推荐 UseUnifiedResponse() → UseSimpleLoggingRequestContext() → 接口执行。该选项从 1.0.1.6 起提供，也可使用当前源码引用。

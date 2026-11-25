@@ -268,6 +268,36 @@ public sealed class RequestLoggingTests
             Assert.IsFalse(JsonDocument.Parse(entry.PropertiesJson).RootElement.TryGetProperty("Request", out _));
     }
 
+    [DataTestMethod]
+    [DataRow(false, true, true)]
+    [DataRow(true, false, false)]
+    [DataRow(false, null, false)]
+    [DataRow(true, null, true)]
+    public async Task UnhandledContextSwitch_IsIndependentOfOrdinaryLogs(bool globalInclude, bool? unhandledInclude, bool expected)
+    {
+        await Start(o =>
+        {
+            o.IncludeInErrorLogs = globalInclude;
+            o.IncludeContextInUnhandledExceptions = unhandledInclude;
+        });
+        await _client.PostAsync("/json/42", new StringContent("{}", Encoding.UTF8, "application/json"));
+        var response = await _client.PostAsync("/throw?password=secret&orderId=42",
+            new StringContent("{\"OrderId\":42}", Encoding.UTF8, "application/json"));
+        Assert.AreEqual(HttpStatusCode.InternalServerError, response.StatusCode);
+        await _app.StopAsync();
+        var entries = (await Store.QueryAsync(new LogQuery())).Items;
+        var automatic = entries.Single(e => e.EventId == 1001);
+        using var document = JsonDocument.Parse(automatic.PropertiesJson);
+        Assert.AreEqual(expected, document.RootElement.TryGetProperty("Request", out var request));
+        if (expected)
+        {
+            Assert.AreEqual(42, request.GetProperty("Body").GetProperty("OrderId").GetInt32());
+            Assert.IsFalse(request.GetRawText().Contains("secret"));
+        }
+        var ordinary = entries.Single(e => e.Message == "request failed");
+        Assert.AreEqual(globalInclude, JsonDocument.Parse(ordinary.PropertiesJson).RootElement.TryGetProperty("Request", out _));
+    }
+
     private async Task VerifyPerLogSwitch(bool defaultInclude, bool critical = false)
     {
         await Start(o => o.IncludeInErrorLogs = defaultInclude);

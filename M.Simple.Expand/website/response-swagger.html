@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="M.Simple 使用文档、API 说明与可运行示例"><title>统一响应与 Swagger · M.Simple.Expand</title><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/site.css?v=20261125-nav2"><script defer src="assets/search-index.js"></script><script defer src="assets/site.js"></script></head>
+<body data-root=""><a class="skip-link" href="#main-content">跳到正文</a><aside class="sidebar" id="sidebar"><a class="brand" href="index.html"><span class="brand-icon">M.</span><span>M.Simple.Expand<small>Expand 原版手册</small></span></a><div class="nav-scroll"><div class="nav-label">开始</div><a class="nav-item " href="index.html">文档首页</a><a class="nav-item " href="quickstart.html">快速开始</a><a class="nav-item " href="samples.html">运行示例</a><a class="nav-item " href="sample-output.html">示例运行结果</a><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Expand</summary><a class="nav-item " href="guides/strings.html">字符串</a><a class="nav-item " href="guides/chinese.html">中文与拼音</a><a class="nav-item " href="guides/datetime.html">日期与时间</a><a class="nav-item " href="guides/money.html">金额</a><a class="nav-item " href="guides/collections.html">集合与比较器</a><a class="nav-item " href="guides/dictionary.html">字典</a><a class="nav-item " href="guides/enums.html">枚举</a><a class="nav-item " href="guides/datatable.html">DataTable</a><a class="nav-item " href="guides/comparison.html">实体比较与赋值</a><a class="nav-item " href="guides/crypto.html">加解密与摘要</a><a class="nav-item " href="guides/configuration.html">配置读取</a><a class="nav-item " href="guides/identifiers.html">GUID 与编码</a><a class="nav-item " href="guides/validation.html">校验特性</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Logging</summary><a class="nav-item " href="logging.html">日志与日志工作台</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Caching</summary><a class="nav-item " href="caching.html">内存缓存与统一缓存接口</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Caching.Redis</summary><a class="nav-item " href="caching-redis.html">Redis 缓存接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Caching.MongoDB</summary><a class="nav-item " href="caching-mongodb.html">MongoDB 缓存接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Caching.Dashboard</summary><a class="nav-item " href="caching-dashboard.html">缓存管理工作台</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Services.Interception</summary><a class="nav-item " href="interception.html">接口 AOP 与前后置钩子</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Services.Email</summary><a class="nav-item " href="email.html">邮件服务接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Services.Ftp</summary><a class="nav-item " href="ftp.html">FTP 文件服务接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Services.DependencyInjection</summary><a class="nav-item " href="dependency-injection.html">特性注册与属性装配</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.AspNetCore.Response</summary><a class="nav-item " href="response.html">MVC 统一响应</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.EntityFrameworkCore</summary><a class="nav-item " href="efcore.html">基础仓储与工作单元</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.EntityFrameworkCore.SqlServer</summary><a class="nav-item " href="efcore-sqlserver.html">SQL Server 数据访问接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Helper.Expand</summary><a class="nav-item " href="helper-expand.html">旧综合扩展包</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.EntityFrameworkCore.MySql</summary><a class="nav-item " href="efcore-mysql.html">MySQL 数据访问接入</a></details><details class="nav-package-group"><summary class="nav-label nav-package">M.Simple.Container</summary><a class="nav-item " href="container.html">容器接入与程序集扫描</a></details><details class="nav-package-group" open><summary class="nav-label nav-package">M.Simple.AspNetCore.Response.Swagger</summary><a class="nav-item active" href="response-swagger.html" aria-current="page">统一响应与 Swagger</a></details><div class="nav-label">参考</div><a class="nav-item " href="api.html">API 与源码索引</a><a class="nav-item " href="publishing.html">本地站点发布</a></div><div class="sidebar-footer"><span class="status-dot"></span>.NET 8 · 3.0.0.1</div></aside><div class="nav-backdrop" hidden></div><div class="workspace"><header class="topbar"><div class="topbar-left"><button class="menu-button" type="button" aria-label="切换导航" aria-controls="sidebar" aria-expanded="false">☰</button><span class="breadcrumb">文档<span>/</span>M.Simple.AspNetCore.Response.Swagger</span></div><div class="topbar-actions"><button class="search-trigger" type="button"><span>搜索文档与 API</span><kbd>Ctrl K</kbd></button><a href="https://github.com/Mingerlee/M.Helper.Expand" target="_blank" rel="noopener" class="repository-link">原版项目 ↗</a></div></header><div class="content-grid"><main id="main-content" class="document"><div class="document-label">M.Simple.AspNetCore.Response.Swagger</div><h1 id="统一响应与-swagger-接入">统一响应与 Swagger 接入</h1>
+<p><code>M.Simple.AspNetCore.Response.Swagger</code> 为 ASP.NET Core MVC 控制器提供统一响应的 Swagger 文档适配。适用 .NET 8、Swashbuckle.AspNetCore 6.x（6.4.0 起，低于 7.0.0）。</p>
+<h2 id="安装包">安装包</h2>
+<p>在 Web API 项目目录执行，或通过 <code>--project</code> 指定项目：</p>
+<div class="code-block"><div class="code-toolbar"><span>powershell</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="powershell">dotnet add package M.Simple.AspNetCore.Response.Swagger --version 1.0.0.1
+dotnet add package Swashbuckle.AspNetCore --version 6.4.0</code></pre></div>
+<p>Swagger 适配包会自动依赖 <code>M.Simple.AspNetCore.Response</code> 核心包，无需再次单独安装核心包。已有兼容版本 Swashbuckle.AspNetCore 的项目保留现有引用即可。</p>
+<h2 id="programcs-配置">Program.cs 配置</h2>
+<p>在现有项目中补齐以下注册和中间件。已有 Swagger 分组、数据库、依赖注入和认证配置继续保留，无需添加示例接口。</p>
+<div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using M.Simple.AspNetCore.Response; // 本次新增：统一响应运行时扩展。
+using M.Simple.AspNetCore.Response.Swagger; // 本次新增：Swagger 文档适配扩展。
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddUnifiedResponse(); // 本次新增：注册统一响应包装、参数校验响应及异常处理服务。
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddUnifiedResponseSwagger(); // 本次新增：将 Swagger 响应文档适配为 code、message、data。
+
+var app = builder.Build();
+
+app.UseUnifiedResponse(); // 本次新增：启用异常及空错误响应统一处理，放在认证、授权和接口执行之前。
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
+app.Run();</code></pre></div>
+<p><code>AddUnifiedResponse()</code> 内部已调用 <code>AddControllers()</code>，也兼容项目已有的 MVC 注册。</p>
+<h2 id="三个调用分别负责什么">三个调用分别负责什么</h2>
+<div class="table-scroll"><table><thead><tr><th>调用</th><th>作用</th><th>放置位置</th></tr></thead><tbody><tr><td>AddUnifiedResponse()</td><td>注册 MVC 结果包装、自动参数校验响应及异常处理服务</td><td>builder.Build() 之前</td></tr><tr><td>UseUnifiedResponse()</td><td>启用异常处理和空错误响应的统一输出</td><td>builder.Build() 之后，认证、授权及接口执行之前</td></tr><tr><td>AddUnifiedResponseSwagger()</td><td>将 Swagger JSON 响应模型描述为 code、message、data</td><td>AddSwaggerGen() 之后，builder.Build() 之前</td></tr></tbody></table></div>
+<p><strong>只引入包或只调用 AddUnifiedResponseSwagger()，不会改变接口的真实返回值。</strong> 要让实际响应与 Swagger 文档一致，必须同时配置运行时的 <code>AddUnifiedResponse()</code> 和 <code>UseUnifiedResponse()</code>。</p>
+<h2 id="现有接口的返回效果">现有接口的返回效果</h2>
+<p>控制器继续直接返回原有 DTO、实体或 <code>Ok(value)</code>，无需继承专用基类，也无需在每个接口中手动包装。原业务数据会放入 <code>data</code>：</p>
+<div class="code-block"><div class="code-toolbar"><span>json</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="json">{
+  &quot;code&quot;: 200,
+  &quot;message&quot;: &quot;成功&quot;,
+  &quot;data&quot;: {
+    &quot;id&quot;: 4,
+    &quot;applyCode&quot;: &quot;apply_code_value&quot;
+  }
+}</code></pre></div>
+<ul><li><code>code</code> 默认与实际 HTTP 状态一致。参数校验失败返回 400；未处理异常返回 500、“服务器内部错误”和 null 数据。</li><li>普通 DTO、数组及 JSON 结果自动包装；已返回 <code>ApiResponse&lt;T&gt;</code> 的结果不重复包装。</li><li>文件、重定向、显式 ContentResult、流式响应保留协议语义；本包不会自动包装 Minimal API。</li><li>使用 <code>[SkipUnifiedResponse]</code> 可跳过指定控制器或操作的统一响应及对应 Swagger 文档改写。</li></ul>
+<h2 id="排查文档已包装实际响应仍直接返回实体">排查：文档已包装，实际响应仍直接返回实体</h2>
+<p>Swagger 的 <code>Server response / Response body</code> 显示真实请求结果，下面的 Schema 或 Example Value 来自文档定义。两者不同通常是只启用了文档适配。</p>
+<ol><li>确认 Program.cs 引入两个命名空间，并调用上述三个方法。</li><li>重新编译、重启实际监听端口的 API 进程，再执行 Swagger 请求。</li><li>如仍未包装，检查请求是否命中当前项目、控制器或操作是否有 <code>[SkipUnifiedResponse]</code>，以及是否返回文件、文本或其他不包装的结果。</li></ol>
+<p>自定义 Swagger 分组继续使用项目原来的 <code>SwaggerDoc</code> 和 <code>SwaggerEndpoint</code>，无需为接入统一响应增加控制器或测试接口。</p><footer class="page-footer">M.Simple <span>原版扩展与服务使用手册</span><a href="index.html">返回首页 ↑</a></footer></main><aside class="page-toc"><div>本页内容</div><a class="toc-level-2" href="#安装包">安装包</a><a class="toc-level-2" href="#programcs-配置">Program.cs 配置</a><a class="toc-level-2" href="#三个调用分别负责什么">三个调用分别负责什么</a><a class="toc-level-2" href="#现有接口的返回效果">现有接口的返回效果</a><a class="toc-level-2" href="#排查文档已包装实际响应仍直接返回实体">排查：文档已包装，实际响应仍直接返回实体</a></aside></div></div><dialog class="search-dialog"><div class="search-dialog-header"><label class="sr-only" for="search-input">搜索文档</label><input id="search-input" placeholder="搜索方法名、包名或关键字…" autocomplete="off"><button class="close-search" type="button" aria-label="关闭搜索">Esc</button></div><div class="search-results" aria-live="polite"></div><div class="search-hint">输入关键字搜索全部文档 · 按 Esc 关闭</div></dialog><div class="toast" role="status" aria-live="polite"></div></body></html>

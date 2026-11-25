@@ -68,7 +68,10 @@ public static class SimpleLoggingExtensions
                 return Results.Problem("日志数据库暂时不可用，请稍后重试。", statusCode: 503);
             }
         });
-        group.MapGet("/", () => Results.Content(DashboardHtml.Value, "text/html; charset=utf-8"));
+        group.MapGet("/", (SimpleLoggingOptions options) => Results.Content(
+            DashboardHtml.Value.Replace("{{DashboardTitle}}", System.Net.WebUtility.HtmlEncode(
+                string.IsNullOrWhiteSpace(options.DashboardTitle) ? "Logging Dashboard" : options.DashboardTitle),
+                StringComparison.Ordinal), "text/html; charset=utf-8"));
         group.MapGet("/api/logs", async (HttpRequest request, SqliteLogStore store, CancellationToken ct) =>
         {
             var query = new LogQuery

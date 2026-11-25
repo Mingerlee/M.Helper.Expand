@@ -1,0 +1,80 @@
+[
+  {
+    "name": "M.Simple.Logging",
+    "slug": "logging",
+    "title": "日志与日志工作台",
+    "version": "1.0.1.6"
+  },
+  {
+    "name": "M.Simple.Caching",
+    "slug": "caching",
+    "title": "内存缓存与统一缓存接口",
+    "version": "1.0.0.5"
+  },
+  {
+    "name": "M.Simple.Caching.Redis",
+    "slug": "caching-redis",
+    "title": "Redis 缓存接入",
+    "version": "1.0.0.6"
+  },
+  {
+    "name": "M.Simple.Caching.MongoDB",
+    "slug": "caching-mongodb",
+    "title": "MongoDB 缓存接入",
+    "version": "1.0.0.5"
+  },
+  {
+    "name": "M.Simple.Caching.Dashboard",
+    "slug": "caching-dashboard",
+    "title": "缓存管理工作台",
+    "version": "1.0.0.3"
+  },
+  {
+    "name": "M.Simple.Services.Interception",
+    "slug": "interception",
+    "title": "接口 AOP 与前后置钩子",
+    "version": "1.0.0.3"
+  },
+  {
+    "name": "M.Simple.Services.Email",
+    "slug": "email",
+    "title": "邮件服务接入",
+    "version": "1.0.0.1"
+  },
+  {
+    "name": "M.Simple.Services.Ftp",
+    "slug": "ftp",
+    "title": "FTP 文件服务接入",
+    "version": "1.0.0.1"
+  },
+  {
+    "name": "M.Simple.Services.DependencyInjection",
+    "slug": "dependency-injection",
+    "title": "特性注册与属性装配",
+    "version": "1.0.0.1"
+  },
+  {
+    "name": "M.Simple.AspNetCore.Response",
+    "slug": "response",
+    "title": "MVC 统一响应",
+    "version": "1.0.0.1"
+  },
+  {
+    "name": "M.Simple.EntityFrameworkCore",
+    "slug": "efcore",
+    "title": "基础仓储与工作单元",
+    "version": "1.0.0.4"
+  },
+  {
+    "name": "M.Simple.EntityFrameworkCore.SqlServer",
+    "slug": "efcore-sqlserver",
+    "title": "SQL Server 数据访问接入",
+    "version": "1.0.0.4"
+  },
+  {
+    "name": "M.Helper.Expand",
+    "slug": "helper-expand",
+    "title": "旧综合扩展包",
+    "version": "1.0.3.5"
+  }
+]
