@@ -4,9 +4,20 @@ using M.Simple.Container.Sample;
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSimpleContainer();
 builder.Services.AddAssemblyServices<IScopedService>(typeof(UserService).Assembly);
+builder.Services.Scan(typeof(GreetingService).Assembly)
+    .AssignableTo<IProxyService>()
+    .Where(type => type == typeof(GreetingService))
+    .As<IGreetingService>()
+    .ProxyScoped((_, target, _) => new GreetingServiceProxy((IGreetingService)target));
 
 var app = builder.Build();
-app.MapGet("/", () => "M.Simple.Container: try /users/1 and /scope");
+app.MapGet("/", () => "M.Simple.Container: try /users/1, /scope and /proxy?message=hello");
+app.MapGet("/proxy", (string message, IGreetingService greeting) => new
+{
+    Result = greeting.SayHello(message),
+    greeting.ScopeId,
+    ProxyType = greeting.GetType().Name
+});
 app.MapGet("/users/{id:int}", (int id, IUserService users) => users.Get(id));
 app.MapGet("/scope", (IUserService users, IUserAudit audit) => new
 {

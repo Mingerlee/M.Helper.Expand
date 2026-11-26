@@ -37,6 +37,8 @@ app.Run();
 
 ## 外部钩子与批量扫描（1.0.0.4 起）
 
+`AddInterceptedAssemblyServices` 保留在本包的 `M.Simple.Services.Interception` 命名空间，不依赖 Container。若应用需要 Container 1.0.0.2 的接口筛选和代理工厂扫描，可由应用层组合两个包，见 [Container 的代理注册与组合示例](container.md)。两种入口选择一种，避免对同一映射重复执行两套扫描。
+
 本次改变旧版失败规则，不提供全局或方法级失败开关：前置普通异常记录日志后继续业务；业务失败或取消直接抛出、不执行任何后置；后置普通异常记录日志并保留该钩子执行前的结果。通用拦截器和指定方法钩子使用同一规则。必须执行的清理应放在业务方法自己的 try/finally 中。
 
 ```csharp

@@ -1,13 +1,13 @@
 # M.Simple.Container 接入与使用
 
-`M.Simple.Container` 是面向 .NET 8 的依赖注入容器，沿用 `IServiceCollection` 注册和构造函数注入，提供 Host 接入和程序集批量扫描。本文使用版本 `1.0.0.1`。
+`M.Simple.Container` 是面向 .NET 8 的依赖注入容器，沿用 `IServiceCollection` 注册和构造函数注入，提供 Host 接入、程序集批量扫描及按指定接口注入代理。本文使用已发布版本 `1.0.0.2`，与 Interception 包互不依赖。
 
 ## 安装包
 
 在 Web API 项目目录执行，或通过 `--project` 指定项目：
 
 ```powershell
-dotnet add package M.Simple.Container --version 1.0.0.1
+dotnet add package M.Simple.Container --version 1.0.0.2
 ```
 
 ## Program.cs 配置
@@ -86,10 +86,82 @@ builder.Services
 ```
 
 - `AsSelf()`：额外注册实现类自身类型。
+- `As<TService>()` / `As(Type)`：只暴露指定的业务接口，可多次调用以选择多个接口。
 - `ExcludeInterface(typeof(IMarker))`：排除指定接口映射。
 - `Scoped()`：同一作用域共享实例，适合每个请求的业务服务和仓储。
 - `Singleton()`：整个容器共享实例，不能捕获 Scoped 依赖。
 - `Transient()`：每次解析创建实例。
+
+## 指定多个程序集
+
+`Scan` 接收多个程序集，也可传入程序集数组：
+
+```csharp
+builder.Services.Scan(
+        Assembly.Load("M.Simple.Business"),
+        Assembly.Load("M.Simple.Repository"))
+    .AsImplementedInterfaces()
+    .Scoped();
+```
+
+也可使用 `typeof(TestLogic).Assembly` 等实际实现类型定位程序集。不能省略程序集；当前不自动扫描整个解决方案或所有应用依赖。
+
+## 按指定接口注入代理（1.0.0.2 起）
+
+Container 管理代理注册和生命周期，调用方提供代理工厂，不要求引用 Interception。以下是完整的类型定义和注册方式：
+
+```csharp
+using M.Simple.Container;
+
+// 放在 builder.Build() 之前。
+builder.Services.Scan(typeof(GreetingService).Assembly)
+    .AssignableTo<IProxyService>()
+    .Where(type => type == typeof(GreetingService))
+    .As<IGreetingService>()
+    .ProxyScoped((_, target, _) => new GreetingServiceProxy((IGreetingService)target));
+
+public interface IProxyService { }
+public interface IGreetingService : IProxyService
+{
+    string SayHello(string message);
+}
+public sealed class GreetingService : IGreetingService
+{
+    public string SayHello(string message) => $"{message},hello world!";
+}
+public sealed class GreetingServiceProxy(IGreetingService target) : IGreetingService
+{
+    public string SayHello(string message)
+        => target.SayHello(message + "【代理前置】") + "【代理后置】";
+}
+```
+
+注入 `IGreetingService` 后调用 `SayHello("hello")`，结果为 `hello【代理前置】,hello world!【代理后置】`。`IProxyService` 仅筛选实现类，`As<IGreetingService>()` 只暴露业务接口，不注册标记接口。手写代理同样实现业务接口，放在同一程序集时必须通过 `Where` 排除；此例只扫描真实的 `GreetingService`，避免代理类被再次注册为业务实现。
+
+- `WithProxy(factory).Scoped()` 等价于 `ProxyScoped(factory)`，还支持 `ProxyTransient(factory)`、`ProxySingleton(factory)`。
+- 工厂参数依次是业务接口类型、真实业务对象、当前解析的 IServiceProvider。返回值必须是实现该接口且区别于真实对象的非空代理。
+- 多个业务接口可用多次 `As<TService>()` 指定，或使用 `AsImplementedInterfaces()` 并排除标记接口；工厂按接口类型创建对应代理。
+- 同一工厂重复扫描不增加映射。先普通扫描再代理扫描，会替换选中接口与实现类的普通映射，保留其他实现和命名注册。
+- Scoped / Singleton 的多个接口代理共享真实对象；已有真实对象注册必须与代理生命周期一致。`AsSelf()` 暴露真实对象，直接调用它不经过代理。
+- 真实对象由 DI 释放，代理不应再次释放它。代理接口不能继承 IDisposable/IAsyncDisposable；代理扫描不支持开放泛型。
+
+运行 `dotnet run --project M.Simple.Container.Sample -c Release -- --urls http://127.0.0.1:5198`，访问 `http://127.0.0.1:5198/proxy?message=hello` 可查看代理结果、代理类型和作用域标识。普通服务演示仍可访问 `/users/1` 和 `/scope`。
+
+## 与 Interception 组合使用
+
+两个包互不依赖，需要组合时由应用项目同时引用 Container 1.0.0.2 和 Interception 1.0.0.4，再在工厂中适配。以下假设项目已有带钩子特性的 ITestLogic / TestLogic：
+
+```csharp
+using M.Simple.Container;
+using M.Simple.Services.Interception;
+
+builder.Services.Scan(typeof(TestLogic).Assembly)
+    .As<ITestLogic>()
+    .ProxyScoped((_, target, provider) =>
+        MethodHookProxy<ITestLogic>.Create((ITestLogic)target, true, provider));
+```
+
+如果存在外部钩子类，仍需显式注册到 DI。这个入口由 Container 管理代理注册，Interception 创建代理并执行钩子；普通扫描本身不会识别钩子特性。`AddInterceptedAssemblyServices` 继续属于 Interception 包，详细用法见 [Interception 接入说明](interception.md)。
 
 ## 默认校验与常见问题
 
@@ -112,7 +184,7 @@ builder.Host.UseSimpleContainer(options =>
 
 ## 适用范围
 
-支持标准命名服务注册、同步及异步资源释放。尚不支持 Native AOT、属性注入、拦截器、子容器注册覆盖或运行期间修改注册。它与 `M.Simple.Services.DependencyInjection` 是不同的包，使用各自对应的命名空间和 API。
+支持标准命名服务注册、同步及异步资源释放，以及通过工厂注册代理对象；不内置钩子特性解释或 AOP 执行管线。尚不支持 Native AOT、属性注入、子容器注册覆盖或运行期间修改注册。它与 `M.Simple.Services.DependencyInjection` 是不同的包，使用各自对应的命名空间和 API。
 
 ## 业务服务注入与调用示例
 
