@@ -22,4 +22,4 @@ builder.Services.Scan(typeof(GreetingService).Assembly)
 
 `IInterception` 由应用定义，仅筛选实现类，注册时排除该标记接口。`GreetingService` 使用 Interception 的 `BeforeMethod` / `AfterMethod` 特性，无需手写代理或工厂。Container 在注册阶段加载 Interception 的公开注册方法，之后正常调用接口代理；业务调用不经过适配反射。
 
-同样支持无参数 `InterceptedTransient()`、`InterceptedSingleton()`。应用运行时必须提供 Interception 1.0.0.4 或兼容的后续版本；缺少运行时或 API 不兼容时，注册会明确报错。本项目通过 ProjectReference 引用对应源码。
+同样支持无参数 `InterceptedTransient()`、`InterceptedSingleton()` 和 `AddInterceptedAssemblyServices(...)`。应用运行时必须提供 Interception 1.0.0.4 或兼容的后续版本；缺少运行时或 API 不兼容时，注册会明确报错。本项目通过 ProjectReference 引用对应源码。

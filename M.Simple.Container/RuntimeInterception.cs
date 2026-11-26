@@ -8,6 +8,31 @@ internal static class RuntimeInterception
 {
     private const string AssemblyName = "M.Simple.Services.Interception";
     private static readonly Lazy<IReadOnlyDictionary<ServiceLifetime, MethodInfo>> Methods = new(LoadMethods);
+    private static readonly Lazy<Type[]> HookAttributes = new(() =>
+    {
+        _ = Methods.Value;
+        var assembly = Assembly.Load(AssemblyName);
+        return new[] { "MethodHookAttribute", "BeforeMethodAttribute", "AfterMethodAttribute" }
+            .Select(name => assembly.GetType(AssemblyName + "." + name, throwOnError: true)!).ToArray();
+    });
+
+    internal static bool HasHooks(Type contract, Type implementation)
+    {
+        var attributes = HookAttributes.Value;
+        var types = contract.GetInterfaces().Append(contract).Append(implementation);
+        if (types.Any(type => type.IsDefined(attributes[0], true))) return true;
+        if (implementation.ContainsGenericParameters)
+            return types.SelectMany(type => type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
+                .Any(HasAttribute);
+        foreach (var type in contract.GetInterfaces().Append(contract))
+        {
+            var map = implementation.GetInterfaceMap(type);
+            if (map.InterfaceMethods.Concat(map.TargetMethods).Any(HasAttribute)) return true;
+        }
+        return false;
+
+        bool HasAttribute(MethodInfo method) => attributes.Any(attribute => method.IsDefined(attribute, true));
+    }
 
     internal static void RegisterProxy(IServiceCollection services, Type contract, Type implementation, ServiceLifetime lifetime)
     {

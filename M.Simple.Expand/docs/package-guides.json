@@ -33,7 +33,7 @@
     "name": "M.Simple.Services.Interception",
     "slug": "interception",
     "title": "接口 AOP 与前后置钩子",
-    "version": "1.0.0.4"
+    "version": "1.0.0.5"
   },
   {
     "name": "M.Simple.Services.Email",
@@ -63,13 +63,13 @@
     "name": "M.Simple.EntityFrameworkCore",
     "slug": "efcore",
     "title": "基础仓储与工作单元",
-    "version": "1.0.0.4"
+    "version": "1.0.0.5"
   },
   {
     "name": "M.Simple.EntityFrameworkCore.SqlServer",
     "slug": "efcore-sqlserver",
     "title": "SQL Server 数据访问接入",
-    "version": "1.0.0.4"
+    "version": "1.0.0.5"
   },
   {
     "name": "M.Helper.Expand",

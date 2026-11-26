@@ -37,6 +37,7 @@ public sealed class AssemblyRegistrationBuilder
     private readonly HashSet<Type> _contracts = [];
     private ServiceProxyFactory? _proxyFactory;
     private bool _intercepted;
+    private bool _onlyHooked;
 
     internal AssemblyRegistrationBuilder(IServiceCollection services, Assembly[] assemblies)
         => (_services, _assemblies) = (services, assemblies);
@@ -108,6 +109,12 @@ public sealed class AssemblyRegistrationBuilder
 
     public IServiceCollection InterceptedSingleton() => RegisterIntercepted(ServiceLifetime.Singleton);
 
+    internal IServiceCollection RegisterHookedScoped()
+    {
+        _onlyHooked = true;
+        return RegisterIntercepted(ServiceLifetime.Scoped);
+    }
+
     private IServiceCollection RegisterIntercepted(ServiceLifetime lifetime)
     {
         if (_proxyFactory is not null)
@@ -150,7 +157,8 @@ public sealed class AssemblyRegistrationBuilder
             }
         }
         if (_intercepted)
-            return ProxyRegistration.Register(_services, descriptors, lifetime, null, RuntimeInterception.RegisterProxy);
+            return ProxyRegistration.Register(_services, descriptors, lifetime, null, RuntimeInterception.RegisterProxy,
+                _onlyHooked ? RuntimeInterception.HasHooks : null);
         if (_proxyFactory is not null)
             return ProxyRegistration.Register(_services, descriptors, lifetime, _proxyFactory);
         foreach (var descriptor in descriptors) _services.Add(descriptor);

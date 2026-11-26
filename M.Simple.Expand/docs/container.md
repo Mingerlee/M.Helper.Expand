@@ -1,15 +1,15 @@
 # M.Simple.Container 接入与使用
 
-`M.Simple.Container` 是面向 .NET 8 的依赖注入容器，沿用 `IServiceCollection` 注册和构造函数注入，提供 Host 接入、程序集批量扫描及按指定接口注入代理。本文使用版本 `1.0.0.3`，与 Interception 包互不依赖。
+`M.Simple.Container` 是面向 .NET 8 的依赖注入容器，沿用 `IServiceCollection` 注册和构造函数注入，提供 Host 接入、程序集批量扫描及按指定接口注入代理。本文使用版本 `1.0.0.4`，与 Interception 包互不依赖。
 
-`1.0.0.3` 新增无参数 `InterceptedScoped()`、`InterceptedTransient()`、`InterceptedSingleton()`。下面的普通注册及自定义工厂入口同时兼容 1.0.0.2。
+`1.0.0.3` 新增无参数 `InterceptedScoped()`、`InterceptedTransient()`、`InterceptedSingleton()`。`1.0.0.4` 将 `AddInterceptedAssemblyServices` 扫描入口迁入 Container。下面的普通注册及自定义工厂入口同时兼容 1.0.0.2。
 
 ## 安装包
 
 在 Web API 项目目录执行，或通过 `--project` 指定项目：
 
 ```powershell
-dotnet add package M.Simple.Container --version 1.0.0.3
+dotnet add package M.Simple.Container --version 1.0.0.4
 ```
 
 ## Program.cs 配置
@@ -133,7 +133,7 @@ builder.Services.Scan(Assembly.Load("M.Simple.Business"))
 
 Container 在注册阶段按程序集名称加载 Interception 的公开注册方法，之后沿用 Interception 的代理、日志和校验；两个包不增加相互包引用。Interception 不会随 Container 自动安装，应用必须显式引用。缺包或运行时 API 不兼容时，扫描会明确报错；注册失败不提交部分映射。
 
-重复扫描不增加注册；先普通扫描再拦截扫描，会替换相同接口与实现的普通映射。选中的闭合接口都经过代理，按特性执行钩子；开放泛型不支持此入口。同一次扫描不要混用无参数拦截入口与 `WithProxy`。`AddInterceptedAssemblyServices` 仍属于 Interception 包。
+重复扫描不增加注册；先普通扫描再拦截扫描，会替换相同接口与实现的普通映射。选中的闭合接口都经过代理，按特性执行钩子；开放泛型不支持此入口。同一次扫描不要混用无参数拦截入口与 `WithProxy`。`AddInterceptedAssemblyServices` 由 Container 提供，并与无参数拦截注册共用 Interception 运行时适配。
 
 源码 Web 示例 `M.Simple.Container.Sample` 已采用此方式，访问 `/proxy?message=hello` 可看到前后置处理后的结果及自动生成的代理类型。
 
@@ -182,7 +182,7 @@ public sealed class GreetingServiceProxy(IGreetingService target) : IGreetingSer
 
 使用 Interception 钩子时，优先采用上方 1.0.0.3 新增的无参数拦截扫描，直接调用 `InterceptedScoped()`、`InterceptedTransient()` 或 `InterceptedSingleton()`。应用只需提供钩子特性及方法，不需要手写代理或工厂。
 
-已发布的 Container 1.0.0.2 仍可通过自定义工厂组合 Interception 1.0.0.4：
+Container 1.0.0.4 可通过自定义工厂组合 Interception 1.0.0.5：
 
 ```csharp
 using M.Simple.Container;
@@ -194,7 +194,7 @@ builder.Services.Scan(typeof(TestLogic).Assembly)
         MethodHookProxy<ITestLogic>.Create((ITestLogic)target, true, provider));
 ```
 
-`AddInterceptedAssemblyServices` 继续属于 Interception 包，详细用法见 [Interception 接入说明](interception.md)。无参数拦截扫描、自定义工厂和 Interception 自身的批量扫描入口选择一种，避免相同映射重复扫描。
+`AddInterceptedAssemblyServices` 由 Container 提供，详细用法见本页。无参数拦截扫描、自定义工厂和特性扫描入口选择一种，避免相同映射重复扫描。
 
 ## 默认校验与常见问题
 

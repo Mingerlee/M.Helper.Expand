@@ -119,6 +119,49 @@ public sealed class RuntimeScanningTests
     }
 
     public interface IInvalid { void Run(ref int value); }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task AssemblyEntryFiltersMarkerReplacesPlainMappingAndUsesSameRuntime(bool simple)
+    {
+        var services = new ServiceCollection();
+        var state = new State();
+        services.AddSingleton(state);
+        services.AddAssemblyServices<IInterception>(typeof(Message).Assembly);
+        services.AddInterceptedAssemblyServices<IInterception>(typeof(Message).Assembly);
+        var count = services.Count;
+        services.AddInterceptedAssemblyServices<IInterception>(typeof(Message).Assembly);
+        Assert.AreEqual(count, services.Count);
+        IServiceProvider root = simple ? services.BuildSimpleServiceProvider()
+            : services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
+        using ((IDisposable)root)
+        using (var scope = root.CreateScope())
+        {
+            var provider = scope.ServiceProvider;
+            var message = provider.GetRequiredService<IMessage>();
+            Assert.IsFalse(message is Message);
+            Assert.AreEqual("hello:before:after", message.Say("hello"));
+            Assert.AreEqual("hello:before:after", await message.SayAsync("hello"));
+            Assert.AreEqual(1, provider.GetServices<IMessage>().Count());
+            Assert.IsFalse(provider.GetServices<IInterception>().Any());
+            if (simple)
+                Assert.AreEqual(provider.GetRequiredService<Message>().Id, provider.GetRequiredService<IAudit>().Id);
+        }
+        // The original ordinary mapping and the proxy resolve the same scanned target in SimpleContainer.
+        Assert.AreEqual(1, state.Disposed);
+    }
+
+    [TestMethod]
+    public void MigratedEntryIsOnlyExportedByContainer()
+    {
+        Assert.IsNotNull(typeof(AssemblyRegistrationBuilder).Assembly.GetType("M.Simple.Container.InterceptedAssemblyServices"));
+        Assert.IsNull(typeof(MethodInvocationContext).Assembly.GetType("M.Simple.Services.Interception.InterceptedAssemblyServices"));
+        Assert.IsFalse(typeof(AssemblyRegistrationBuilder).Assembly.GetReferencedAssemblies()
+            .Any(a => a.Name == "M.Simple.Services.Interception"));
+        Assert.IsFalse(typeof(MethodInvocationContext).Assembly.GetReferencedAssemblies()
+            .Any(a => a.Name == "M.Simple.Container"));
+    }
     public sealed class ZInvalid : IInvalid { public void Run(ref int value) { } }
 
     [TestMethod]

@@ -2,7 +2,7 @@
 
 .NET 8 依赖注入容器。沿用 `IServiceCollection` 注册和构造函数注入，增加程序集扫描、按接口筛选和一行 Host 接入。
 
-当前版本 `1.0.0.3`，采用四段版本号；新增无参数拦截扫描，与 Interception 包不增加相互包引用。性能数据以仓库内基准结果为准。尚不支持 Native AOT。
+当前版本 `1.0.0.4`，采用四段版本号；程序集扫描支持按标记接口注册代理，并通过运行时适配 Interception，不增加相互包引用。性能数据以仓库内基准结果为准。尚不支持 Native AOT。
 
 ## ASP.NET Core 接入
 
@@ -36,6 +36,24 @@ builder.Services.AddAssemblyServices(
 
 不需要 Autofac 的 `ConfigureContainer<ContainerBuilder>`，原有 `builder.Services.Add...` 继续使用。
 
+## 按特性扫描并注册代理
+
+`AddInterceptedAssemblyServices` 按钩子特性扫描，带钩子的服务注册代理，其余接口普通注册。Container 1.0.0.4 将此入口与 Interception 分开，通过运行时加载注册扩展，不增加 NuGet 依赖。
+
+```csharp
+using M.Simple.Container;
+using System.Reflection;
+
+builder.Services.AddInterceptedAssemblyServices(
+    Assembly.Load("MyApp.Business"),
+    Assembly.Load("MyApp.Repository"));
+
+// 可选：按应用自定义标记筛选，并排除该标记接口
+builder.Services.AddInterceptedAssemblyServices<IInterception>(Assembly.Load("MyApp.Business"));
+```
+
+默认使用 Scoped；应用需显式引用 Interception 1.0.0.4 或兼容的后续版本。外部钩子类仍需注册到 DI。缺少运行时或 API 不兼容会明确报错，扫描失败不提交部分注册。已有同一实现的普通接口映射会被替换。
+
 ## 无参数拦截扫描（1.0.0.3 起）
 
 应用引用 Container 和 Interception 1.0.0.4 或兼容的后续版本后，直接按标记接口扫描，无需手写代理工厂：
@@ -57,7 +75,7 @@ Container 仅在注册阶段按程序集名称加载 Interception 的公开双�
 
 选中的闭合业务接口均注册为代理，同一实现的 Scoped/Singleton 代理共享真实对象。重复扫描不重复注册；先普通扫描再拦截扫描，会替换相同映射。无参数拦截扫描不支持开放泛型，不能与同一次链式扫描的 `WithProxy` 混用。
 
-`AddInterceptedAssemblyServices` 继续位于 Interception 包，无需迁移。无需 Interception 时，可使用下方自定义代理工厂入口。
+`AddInterceptedAssemblyServices` 位于 Container。无需 Interception 时，可使用下方自定义代理工厂入口。
 
 ## 按指定接口注入代理（自定义工厂）
 

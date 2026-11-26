@@ -9,7 +9,8 @@ internal static class ProxyRegistration
 {
     internal static IServiceCollection Register(IServiceCollection services, IReadOnlyList<ScannedDescriptor> descriptors,
         ServiceLifetime lifetime, ServiceProxyFactory? factory,
-        Action<IServiceCollection, Type, Type, ServiceLifetime>? register = null)
+        Action<IServiceCollection, Type, Type, ServiceLifetime>? register = null,
+        Func<Type, Type, bool>? shouldIntercept = null)
     {
         var staged = new StagedServices(services);
         var key = (Delegate?)factory ?? register ?? throw new ArgumentNullException(nameof(factory));
@@ -17,6 +18,13 @@ internal static class ProxyRegistration
         {
             var contract = descriptor.ServiceType;
             var implementation = descriptor.ImplementationType!;
+            if (shouldIntercept is not null && !shouldIntercept(contract, implementation))
+            {
+                if (!staged.Any(d => !d.IsKeyedService && d.ServiceType == contract && d.Lifetime == lifetime
+                    && (d.ImplementationType == implementation || d is ProxyDescriptor proxy && proxy.Implementation == implementation)))
+                    staged.Add(descriptor);
+                continue;
+            }
             if (implementation.ContainsGenericParameters)
                 throw new NotSupportedException($"Proxy scanning requires closed types: {contract} -> {implementation}.");
             if (!contract.IsInterface)

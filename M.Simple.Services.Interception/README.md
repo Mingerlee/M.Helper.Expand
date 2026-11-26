@@ -1,6 +1,6 @@
 # M.Simple.Services.Interception
 
-.NET 8 接口 AOP 代理，当前源码版本 `1.0.0.4`。基于框架内置 DispatchProxy，依赖 Microsoft.Extensions.DependencyInjection.Abstractions 和 Microsoft.Extensions.Logging.Abstractions，不依赖 M.Simple.Expand 或其他服务包。支持方法前置、后置、特性筛选和 DI 生命周期。
+.NET 8 接口 AOP 代理，当前版本 `1.0.0.5`。基于框架内置 DispatchProxy，依赖 Microsoft.Extensions.DependencyInjection.Abstractions 和 Microsoft.Extensions.Logging.Abstractions，不依赖 M.Simple.Expand 或其他服务包。支持方法前置、后置、特性筛选和 DI 生命周期。
 
 1.0.0.2 新增 BeforeMethod / AfterMethod 与双泛型注册重载，可直接用方法名指定同一服务中的前置、后置方法。
 
@@ -41,7 +41,7 @@ public Task<string> CreateAsync(string name) => Task.FromResult(name);
 
 外部钩子必须注册到 DI，可在扫描前或后注册，由当前作用域获取，业务类无需额外注入。外部钩子必须是公开实例方法，签名约束与本类钩子相同。手动创建代理时可通过 Create 的 serviceProvider 和 logger 参数传入解析器及日志。
 
-AddInterceptedAssemblyServices 位于本包，通过 IServiceCollection 注册，兼容 M.Simple.Container，无需两个包互相依赖。默认 Scoped：带拦截标记的接口注册代理，无标记接口正常注册；排除 IDisposable/IAsyncDisposable 及编译器生成类。同一程序集重复扫描不重复注册，不应再调用普通 AddAssemblyServices 扫描该程序集；已存在相同实现的普通接口映射时明确报错。多个代理接口共享同一个已注册的 Scoped 真实实现；普通映射保持标准 DI 的独立描述符语义。
+程序集扫描入口 `AddInterceptedAssemblyServices` 已移至 `M.Simple.Container` 1.0.0.4；本包不再提供该 API，也不依赖 Container。使用时应用项目需分别安装两个包并导入 `M.Simple.Container` 命名空间。Container 负责注册入口，本包仍提供代理创建、钩子特性、钩子执行和单服务 `AddInterceptedScoped` 等扩展。
 
 普通开放泛型支持按位置映射；带拦截标记的开放泛型扫描会明确报错，需要显式注册闭合类型。仅有 MethodHook 标记而没有具体钩子或通用拦截器时，没有额外处理逻辑。
 

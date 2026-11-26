@@ -3,8 +3,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.0.3</Version>
-    <PackageReleaseNotes>Add parameterless InterceptedScoped, InterceptedTransient and InterceptedSingleton assembly scanning through optional runtime adaptation to M.Simple.Services.Interception, without a package dependency.</PackageReleaseNotes>
+    <Version>1.0.0.4</Version>
+    <PackageReleaseNotes>Move AddInterceptedAssemblyServices into Container, sharing optional runtime registration with InterceptedScoped. No package dependency on Interception.</PackageReleaseNotes>
     <Authors>Mr.Sunny</Authors>
     <Description>A lightweight .NET dependency injection container with assembly scanning and standard hosting integration.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

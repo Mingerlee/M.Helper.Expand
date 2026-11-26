@@ -2,14 +2,14 @@
 
 基于 DispatchProxy 的接口 AOP。IOrderService 和 OrderService 替换为项目实际接口与实现，下面的详细用法展示完整类型结构。无需新增 HTTP 接口；调用方通过构造函数注入代理接口。
 
-当前项目版本 `1.0.0.4`，目标框架 .NET 8。
+当前项目版本 `1.0.0.5`，目标框架 .NET 8。
 
 ## 安装包
 
 在使用方项目目录执行，或通过 --project 指定项目：
 
 ```powershell
-dotnet add package M.Simple.Services.Interception --version 1.0.0.4
+dotnet add package M.Simple.Services.Interception --version 1.0.0.5
 ```
 
 包源需包含该版本。安装包不会自动执行注册；保留项目原有配置，无需添加示例接口。
@@ -37,12 +37,13 @@ app.Run();
 
 ## 外部钩子与批量扫描（1.0.0.4 起）
 
-`AddInterceptedAssemblyServices` 保留在本包的 `M.Simple.Services.Interception` 命名空间，不依赖 Container。Container 1.0.0.3 源码新增的无参数 `InterceptedScoped()`、`InterceptedTransient()`、`InterceptedSingleton()` 可在注册时运行时适配本包，应用无需提供代理工厂；1.0.0.2 的自定义工厂入口也可继续组合使用。详见 [Container 的代理注册与组合示例](container.md)。两种入口选择一种，避免对同一映射重复执行两套扫描。
+`AddInterceptedAssemblyServices` 已移至 Container 的 `M.Simple.Container` 命名空间；本包不再提供该扫描入口。Container 1.0.0.4 与本包通过运行时注册适配，两个包不增加相互引用。详见 [Container 的代理注册与组合示例](container.md)。
 
 本次改变旧版失败规则，不提供全局或方法级失败开关：前置普通异常记录日志后继续业务；业务失败或取消直接抛出、不执行任何后置；后置普通异常记录日志并保留该钩子执行前的结果。通用拦截器和指定方法钩子使用同一规则。必须执行的清理应放在业务方法自己的 try/finally 中。
 
 ```csharp
 using System.Reflection;
+using M.Simple.Container;
 using M.Simple.Services.Interception;
 
 // Program.cs：放在 builder.Build() 之前。
@@ -76,7 +77,7 @@ public sealed class OrderService : IOrderService
 
 外部钩子必须注册到 DI，可在扫描前或后注册，由当前作用域获取，业务类无需额外注入。外部钩子必须是公开实例方法，签名约束与本类钩子相同。手动创建代理时可通过 Create 的 serviceProvider 和 logger 参数传入解析器及日志。
 
-AddInterceptedAssemblyServices 位于本包，通过 IServiceCollection 注册，兼容 M.Simple.Container，无需两个包互相依赖。默认 Scoped：带拦截标记的接口注册代理，无标记接口正常注册；排除 IDisposable/IAsyncDisposable 及编译器生成类。同一程序集重复扫描不重复注册，不应再调用普通 AddAssemblyServices 扫描该程序集；已存在相同实现的普通接口映射时明确报错。多个代理接口共享同一个已注册的 Scoped 真实实现；普通映射保持标准 DI 的独立描述符语义。
+批量扫描注册入口在 M.Simple.Container 包中提供；本包保留单服务代理注册、钩子特性和钩子执行能力。
 
 普通开放泛型支持按位置映射；带拦截标记的开放泛型扫描会明确报错，需要显式注册闭合类型。仅有 MethodHook 标记而没有具体钩子或通用拦截器时，没有额外处理逻辑。
 

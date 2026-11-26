@@ -183,6 +183,21 @@ public sealed class ProxyScanningTests
         StringAssert.Contains(error.Message, "M.Simple.Services.Interception");
         CollectionAssert.AreEqual(original, services.ToArray());
     }
+
+    [TestMethod]
+    public void AssemblyEntryExplainsMissingRuntimeAndValidatesAssemblyArguments()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(new State());
+        var original = services.ToArray();
+        var error = Assert.ThrowsException<InvalidOperationException>(() =>
+            services.AddInterceptedAssemblyServices<IMarker>(typeof(Service).Assembly));
+        StringAssert.Contains(error.Message, "M.Simple.Services.Interception");
+        CollectionAssert.AreEqual(original, services.ToArray());
+        Assert.ThrowsException<ArgumentException>(() => services.AddInterceptedAssemblyServices());
+        Assert.ThrowsException<ArgumentNullException>(() => services.AddInterceptedAssemblyServices(null!));
+        Assert.ThrowsException<ArgumentException>(() => services.AddInterceptedAssemblyServices(new Assembly[] { null! }));
+    }
     private abstract class ServiceProviderBase : IDisposable
     {
         public abstract IServiceProvider Provider { get; }
