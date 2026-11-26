@@ -1,4 +1,5 @@
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 
@@ -7,7 +8,7 @@ namespace M.Simple.Services.Interception;
 /// <summary>DispatchProxy implementation. Use Create or the DI registration extensions.</summary>
 public class MethodHookProxy<TService> : DispatchProxy where TService : class
 {
-    /// <summary>When business and after-hook failures occur together, the after failure is attached to the business exception Data.</summary>
+    /// <summary>Legacy key retained for source compatibility. After hooks now run only on business success.</summary>
     public const string AfterExceptionDataKey = "M.Simple.Services.Interception.AfterException";
     private TService _target = default!;
     private MethodInterceptor _interceptor = default!;
@@ -15,9 +16,15 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
 
     /// <summary>Creates an attribute-driven proxy without requiring a separate interceptor.</summary>
     public static TService Create(TService target, bool attributedOnly = true)
-        => Create(target, new EmptyMethodInterceptor(), attributedOnly);
+        => Create(target, attributedOnly, null);
+
+    public static TService Create(TService target, bool attributedOnly, IServiceProvider? serviceProvider, ILogger? logger = null)
+        => Create(target, new EmptyMethodInterceptor(), attributedOnly, serviceProvider, logger);
 
     public static TService Create(TService target, MethodInterceptor interceptor, bool attributedOnly = false)
+        => Create(target, interceptor, attributedOnly, null);
+
+    public static TService Create(TService target, MethodInterceptor interceptor, bool attributedOnly, IServiceProvider? serviceProvider, ILogger? logger = null)
     {
         ArgumentNullException.ThrowIfNull(target);
         ArgumentNullException.ThrowIfNull(interceptor);
@@ -34,7 +41,7 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
         handler._target = target;
         handler._interceptor = new NamedMethodInterceptor(target, interceptor,
             ContractMethods().ToDictionary(method => method, method =>
-                NamedMethodInterceptor.CreatePlan(target, method, ResolveImplementation(target, method))));
+                NamedMethodInterceptor.CreatePlan(target, method, ResolveImplementation(target, method), serviceProvider)), logger);
         handler._attributedOnly = attributedOnly;
         return proxy;
     }
@@ -121,9 +128,9 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
     private object? RunSync(MethodInvocationContext context, object?[]? args)
     {
         Before(context);
-        try { context.Result = InvokeTarget(context.Method, args); }
+        try { context.CancellationToken.ThrowIfCancellationRequested(); context.Result = InvokeTarget(context.Method, args); }
         catch (Exception error) { context.Exception = error; throw; }
-        finally { Complete(context); }
+        finally { if (context.Exception is null) Complete(context); else context.Finish(); }
         return context.Result;
     }
 
@@ -131,7 +138,6 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
     {
         context.BeginAfter();
         try { _interceptor.After(context); }
-        catch (Exception error) when (context.Exception is not null) { AttachAfterFailure(context.Exception, error); }
         finally { context.Finish(); }
     }
 
@@ -139,7 +145,6 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
     {
         context.BeginAfter();
         try { await _interceptor.AfterAsync(context).ConfigureAwait(false); }
-        catch (Exception error) when (context.Exception is not null) { AttachAfterFailure(context.Exception, error); }
         finally { context.Finish(); }
     }
 
@@ -155,23 +160,18 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
         catch { context.Finish(); throw; }
     }
 
-    private static void AttachAfterFailure(Exception businessError, Exception afterError)
-    {
-        // Even exceptions with read-only Data must not let the after-hook failure replace the business error.
-        try { businessError.Data[AfterExceptionDataKey] = afterError; } catch { }
-    }
-
     private async Task RunTask(MethodInvocationContext context, object?[]? args)
     {
         await BeforeAsync(context).ConfigureAwait(false);
         try
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             var result = InvokeTarget(context.Method, args);
             if (context.Method.ReturnType == typeof(ValueTask)) await ((ValueTask)result!).ConfigureAwait(false);
             else await ((Task)result!).ConfigureAwait(false);
         }
         catch (Exception error) { context.Exception = error; throw; }
-        finally { await CompleteAsync(context).ConfigureAwait(false); }
+        finally { if (context.Exception is null) await CompleteAsync(context).ConfigureAwait(false); else context.Finish(); }
     }
 
     private async Task<TResult> RunTaskResult<TResult>(MethodInvocationContext context, object?[]? args)
@@ -179,11 +179,12 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
         await BeforeAsync(context).ConfigureAwait(false);
         try
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             var result = await ((Task<TResult>)InvokeTarget(context.Method, args)!).ConfigureAwait(false);
             context.Result = result;
         }
         catch (Exception error) { context.Exception = error; throw; }
-        finally { await CompleteAsync(context).ConfigureAwait(false); }
+        finally { if (context.Exception is null) await CompleteAsync(context).ConfigureAwait(false); else context.Finish(); }
         return (TResult)context.Result!;
     }
 
@@ -192,11 +193,12 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
         await BeforeAsync(context).ConfigureAwait(false);
         try
         {
+            context.CancellationToken.ThrowIfCancellationRequested();
             var result = await ((ValueTask<TResult>)InvokeTarget(context.Method, args)!).ConfigureAwait(false);
             context.Result = result;
         }
         catch (Exception error) { context.Exception = error; throw; }
-        finally { await CompleteAsync(context).ConfigureAwait(false); }
+        finally { if (context.Exception is null) await CompleteAsync(context).ConfigureAwait(false); else context.Finish(); }
         return (TResult)context.Result!;
     }
 }

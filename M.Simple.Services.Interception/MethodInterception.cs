@@ -15,13 +15,19 @@ public sealed class SkipMethodHookAttribute : Attribute;
 public sealed class BeforeMethodAttribute(string methodName) : Attribute
 {
     public string MethodName { get; } = methodName;
+    public Type? HookType { get; }
+    public BeforeMethodAttribute(Type hookType, string methodName) : this(methodName)
+        => HookType = hookType ?? throw new ArgumentNullException(nameof(hookType));
 }
 
-/// <summary>Calls the named instance method on the service after business completion, failure or cancellation.</summary>
+/// <summary>Calls a named instance method after successful business completion.</summary>
 [AttributeUsage(AttributeTargets.Method, Inherited = true)]
 public sealed class AfterMethodAttribute(string methodName) : Attribute
 {
     public string MethodName { get; } = methodName;
+    public Type? HookType { get; }
+    public AfterMethodAttribute(Type hookType, string methodName) : this(methodName)
+        => HookType = hookType ?? throw new ArgumentNullException(nameof(hookType));
 }
 
 /// <summary>One invocation. Before hooks can replace arguments; successful after hooks can replace the result.</summary>
@@ -49,10 +55,11 @@ public sealed class MethodInvocationContext
     public MethodInfo Method { get; }
     public MethodInfo ImplementationMethod { get; }
     public IReadOnlyList<object?> Arguments { get; }
-    /// <summary>First CancellationToken argument, if any. After hooks must still run when it is cancelled.</summary>
+    /// <summary>First CancellationToken argument, if any.</summary>
     public CancellationToken CancellationToken => _arguments.OfType<CancellationToken>().FirstOrDefault();
     public object? Result { get; internal set; }
     public Exception? Exception { get; internal set; }
+    public Exception? BeforeException { get; internal set; }
     public bool IsCanceled => Exception is OperationCanceledException;
     public IDictionary<string, object?> Items { get; } = new Dictionary<string, object?>();
 

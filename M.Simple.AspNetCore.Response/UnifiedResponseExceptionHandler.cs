@@ -17,9 +17,13 @@ internal sealed class UnifiedResponseExceptionHandler(
         if (endpoint?.Metadata.GetMetadata<SkipUnifiedResponseAttribute>() is not null) return false;
 
         UnhandledExceptionLogging.LogOnce(logger, context, exception);
-        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        var statusCode = exception is SimpleException
+            ? StatusCodes.Status400BadRequest
+            : StatusCodes.Status500InternalServerError;
+        context.Response.StatusCode = statusCode;
         await context.Response.WriteAsJsonAsync(
-            options.Value.Create(500), jsonOptions.Value.JsonSerializerOptions, cancellationToken);
+            options.Value.Create(statusCode, message: exception is SimpleException ? exception.Message : null),
+            jsonOptions.Value.JsonSerializerOptions, cancellationToken);
         return true;
     }
 }

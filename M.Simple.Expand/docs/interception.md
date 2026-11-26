@@ -2,14 +2,14 @@
 
 基于 DispatchProxy 的接口 AOP。IOrderService 和 OrderService 替换为项目实际接口与实现，下面的详细用法展示完整类型结构。无需新增 HTTP 接口；调用方通过构造函数注入代理接口。
 
-当前项目版本 `1.0.0.3`，目标框架 .NET 8。
+当前项目版本 `1.0.0.4`，目标框架 .NET 8。
 
 ## 安装包
 
 在使用方项目目录执行，或通过 --project 指定项目：
 
 ```powershell
-dotnet add package M.Simple.Services.Interception --version 1.0.0.3
+dotnet add package M.Simple.Services.Interception --version 1.0.0.4
 ```
 
 包源需包含该版本。安装包不会自动执行注册；保留项目原有配置，无需添加示例接口。
@@ -34,6 +34,51 @@ app.Run();
 ## 使用说明
 
 默认双泛型注册按特性启用，三泛型注册可指定通用拦截器。同一接口不要再被后续普通注册或程序集扫描覆盖。new 实现类、直接调用真实对象及类内部自调用均不会经过代理。不支持 Native AOT。
+
+## 外部钩子与批量扫描（1.0.0.4 起）
+
+本次改变旧版失败规则，不提供全局或方法级失败开关：前置普通异常记录日志后继续业务；业务失败或取消直接抛出、不执行任何后置；后置普通异常记录日志并保留该钩子执行前的结果。通用拦截器和指定方法钩子使用同一规则。必须执行的清理应放在业务方法自己的 try/finally 中。
+
+```csharp
+using System.Reflection;
+using M.Simple.Services.Interception;
+
+// Program.cs：放在 builder.Build() 之前。
+builder.Services.AddScoped<OrderHooks>();
+builder.Services.AddInterceptedAssemblyServices(Assembly.Load("MyApp.Business"));
+
+public sealed class OrderHooks(ILogger<OrderHooks> logger)
+{
+    public void BeforeCreate(MethodInvocationContext context)
+        => logger.LogInformation("开始：{Method}", context.Method.Name);
+
+    public Task AfterCreate(MethodInvocationContext context)
+    {
+        logger.LogInformation("完成：{Method}", context.Method.Name);
+        return Task.CompletedTask;
+    }
+}
+
+public interface IOrderService
+{
+    Task<string> CreateAsync(string name);
+}
+
+public sealed class OrderService : IOrderService
+{
+    [BeforeMethod(typeof(OrderHooks), nameof(OrderHooks.BeforeCreate))]
+    [AfterMethod(typeof(OrderHooks), nameof(OrderHooks.AfterCreate))]
+    public Task<string> CreateAsync(string name) => Task.FromResult(name);
+}
+```
+
+外部钩子必须注册到 DI，可在扫描前或后注册，由当前作用域获取，业务类无需额外注入。外部钩子必须是公开实例方法，签名约束与本类钩子相同。手动创建代理时可通过 Create 的 serviceProvider 和 logger 参数传入解析器及日志。
+
+AddInterceptedAssemblyServices 位于本包，通过 IServiceCollection 注册，兼容 M.Simple.Container，无需两个包互相依赖。默认 Scoped：带拦截标记的接口注册代理，无标记接口正常注册；排除 IDisposable/IAsyncDisposable 及编译器生成类。同一程序集重复扫描不重复注册，不应再调用普通 AddAssemblyServices 扫描该程序集；已存在相同实现的普通接口映射时明确报错。多个代理接口共享同一个已注册的 Scoped 真实实现；普通映射保持标准 DI 的独立描述符语义。
+
+普通开放泛型支持按位置映射；带拦截标记的开放泛型扫描会明确报错，需要显式注册闭合类型。仅有 MethodHook 标记而没有具体钩子或通用拦截器时，没有额外处理逻辑。
+
+注册时检查已知的 Singleton → Scoped 直接或间接依赖；首次解析代理时再次检查最终注册、生命周期和钩子方法签名。错误提示包含服务和依赖链。工厂内部动态依赖依靠容器运行时作用域验证，宿主应开启 ValidateScopes（M.Simple.Container 默认开启）；构建校验不执行工厂，不保证所有错误都在 Build 时发现。
 
 ## 注册和调用
 
@@ -75,12 +120,12 @@ public sealed class OrderService : IOrderService
 
 指定方法的约定：
 
-- 默认查找同一真实服务实例的方法，支持 private、protected、public 及基类私有方法。方法名称区分大小写，建议用 nameof。按运行时类型向基类逐层查找，使用最靠近派生类型的同名声明层；不查其他服务或静态方法。
+- 默认查找同一真实服务实例的方法，支持 private、protected、public 及基类私有方法。方法名称区分大小写，建议用 nameof。按运行时类型向基类逐层查找，使用最靠近派生类型的同名声明层；未指定类型时不查其他服务；指定类型时从 DI 获取外部钩子实例。均不支持静态方法。
 - 签名必须是单个 MethodInvocationContext 参数，返回 void、Task 或 ValueTask；不支持泛型钩子、Task<T>/ValueTask<T>、async void。同步业务方法只能配置 void 钩子，避免阻塞异步等待。
 - 接口方法也可配置特性；同一阶段实现方法的特性覆盖接口方法的特性，两阶段分别判断。方法上的 SkipMethodHook 优先跳过全部钩子，该方法的名称配置也不做解析。
 - 代理创建（DI 首次解析）时校验名字与签名，错误立即抛出；不等到调用业务后才发现。不允许业务方法把自己作为钩子。
-- 同时使用通用拦截器时，顺序为“通用前置 → 指定前置 → 业务 → 指定后置 → 通用后置”。指定后置抛异常时仍尝试通用后置；两者都失败会合并为 AggregateException。业务也失败时仍保留原业务异常，后置失败附加在其 Data 中。
-- 前置阶段任一步失败，停止业务且不运行后置；业务失败或取消时仍执行后置。钩子反射异常会解包为真实异常。
+- 同时使用通用拦截器时，顺序为“通用前置 → 指定前置 → 业务 → 指定后置 → 通用后置”。每个钩子单独处理异常：前置失败记录日志并继续，后置失败记录日志并继续后续钩子，保留该钩子执行前的结果。
+- 前置失败记录日志后继续业务；业务失败或取消时跳过全部后置并传播原异常。钩子反射异常会解包为真实异常。
 - 指定钩子直接调用真实对象，不再次进入接口代理；类内部自调用及直接调用真实服务仍不会触发特性。
 
 ### 使用通用拦截器
@@ -134,7 +179,6 @@ var service = MethodHookProxy<IOrderService>.Create(new OrderService(), new Orde
 await service.CreateAsync("demo");
 ```
 
-
 ## 类维度和方法维度
 
 注册以接口/服务为单位，钩子按每次方法调用执行。可把特性放在接口、接口方法、实现类或实现方法上：
@@ -159,7 +203,6 @@ public interface IInventoryService
 
 接口和实现冲突时，同层级 Skip 优先。实现类上的特性按继承规则读取，支持显式接口实现；不通过方法名称猜测实现，按接口映射匹配。
 
-
 ## 前置修改参数、后置替换返回值（1.0.0.3 起）
 
 ```csharp
@@ -180,23 +223,22 @@ private void RecordAfter(MethodInvocationContext context)
 - SetArgument(name, value) 只允许前置阶段，实际调用业务时使用修改后的值。Arguments 仍是只读列表，但会反映修改后的值。替换 CancellationToken 后 context.CancellationToken 也同步反映最新值。
 - SetResult(value) 只允许业务成功后的后置阶段，支持同步返回值、Task<T>、ValueTask<T>，替换的是实际结果 T，不是任务对象。多个后置依次看到最新结果，最后一次有效赋值返回调用方。
 - 值必须可直接赋给声明类型，支持 Nullable<T>；不自动做数值/字符串转换。非可空值类型不接受 null；引用类型的 nullable 注解不在运行时强制校验。参数名不存在、类型不匹配会抛 ArgumentException。
-- void、Task、ValueTask 无返回值，不能调用 SetResult。业务失败或取消也不能用 SetResult 转为成功；后置违规会按现有异常策略处理，保留原业务异常。
+- void、Task、ValueTask 无返回值，不能调用 SetResult。业务失败或取消也不能用 SetResult 转为成功；后置违规记录日志并保留此前结果。
 - 后置不能替换业务参数，因为业务已经执行；调用完成后不能再修改参数或结果。不要启动未被 await 的后台任务持有上下文并发修改。
 - 本功能从 1.0.0.3 起提供；1.0.0.2 不包含参数和结果替换 API。
-
 
 ## 上下文与异常
 
 - `Method`：接口方法，泛型调用为实际构造方法；`ImplementationMethod`：映射到的实现方法。
 - `Target`：真实服务对象；`Arguments`：只读参数列表（对象自身仍可变）；前置使用 SetArgument 替换参数，后置使用 SetResult 替换结果。
 - `Result`：业务返回值，Task<T>/ValueTask<T> 为等待后的 T，void/Task/ValueTask 为 null；失败时无有效结果。
+- BeforeException：最后一次被忽略的前置异常。
 - `Exception`：原始业务异常；`IsCanceled`：业务异常是否为 OperationCanceledException。
 - `CancellationToken`：第一个 CancellationToken 参数；`Items`：本次调用前后共享的数据，可记录 Stopwatch 等。每次调用独立创建上下文。
 
-前置成功后才调用业务。前置失败会停止业务，且不执行后置。业务成功、失败或取消均执行后置；异步后置会被等待，不能把取消后的 token 无条件用于必须完成的清理工作。
+前置普通异常记录日志后继续业务；业务成功才执行后置，失败或取消直接抛出。异步钩子会被等待。请求令牌已取消时，钩子抛出的 OperationCanceledException 继续传播。业务执行前也检查请求令牌。
 
-业务成功而后置失败：后置异常传给调用方。业务和后置同时失败：保留原业务异常及堆栈，后置异常尽力附加到其 `Data[MethodHookProxy<IOrderService>.AfterExceptionDataKey]`；Data 无法写入时仍保留业务异常。后置不自动记录日志，避免与宿主全局异常日志重复；业务是否回滚由业务层决定。
-
+后置普通异常记录日志，返回此前有效结果；业务异常交给宿主处理，不重复记录。DI 注册使用宿主 ILoggerFactory，分类为 M.Simple.Services.Interception；未注册工厂或手动创建且未提供 ILogger 时，使用 System.Diagnostics.Trace 输出。日志提供程序失败不会替代业务结果。失败前的参数修改、对象修改和外部副作用不自动回滚。
 
 ## 支持范围
 
@@ -208,8 +250,3 @@ private void RecordAfter(MethodInvocationContext context)
 - 服务接口不能继承 IDisposable/IAsyncDisposable，释放方法留在实现类。DI 管理实现类与拦截器的释放，避免代理再次释放真实对象；手动 Create 时由调用者负责其资源生命周期。
 - 同一个服务/拦截器实例可能并发调用，钩子本身需线程安全；不要把每次调用的可变状态放在拦截器字段，应存入 context.Items。
 - 接口代理依赖运行时动态代码，不支持 NativeAOT；未验证裁剪兼容性。按方法声明的返回类型选择等待方式，object 返回值中装箱的 Task 等不会被当作异步返回。
-
-
-## 接入注意事项
-
-默认双泛型注册按特性启用，三泛型注册可指定通用拦截器。同一接口不要再被后续普通注册或程序集扫描覆盖。new 实现类、直接调用真实对象及类内部自调用均不会经过代理。不支持 Native AOT。

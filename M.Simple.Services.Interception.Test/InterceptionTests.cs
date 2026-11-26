@@ -109,7 +109,7 @@ public class InterceptionTests
     }
 
     [TestMethod]
-    public async Task BusinessFailure_IsUnwrappedAndPreservedWhenAfterAlsoFails()
+    public async Task BusinessFailure_IsUnwrappedAndSkipsAfter()
     {
         var target = new Service(); var hook = new Hook { ThrowAfter = true };
         var proxy = MethodHookProxy<IService>.Create(target, hook);
@@ -118,35 +118,36 @@ public class InterceptionTests
         Assert.AreSame(target.Error, await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => proxy.FailResultAsync()));
         Assert.AreSame(target.Error, await Assert.ThrowsExceptionAsync<InvalidOperationException>(async () => await proxy.FailValueAsync()));
         Assert.AreSame(target.Error, await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => proxy.ThrowBeforeReturningTask()));
-        Assert.IsInstanceOfType(target.Error.Data[MethodHookProxy<IService>.AfterExceptionDataKey], typeof(ApplicationException));
-        Assert.IsTrue(hook.Contexts.All(c => ReferenceEquals(target.Error, c.Exception)));
+        Assert.AreEqual(0, target.Error.Data.Count);
+        Assert.AreEqual(0, hook.Contexts.Count);
         StringAssert.Contains(target.Error.StackTrace!, nameof(Service.ThrowBeforeReturningTask));
     }
 
     [TestMethod]
-    public async Task BeforeFailure_StopsBusinessAndDoesNotExecuteAfter()
+    public async Task BeforeFailure_ContinuesBusinessAndAfter()
     {
         var target = new Service(); var hook = new Hook { ThrowBefore = true };
         var proxy = MethodHookProxy<IService>.Create(target, hook);
-        Assert.ThrowsException<ApplicationException>(() => proxy.Touch());
-        await Assert.ThrowsExceptionAsync<ApplicationException>(() => proxy.CompleteAsync());
-        await Assert.ThrowsExceptionAsync<ApplicationException>(async () => await proxy.AddValueAsync(1));
-        Assert.AreEqual(0, target.Calls);
-        Assert.AreEqual(0, hook.Contexts.Count);
+        proxy.Touch();
+        await proxy.CompleteAsync();
+        Assert.AreEqual(2, await proxy.AddValueAsync(1));
+        Assert.AreEqual(3, target.Calls);
+        Assert.AreEqual(3, hook.Contexts.Count);
+        Assert.IsTrue(hook.Contexts.All(c => c.BeforeException is ApplicationException));
     }
 
     [TestMethod]
-    public async Task AfterFailure_AfterSuccessfulBusinessIsReported()
+    public async Task AfterFailure_PreservesSuccessfulBusinessResult()
     {
         var hook = new Hook { ThrowAfter = true };
         var proxy = MethodHookProxy<IService>.Create(new Service(), hook);
-        Assert.ThrowsException<ApplicationException>(() => proxy.Add(1));
-        await Assert.ThrowsExceptionAsync<ApplicationException>(() => proxy.CompleteAsync());
+        Assert.AreEqual(2, proxy.Add(1));
+        await proxy.CompleteAsync();
         Assert.IsTrue(hook.Contexts.All(c => c.Exception is null));
     }
 
     [TestMethod]
-    public async Task Cancellation_RemainsCanceledAndStillExecutesAfter()
+    public async Task Cancellation_RemainsCanceledAndSkipsAfter()
     {
         var hook = new Hook(); var proxy = MethodHookProxy<IService>.Create(new Service(), hook);
         using var source = new CancellationTokenSource();
@@ -155,8 +156,7 @@ public class InterceptionTests
         try { await pending; Assert.Fail("Expected cancellation"); }
         catch (OperationCanceledException error) { Assert.AreEqual(source.Token, error.CancellationToken); }
         Assert.IsTrue(pending.IsCanceled);
-        Assert.IsTrue(hook.Contexts.Single().IsCanceled);
-        Assert.AreEqual(source.Token, hook.Contexts.Single().CancellationToken);
+        Assert.AreEqual(0, hook.Contexts.Count);
     }
 
     public sealed class AsyncHook : MethodInterceptor
@@ -356,11 +356,11 @@ public class InterceptionTests
     }
 
     [TestMethod]
-    public async Task NonGenericValueTaskFailure_ExecutesAfter()
+    public async Task NonGenericValueTaskFailure_SkipsAfter()
     {
         var hook = new Hook(); var proxy = MethodHookProxy<IValueFailure>.Create(new ValueFailure(), hook);
         await Assert.ThrowsExceptionAsync<InvalidOperationException>(async () => await proxy.RunAsync());
-        Assert.AreEqual("value failure", hook.Contexts.Single().Exception!.Message);
+        Assert.AreEqual(0, hook.Contexts.Count);
     }
 
     public interface ICustomAwaitable { System.Runtime.CompilerServices.TaskAwaiter Run(); }

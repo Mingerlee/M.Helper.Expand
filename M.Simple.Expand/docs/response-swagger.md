@@ -11,6 +11,12 @@ dotnet add package M.Simple.AspNetCore.Response.Swagger --version 1.0.0.1
 dotnet add package Swashbuckle.AspNetCore --version 6.4.0
 ```
 
+使用 SimpleException.Of 需要显式将核心包升级到 1.0.0.2；Swagger 适配包可继续使用 1.0.0.1：
+
+```powershell
+dotnet add package M.Simple.AspNetCore.Response --version 1.0.0.2
+```
+
 Swagger 适配包会自动依赖 `M.Simple.AspNetCore.Response` 核心包，无需再次单独安装核心包。已有兼容版本 Swashbuckle.AspNetCore 的项目保留现有引用即可。
 
 ## Program.cs 配置

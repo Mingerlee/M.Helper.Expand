@@ -99,28 +99,28 @@ public class NamedHooksTests
     }
 
     [TestMethod]
-    public void BeforeFailure_StopsBusinessAndAllAfterHooks()
+    public void BeforeFailure_ContinuesBusinessAndAfterHooks()
     {
         var target = new Service { FailBefore = true };
         var proxy = MethodHookProxy<IService>.Create(target);
-        Assert.AreEqual("before", Assert.ThrowsException<ApplicationException>(() => proxy.Run(1)).Message);
-        CollectionAssert.AreEqual(new[] { "before" }, target.Events);
+        Assert.AreEqual(2, proxy.Run(1));
+        CollectionAssert.AreEqual(new[] { "before", "business", "after" }, target.Events);
     }
 
     [TestMethod]
-    public async Task BusinessFailureAndCancellation_ExecuteNamedAfterAndPreserveOriginalError()
+    public async Task BusinessFailureAndCancellation_SkipAfterAndPreserveOriginalError()
     {
         var target = new Service { FailBusiness = true, FailAfter = true }; target.BeforeGate.SetResult();
         var proxy = MethodHookProxy<IService>.Create(target);
         Assert.AreSame(target.BusinessError, Assert.ThrowsException<InvalidOperationException>(() => proxy.Run(1)));
         Assert.AreSame(target.BusinessError, await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => proxy.RunAsync(1)));
-        Assert.AreSame(target.BusinessError, target.Completed.Last().Exception);
-        Assert.IsInstanceOfType(target.BusinessError.Data[MethodHookProxy<IService>.AfterExceptionDataKey], typeof(ApplicationException));
+        Assert.AreEqual(0, target.Completed.Count);
+        Assert.AreEqual(0, target.BusinessError.Data.Count);
         target.FailAfter = false;
         using var cancellation = new CancellationTokenSource(); cancellation.Cancel();
         var task = proxy.RunAsync(2, cancellation.Token);
         try { await task; Assert.Fail("Expected cancellation"); } catch (OperationCanceledException) { }
-        Assert.IsTrue(task.IsCanceled); Assert.IsTrue(target.Completed.Last().IsCanceled);
+        Assert.IsTrue(task.IsCanceled); Assert.AreEqual(0, target.Completed.Count);
     }
 
     [TestMethod]
@@ -150,12 +150,12 @@ public class NamedHooksTests
         proxy.Run(1);
         CollectionAssert.AreEqual(new[] { "general-before", "before", "business", "after", "general-after" }, target.Events);
         target.FailAfter = true; hook.FailAfter = true;
-        var aggregate = Assert.ThrowsException<AggregateException>(() => proxy.Run(2));
-        Assert.AreEqual(2, aggregate.InnerExceptions.Count);
+        Assert.AreEqual(4, proxy.Run(2));
         Assert.AreEqual("general-after", target.Events.Last());
         target.FailBusiness = true;
         Assert.AreSame(target.BusinessError, Assert.ThrowsException<InvalidOperationException>(() => proxy.Run(2)));
-        Assert.IsInstanceOfType(target.BusinessError.Data[MethodHookProxy<IService>.AfterExceptionDataKey], typeof(AggregateException));
+        Assert.AreEqual("business", target.Events.Last());
+        Assert.AreEqual(0, target.BusinessError.Data.Count);
     }
 
     public interface IOverridden { [BeforeMethod("MissingInterfaceHook")] int Run(); }

@@ -12,5 +12,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="3.0.4" />
     <PackageReference Include="MSTest.TestFramework" Version="3.0.4" />
     <ProjectReference Include="../M.Simple.Services.Interception/M.Simple.Services.Interception.csproj" />
+    <ProjectReference Include="../M.Simple.Container/M.Simple.Container.csproj" />
+    <ProjectReference Include="../M.Simple.Services.Interception.Sample/M.Simple.Services.Interception.Sample.csproj" />
   </ItemGroup>
 </Project>

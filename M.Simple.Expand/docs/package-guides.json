@@ -33,7 +33,7 @@
     "name": "M.Simple.Services.Interception",
     "slug": "interception",
     "title": "接口 AOP 与前后置钩子",
-    "version": "1.0.0.3"
+    "version": "1.0.0.4"
   },
   {
     "name": "M.Simple.Services.Email",
@@ -57,7 +57,7 @@
     "name": "M.Simple.AspNetCore.Response",
     "slug": "response",
     "title": "MVC 统一响应",
-    "version": "1.0.0.1"
+    "version": "1.0.0.2"
   },
   {
     "name": "M.Simple.EntityFrameworkCore",

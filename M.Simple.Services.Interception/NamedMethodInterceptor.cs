@@ -1,17 +1,20 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace M.Simple.Services.Interception;
 
 internal sealed class EmptyMethodInterceptor : MethodInterceptor;
 
-internal sealed record NamedMethodPlan(MethodInfo? Before, MethodInfo? After);
+internal sealed record BoundHook(object Target, MethodInfo Method);
+internal sealed record NamedMethodPlan(BoundHook? Before, BoundHook? After);
 
 internal sealed class NamedMethodInterceptor(object target, MethodInterceptor inner,
-    IReadOnlyDictionary<MethodInfo, NamedMethodPlan> plans) : MethodInterceptor
+    IReadOnlyDictionary<MethodInfo, NamedMethodPlan> plans, ILogger? logger) : MethodInterceptor
 {
-    internal static NamedMethodPlan CreatePlan(object target, MethodInfo contract, MethodInfo implementation)
+    internal static NamedMethodPlan CreatePlan(object target, MethodInfo contract, MethodInfo implementation, IServiceProvider? provider)
     {
         if (contract.IsDefined(typeof(SkipMethodHookAttribute), true) || implementation.IsDefined(typeof(SkipMethodHookAttribute), true))
             return new(null, null);
@@ -19,8 +22,19 @@ internal sealed class NamedMethodInterceptor(object target, MethodInterceptor in
         var before = implementation.GetCustomAttribute<BeforeMethodAttribute>(true) ?? contract.GetCustomAttribute<BeforeMethodAttribute>(true);
         var after = implementation.GetCustomAttribute<AfterMethodAttribute>(true) ?? contract.GetCustomAttribute<AfterMethodAttribute>(true);
         var asyncBusiness = IsAsyncReturn(contract.ReturnType);
-        return new(before is null ? null : Find(target.GetType(), before.MethodName, implementation, asyncBusiness),
-            after is null ? null : Find(target.GetType(), after.MethodName, implementation, asyncBusiness));
+        return new(before is null ? null : Bind(target, before.HookType, before.MethodName, implementation, asyncBusiness, provider),
+            after is null ? null : Bind(target, after.HookType, after.MethodName, implementation, asyncBusiness, provider));
+    }
+
+    private static BoundHook Bind(object target, Type? hookType, string name, MethodInfo business,
+        bool asyncBusiness, IServiceProvider? provider)
+    {
+        var method = Find(hookType ?? target.GetType(), name, business, asyncBusiness);
+        if (hookType is null) return new(target, method);
+        if (!method.IsPublic) throw new ArgumentException($"External hook {hookType.FullName}.{name} must be public.");
+        if (provider is null)
+            throw new InvalidOperationException($"External hook {hookType.FullName} requires an IServiceProvider. Register the hook and pass serviceProvider to Create or use DI registration.");
+        return new(provider.GetRequiredService(hookType), method);
     }
 
     private NamedMethodPlan Plan(MethodInvocationContext context)
@@ -55,10 +69,10 @@ internal sealed class NamedMethodInterceptor(object target, MethodInterceptor in
         throw new MissingMethodException(type.FullName, name);
     }
 
-    private object? InvokeHook(MethodInfo? hook, MethodInvocationContext context)
+    private object? InvokeHook(BoundHook? hook, MethodInvocationContext context)
     {
         if (hook is null) return null;
-        try { return hook.Invoke(target, [context]); }
+        try { return hook.Method.Invoke(hook.Target, [context]); }
         catch (TargetInvocationException error) when (error.InnerException is not null)
         {
             ExceptionDispatchInfo.Capture(error.InnerException).Throw();
@@ -66,42 +80,72 @@ internal sealed class NamedMethodInterceptor(object target, MethodInterceptor in
         }
     }
 
-    private async ValueTask InvokeHookAsync(MethodInfo? hook, MethodInvocationContext context)
+    private async ValueTask InvokeHookAsync(BoundHook? hook, MethodInvocationContext context)
     {
         var result = InvokeHook(hook, context);
-        if (hook?.ReturnType == typeof(Task)) await ((Task)result!).ConfigureAwait(false);
-        else if (hook?.ReturnType == typeof(ValueTask)) await ((ValueTask)result!).ConfigureAwait(false);
+        if (hook?.Method.ReturnType == typeof(Task)) await ((Task)result!).ConfigureAwait(false);
+        else if (hook?.Method.ReturnType == typeof(ValueTask)) await ((ValueTask)result!).ConfigureAwait(false);
+    }
+
+    private void Log(Exception error, MethodInvocationContext context, bool before)
+    {
+        try
+        {
+            if (logger is not null)
+                logger.LogError(error, "{Phase} hook failed for {Service}.{Method}", before ? "Before" : "After", target.GetType().FullName, context.Method.Name);
+            else
+                System.Diagnostics.Trace.TraceError("Hook failed for {0}.{1}: {2}", target.GetType().FullName, context.Method.Name, error);
+        }
+        catch { } // A logging provider must not replace the business outcome.
+    }
+
+    private void Run(Action action, MethodInvocationContext context, bool before)
+    {
+        var result = context.Result;
+        try { action(); }
+        catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception error)
+        {
+            if (before) context.BeforeException = error;
+            else context.Result = result;
+            Log(error, context, before);
+        }
+    }
+
+    private async ValueTask RunAsync(Func<ValueTask> action, MethodInvocationContext context, bool before)
+    {
+        var result = context.Result;
+        try { await action().ConfigureAwait(false); }
+        catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception error)
+        {
+            if (before) context.BeforeException = error;
+            else context.Result = result;
+            Log(error, context, before);
+        }
     }
 
     public override void Before(MethodInvocationContext context)
     {
-        inner.Before(context);
-        InvokeHook(Plan(context).Before, context);
+        Run(() => inner.Before(context), context, true);
+        Run(() => InvokeHook(Plan(context).Before, context), context, true);
     }
 
     public override async ValueTask BeforeAsync(MethodInvocationContext context)
     {
-        await inner.BeforeAsync(context).ConfigureAwait(false);
-        await InvokeHookAsync(Plan(context).Before, context).ConfigureAwait(false);
+        await RunAsync(() => inner.BeforeAsync(context), context, true).ConfigureAwait(false);
+        await RunAsync(() => InvokeHookAsync(Plan(context).Before, context), context, true).ConfigureAwait(false);
     }
 
     public override void After(MethodInvocationContext context)
     {
-        Exception? namedFailure = null;
-        try { InvokeHook(Plan(context).After, context); }
-        catch (Exception error) { namedFailure = error; }
-        try { inner.After(context); }
-        catch (Exception error) when (namedFailure is not null) { throw new AggregateException(namedFailure, error); }
-        if (namedFailure is not null) ExceptionDispatchInfo.Capture(namedFailure).Throw();
+        Run(() => InvokeHook(Plan(context).After, context), context, false);
+        Run(() => inner.After(context), context, false);
     }
 
     public override async ValueTask AfterAsync(MethodInvocationContext context)
     {
-        Exception? namedFailure = null;
-        try { await InvokeHookAsync(Plan(context).After, context).ConfigureAwait(false); }
-        catch (Exception error) { namedFailure = error; }
-        try { await inner.AfterAsync(context).ConfigureAwait(false); }
-        catch (Exception error) when (namedFailure is not null) { throw new AggregateException(namedFailure, error); }
-        if (namedFailure is not null) ExceptionDispatchInfo.Capture(namedFailure).Throw();
+        await RunAsync(() => InvokeHookAsync(Plan(context).After, context), context, false).ConfigureAwait(false);
+        await RunAsync(() => inner.AfterAsync(context), context, false).ConfigureAwait(false);
     }
 }

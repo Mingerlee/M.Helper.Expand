@@ -89,11 +89,11 @@ public class MutationTests
     {
         var hook = new Hook { OnAfter = c => c.SetResult("replacement") };
         var proxy = MethodHookProxy<IService>.Create(new Service(), hook);
-        Assert.ThrowsException<InvalidOperationException>(() => proxy.Nothing());
-        await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => proxy.NothingAsync());
+        proxy.Nothing();
+        await proxy.NothingAsync();
         var error = await Assert.ThrowsExceptionAsync<ApplicationException>(() => proxy.FailAsync());
         Assert.AreEqual("business", error.Message);
-        Assert.IsInstanceOfType(error.Data[MethodHookProxy<IService>.AfterExceptionDataKey], typeof(InvalidOperationException));
+        Assert.AreEqual(0, error.Data.Count);
         using var source = new CancellationTokenSource(); source.Cancel();
         hook.OnBefore = c => { c.SetArgument("cancellationToken", source.Token); Assert.AreEqual(source.Token, c.CancellationToken); };
         var task = proxy.CancelAsync(default);

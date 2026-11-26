@@ -5,7 +5,7 @@
 ## 安装与接入
 
 ```powershell
-dotnet add package M.Simple.AspNetCore.Response --version 1.0.0.1
+dotnet add package M.Simple.AspNetCore.Response --version 1.0.0.2
 ```
 
 ```csharp
@@ -63,6 +63,16 @@ public IActionResult Get() => Ok(new { name = "example" });
 
 ## 自定义消息、手动返回与跳过
 
+从 1.0.0.2 起，业务校验可通过 `SimpleException.Of` 抛出允许展示给客户端的提示，统一返回 HTTP 400，响应仍为 `code/message/data`，不增加业务错误码字段：
+
+```csharp
+throw SimpleException.Of("预警编号必须大于零");
+// 枚举成员使用 [Description("预警编号必须大于零")] 指定提示。
+throw SimpleException.Of(ErrorCodeEnum.C0004);
+```
+
+枚举未设置 Description 时使用成员名；未定义的枚举值及空白提示不接受。字符串参数直接作为提示，不解析 `nameof(...)` 对应的枚举描述。普通异常仍返回 HTTP 500 和统一的服务器错误提示。业务异常当前仍按现有机制记录 Error 日志；本次不改变日志策略。`[SkipUnifiedResponse]` 继续跳过业务异常响应包装。
+
 ```csharp
 builder.Services.AddUnifiedResponse(options =>
 {
@@ -111,7 +121,7 @@ app.MapControllers();
 
 ## 可选 Swagger
 
-安装同版本 `M.Simple.AspNetCore.Response.Swagger`，参考该目录 README。核心包不依赖 Swashbuckle。
+可继续使用 `M.Simple.AspNetCore.Response.Swagger` 1.0.0.1，参考该目录 README。核心包不依赖 Swashbuckle。
 
 ## 源码构建与测试
 
@@ -123,4 +133,4 @@ dotnet pack M.Simple.AspNetCore.Response/M.Simple.AspNetCore.Response.csproj -c 
 dotnet pack M.Simple.AspNetCore.Response.Swagger/M.Simple.AspNetCore.Response.Swagger.csproj -c Release -o artifacts/nuget
 ```
 
-把 artifacts/nuget 添加为本地 NuGet 源即可安装；对外发布需另行推送到 NuGet。源码项目包版本为 1.0.1。
+把 artifacts/nuget 添加为本地 NuGet 源即可安装；对外发布需另行推送到 NuGet。核心源码项目包版本为 1.0.0.2。

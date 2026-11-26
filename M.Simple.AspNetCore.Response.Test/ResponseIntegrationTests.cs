@@ -19,6 +19,29 @@ namespace M.Simple.AspNetCore.Response.Test;
 [TestClass]
 public sealed class ResponseIntegrationTests
 {
+    [TestMethod]
+    public async Task BusinessExceptionReturnsOnlyExistingEnvelopeFields()
+    {
+        foreach (var path in new[] { "/probe/business-text", "/probe/business-code" })
+        {
+            var response = await _client.GetAsync(path);
+            var json = await Read(response);
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.AreEqual(400, json.GetProperty("code").GetInt32());
+            Assert.AreEqual("预警编号必须大于零", json.GetProperty("message").GetString());
+            Assert.AreEqual(JsonValueKind.Null, json.GetProperty("data").ValueKind);
+            Assert.AreEqual(3, json.EnumerateObject().Count());
+        }
+    }
+
+    [TestMethod]
+    public void BusinessExceptionValidatesInputAndFallsBackToEnumName()
+    {
+        Assert.AreEqual(nameof(ProbeError.NoDescription), SimpleException.Of(ProbeError.NoDescription).Message);
+        Assert.ThrowsException<ArgumentException>(() => SimpleException.Of(" "));
+        Assert.ThrowsException<ArgumentOutOfRangeException>(() => SimpleException.Of((ProbeError)99));
+    }
+
     private WebApplication _app = null!;
     private HttpClient _client = null!;
 
@@ -256,11 +279,21 @@ public sealed class ResponseIntegrationTests
 }
 
 public sealed record ProbeData(string Name);
+public enum ProbeError
+{
+    [System.ComponentModel.Description("预警编号必须大于零")]
+    InvalidId,
+    NoDescription
+}
 public sealed record ProbeInput([Required] string Name);
 
 [ApiController, Route("probe")]
 public sealed class ResponseProbeController : ControllerBase
 {
+    [HttpGet("business-text")]
+    public IActionResult BusinessText() => throw SimpleException.Of("预警编号必须大于零");
+    [HttpGet("business-code")]
+    public IActionResult BusinessCode() => throw SimpleException.Of(ProbeError.InvalidId);
     [HttpGet("typed")]
     public ActionResult<ProbeData> Typed() => Ok(new ProbeData("example"));
     [HttpGet("array")]

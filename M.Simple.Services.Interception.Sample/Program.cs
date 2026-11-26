@@ -7,6 +7,7 @@ services.AddInterceptedScoped<IOrderService, OrderService, ConsoleMethodIntercep
 // 按方法名特性，不再需要单独的拦截器类。
 services.AddInterceptedScoped<INamedOrderService, NamedOrderService>();
 services.AddInterceptedScoped<IMessageService, MessageService>();
+services.AddScoped<MessageHooks>();
 using var provider = services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true });
 using var scope = provider.CreateScope();
 var orders = scope.ServiceProvider.GetRequiredService<IOrderService>();
@@ -20,12 +21,12 @@ Console.WriteLine("3. 未标记方法：直接调用，不执行钩子");
 orders.Ping();
 Console.WriteLine("4. SkipMethodHook：即使标记 MethodHook 也跳过");
 orders.Skip();
-Console.WriteLine("5. 业务失败：后置获得原始异常");
+Console.WriteLine("5. 业务失败：直接抛出，跳过后置");
 try { await orders.FailAsync(); throw new Exception("应当失败"); }
 catch (InvalidOperationException error) when (error.Message == "模拟订单失败") { }
 Console.WriteLine("6. ValueTask：后置获得业务结果");
 Check(await orders.QueryAsync(33) == "订单-33", "ValueTask 结果");
-Check(interceptor.BeforeCount == 4 && interceptor.AfterCount == 4, "标记与跳过规则");
+Check(interceptor.BeforeCount == 4 && interceptor.AfterCount == 3, "标记与跳过规则");
 
 Console.WriteLine("7. 接口整体拦截：默认注册不需要特性");
 var allHooks = new ConsoleMethodInterceptor();
@@ -40,7 +41,7 @@ Check(namedTarget.Events.SequenceEqual(new[] { "before", "business", "after:succ
 namedTarget.Events.Clear();
 try { await named.CreateAsync(""); throw new Exception("应当失败"); }
 catch (InvalidOperationException error) when (error.Message == "订单名称不能为空") { }
-Check(namedTarget.Events.SequenceEqual(new[] { "before", "business", "after:failed" }), "失败时执行指定后置方法");
+Check(namedTarget.Events.SequenceEqual(new[] { "before", "business" }), "失败时跳过指定后置方法");
 Console.WriteLine("9. 前置修改参数，后置修改返回值");
 var messageService = scope.ServiceProvider.GetRequiredService<IMessageService>();
 Check(await messageService.SayHolle("你好") == "你好【前置追加】【后置追加】", "参数与结果修改");
@@ -68,8 +69,8 @@ public interface IMessageService
 
 public sealed class MessageService : IMessageService
 {
-    [BeforeMethod(nameof(RecordBefore))]
-    [AfterMethod(nameof(RecordAfter))]
+    [BeforeMethod(typeof(MessageHooks), nameof(MessageHooks.RecordBefore))]
+    [AfterMethod(typeof(MessageHooks), nameof(MessageHooks.RecordAfter))]
     public async Task<string> SayHolle(string msg)
     {
         await Task.Yield();
@@ -77,14 +78,25 @@ public sealed class MessageService : IMessageService
         return msg;
     }
 
-    private void RecordBefore(MethodInvocationContext context)
+}
+
+public sealed class MessageHooks
+{
+    public void RecordBefore(MethodInvocationContext context)
         => context.SetArgument("msg", context.GetArgument<string>("msg") + "【前置追加】");
 
-    private void RecordAfter(MethodInvocationContext context)
+    public void RecordAfter(MethodInvocationContext context)
     {
         context.SetResult((string)context.Result! + "【后置追加】");
         Console.WriteLine("  [最终返回值] " + context.Result);
     }
+}
+
+// An unmarked service remains an ordinary Scoped registration during assembly scanning.
+public interface IValueService<T> { T Echo(T value); }
+public sealed class ValueService<T> : IValueService<T>
+{
+    public T Echo(T value) => value;
 }
 
 public sealed class OrderService : IOrderService
