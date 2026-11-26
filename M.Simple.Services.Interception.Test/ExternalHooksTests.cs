@@ -119,6 +119,23 @@ public sealed class ExternalHooksTests
     }
 
     [TestMethod]
+    public void ApplicationCanConnectContainerProxyScanningToInterception()
+    {
+        var services = new ServiceCollection();
+        services.AddScoped<State>();
+        services.AddScoped<Hooks>();
+        services.Scan(typeof(Service).Assembly).Where(type => type == typeof(Service)).As<IService>()
+            .ProxyScoped((_, target, provider) => MethodHookProxy<IService>.Create((IService)target, true, provider));
+        using var provider = services.BuildSimpleServiceProvider();
+        using var scope = provider.CreateScope();
+        var proxy = scope.ServiceProvider.GetRequiredService<IService>();
+        Assert.AreEqual(16, proxy.Run(2));
+        Assert.AreSame(proxy, scope.ServiceProvider.GetRequiredService<IService>());
+        Assert.AreEqual(1, scope.ServiceProvider.GetRequiredService<State>().Before);
+        Assert.AreEqual(1, scope.ServiceProvider.GetRequiredService<State>().After);
+    }
+
+    [TestMethod]
     public async Task AssemblyScanIsIdempotentAndCompatibleWithSimpleContainer()
     {
         var services = new ServiceCollection();

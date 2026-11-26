@@ -2,7 +2,7 @@
 
 .NET 8 依赖注入容器。沿用 `IServiceCollection` 注册和构造函数注入，增加程序集扫描、按接口筛选和一行 Host 接入。
 
-当前版本 `1.0.0.1`，采用四段版本号，提供本地打包；性能数据以仓库内基准结果为准。尚不支持 Native AOT。
+当前版本 `1.0.0.2`，采用四段版本号；新增指定接口映射和代理工厂注册，与 Interception 包互不依赖。性能数据以仓库内基准结果为准。尚不支持 Native AOT。
 
 ## ASP.NET Core 接入
 
@@ -35,6 +35,31 @@ builder.Services.AddAssemblyServices(
 需要 `using System.Reflection;`。只扫描指定程序集，将具体类映射到它实现的接口，默认 `Scoped`。不注册 `IDisposable`、`IAsyncDisposable`。类没有业务接口时不会注册；需要自身类型时使用链式 API 的 `AsSelf()`。
 
 不需要 Autofac 的 `ConfigureContainer<ContainerBuilder>`，原有 `builder.Services.Add...` 继续使用。
+
+## 按指定接口注入代理
+
+Container 与 `M.Simple.Services.Interception` 互不依赖。Container 负责筛选、注册和管理对象生命周期，调用方通过工厂提供代理；代理可以来自自定义实现、DispatchProxy 或其他独立组件。
+
+```csharp
+using M.Simple.Container;
+
+builder.Services.Scan(Assembly.Load("MyApp.Business"))
+    .AssignableTo<IInterception>() // 项目自行定义的标记接口
+    .As<IOrderService>()         // 只暴露指定业务接口，不注册标记接口
+    .WithProxy((serviceType, target, provider) =>
+        new OrderServiceProxy((IOrderService)target)) // 项目自行实现的代理
+    .Scoped();
+```
+
+也可使用 `.AsImplementedInterfaces().ExcludeInterface(typeof(IInterception))` 暴露多个业务接口，工厂根据 `serviceType` 创建对应代理。`As<TService>()` / `As(Type)` 可多次调用以指定多个接口。
+
+`WithProxy(factory).Scoped()` 等价于 `ProxyScoped(factory)`，另外支持 `ProxyTransient(factory)`、`ProxySingleton(factory)`，三种方式都需要显式传入工厂。工厂在解析接口时运行，收到业务接口类型、真实对象及当前解析的 IServiceProvider。返回值必须是实现指定接口、且区别于真实对象的非空代理。
+
+同一工厂重复扫描相同映射不增加注册；先普通扫描再代理扫描，会替换选中接口与实现类的普通映射，保留其他实现和命名注册。Scoped/Singleton 的多个代理接口共享同一真实对象；已有真实对象的注册生命周期必须与代理一致。SimpleContainer 中扫描注册的普通接口及 `AsSelf()` 也共享该对象。Transient 每次解析创建新的代理和真实对象。
+
+`AsSelf()` 暴露真实对象，直接调用它不经过代理。真实对象由 DI 释放，代理不应再次释放它；代理自身的可释放资源由 DI 管理。代理接口不能继承 IDisposable/IAsyncDisposable。代理扫描要求闭合类型，不支持开放泛型；注册校验失败时不提交部分扫描结果。工厂内部依赖在解析时由容器校验，Singleton 工厂不得解析 Scoped 服务。
+
+Container 不识别钩子特性或执行前后置方法。Interception 包保留 `AddInterceptedAssemblyServices`、钩子特性、代理创建及单服务注册，不需要依赖 Container。将两个包组合使用时，适配逻辑放在应用项目中。
 
 ## 按继承接口筛选
 
@@ -122,7 +147,7 @@ builder.Host.UseSimpleContainer(options =>
 
 构造函数计划使用 .NET 8 `ConstructorInvoker`，不再为每个容器执行 `Expression.Compile()`。构造函数及参数元数据通过弱键缓存复用；服务解析委托、命名服务的键、业务实例和生命周期缓存仍按容器隔离。常见的零至四参数构造函数不需要临时参数数组；更多参数使用池化数组，并在返回时清除引用。集合解析也不再编译表达式。
 
-默认构建校验保持开启。注册查找使用索引，避免逐个扫描所有描述符。尚不支持源码生成、Native AOT、属性注入、拦截器、子容器注册覆盖和运行期间修改注册。不承诺与 Autofac 全功能等价；复杂应用应先验证所用第三方扩展和真实业务依赖图。
+默认构建校验保持开启。注册查找使用索引，避免逐个扫描所有描述符。尚不支持源码生成、Native AOT、属性注入、子容器注册覆盖和运行期间修改注册。不承诺与 Autofac 全功能等价；复杂应用应先验证所用第三方扩展和真实业务依赖图。
 
 基准项目比较 Autofac、微软 DI 与本容器，包括单例、瞬态依赖图、作用域缓存、完整作用域创建/解析/释放及启动成本。短基准适合观察趋势，不能推导生产 API 的吞吐提升。
 

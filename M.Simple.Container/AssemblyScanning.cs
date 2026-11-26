@@ -34,6 +34,8 @@ public sealed class AssemblyRegistrationBuilder
     private readonly HashSet<Type> _excluded = [typeof(IDisposable), typeof(IAsyncDisposable)];
     private bool _interfaces = true;
     private bool _self;
+    private readonly HashSet<Type> _contracts = [];
+    private ServiceProxyFactory? _proxyFactory;
 
     internal AssemblyRegistrationBuilder(IServiceCollection services, Assembly[] assemblies)
         => (_services, _assemblies) = (services, assemblies);
@@ -64,12 +66,37 @@ public sealed class AssemblyRegistrationBuilder
 
     public AssemblyRegistrationBuilder AsImplementedInterfaces() { _interfaces = true; return this; }
 
+    /// <summary>Exposes only the specified implemented interface. Multiple calls expose multiple interfaces.</summary>
+    public AssemblyRegistrationBuilder As<TService>() => As(typeof(TService));
+
+    public AssemblyRegistrationBuilder As(Type serviceType)
+    {
+        ArgumentNullException.ThrowIfNull(serviceType);
+        if (!serviceType.IsInterface) throw new ArgumentException("Specify a service interface.", nameof(serviceType));
+        _contracts.Add(serviceType);
+        return this;
+    }
+
+    /// <summary>Uses a caller-supplied factory to wrap each selected interface's real implementation.</summary>
+    public AssemblyRegistrationBuilder WithProxy(ServiceProxyFactory factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        _proxyFactory = factory;
+        return this;
+    }
+
     /// <summary>Also exposes the implementation type; interfaces remain exposed.</summary>
     public AssemblyRegistrationBuilder AsSelf() { _self = true; return this; }
 
     public IServiceCollection Scoped() => Register(ServiceLifetime.Scoped);
     public IServiceCollection Singleton() => Register(ServiceLifetime.Singleton);
     public IServiceCollection Transient() => Register(ServiceLifetime.Transient);
+
+    public IServiceCollection ProxyScoped(ServiceProxyFactory factory) => WithProxy(factory).Scoped();
+
+    public IServiceCollection ProxySingleton(ServiceProxyFactory factory) => WithProxy(factory).Singleton();
+
+    public IServiceCollection ProxyTransient(ServiceProxyFactory factory) => WithProxy(factory).Transient();
 
     private IServiceCollection Register(ServiceLifetime lifetime)
     {
@@ -84,7 +111,8 @@ public sealed class AssemblyRegistrationBuilder
             var identity = _services.OfType<ScannedDescriptor>()
                 .FirstOrDefault(d => d.ImplementationType == implementation && d.Lifetime == lifetime)?.Identity ?? new object();
             IEnumerable<Type> mappings = _interfaces
-                ? implementation.GetInterfaces().Where(t => !_excluded.Contains(t)
+                ? implementation.GetInterfaces().Where(t => (_contracts.Count == 0 || _contracts.Contains(t)
+                    || t.IsGenericType && _contracts.Contains(t.GetGenericTypeDefinition())) && !_excluded.Contains(t)
                     && !(t.IsGenericType && _excluded.Contains(t.GetGenericTypeDefinition())))
                 : [];
             if (_self) mappings = mappings.Append(implementation);
@@ -98,11 +126,13 @@ public sealed class AssemblyRegistrationBuilder
                         throw new InvalidOperationException($"Cannot scan generic mapping '{mapping}' -> '{implementation}'. Register this mapping explicitly with a factory.");
                     service = mapping.GetGenericTypeDefinition();
                 }
-                if (_services.Concat(descriptors).Any(d => d.ServiceType == service && !d.IsKeyedService
+                if (_proxyFactory is null && _services.Concat(descriptors).Any(d => d.ServiceType == service && !d.IsKeyedService
                     && d.ImplementationType == implementation && d.Lifetime == lifetime)) continue;
                 descriptors.Add(new ScannedDescriptor(service, implementation, lifetime, identity));
             }
         }
+        if (_proxyFactory is not null)
+            return ProxyRegistration.Register(_services, descriptors, lifetime, _proxyFactory);
         foreach (var descriptor in descriptors) _services.Add(descriptor);
         return _services;
     }

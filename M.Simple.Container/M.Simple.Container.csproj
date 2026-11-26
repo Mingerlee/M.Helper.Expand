@@ -3,7 +3,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.0.1</Version>
+    <Version>1.0.0.2</Version>
+    <PackageReleaseNotes>Add interface selection and caller-supplied proxy factories to assembly scanning, with scoped, transient and singleton registration. No dependency on M.Simple.Services.Interception.</PackageReleaseNotes>
     <Authors>Mr.Sunny</Authors>
     <Description>A lightweight .NET dependency injection container with assembly scanning and standard hosting integration.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
