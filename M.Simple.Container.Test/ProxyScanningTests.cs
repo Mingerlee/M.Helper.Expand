@@ -172,6 +172,17 @@ public sealed class ProxyScanningTests
             Assert.ThrowsException<InvalidOperationException>(() => scope.ServiceProvider.GetRequiredService<IFirst>());
         }
     }
+
+    [TestMethod]
+    public void InterceptedScanExplainsMissingOptionalPackageWithoutPartialRegistration()
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(new State());
+        var original = services.ToArray();
+        var error = Assert.ThrowsException<InvalidOperationException>(() => Scan(services).InterceptedScoped());
+        StringAssert.Contains(error.Message, "M.Simple.Services.Interception");
+        CollectionAssert.AreEqual(original, services.ToArray());
+    }
     private abstract class ServiceProviderBase : IDisposable
     {
         public abstract IServiceProvider Provider { get; }

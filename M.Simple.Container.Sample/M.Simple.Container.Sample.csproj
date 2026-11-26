@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../M.Simple.Container/M.Simple.Container.csproj" />
+    <ProjectReference Include="../M.Simple.Services.Interception/M.Simple.Services.Interception.csproj" />
   </ItemGroup>
 </Project>

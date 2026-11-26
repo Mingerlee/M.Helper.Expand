@@ -2,7 +2,7 @@
 
 .NET 8 依赖注入容器。沿用 `IServiceCollection` 注册和构造函数注入，增加程序集扫描、按接口筛选和一行 Host 接入。
 
-当前版本 `1.0.0.2`，采用四段版本号；新增指定接口映射和代理工厂注册，与 Interception 包互不依赖。性能数据以仓库内基准结果为准。尚不支持 Native AOT。
+当前版本 `1.0.0.3`，采用四段版本号；新增无参数拦截扫描，与 Interception 包不增加相互包引用。性能数据以仓库内基准结果为准。尚不支持 Native AOT。
 
 ## ASP.NET Core 接入
 
@@ -36,7 +36,30 @@ builder.Services.AddAssemblyServices(
 
 不需要 Autofac 的 `ConfigureContainer<ContainerBuilder>`，原有 `builder.Services.Add...` 继续使用。
 
-## 按指定接口注入代理
+## 无参数拦截扫描（1.0.0.3 起）
+
+应用引用 Container 和 Interception 1.0.0.4 或兼容的后续版本后，直接按标记接口扫描，无需手写代理工厂：
+
+```csharp
+using M.Simple.Container;
+using System.Reflection;
+
+builder.Services.Scan(Assembly.Load("M.Simple.Business"))
+    .AssignableTo<IInterception>()
+    .ExcludeInterface(typeof(IInterception))
+    .AsImplementedInterfaces()
+    .InterceptedScoped();
+```
+
+`IInterception` 由业务项目自行定义，仅用作筛选条件。业务方法继续使用 Interception 的 `BeforeMethod` / `AfterMethod` 特性。也提供无参数 `InterceptedTransient()` 和 `InterceptedSingleton()`，默认按特性执行钩子。
+
+Container 仅在注册阶段按程序集名称加载 Interception 的公开双泛型注册方法，沿用其代理、日志、钩子及依赖校验；两个包不增加 ProjectReference 或 NuGet 依赖。应用必须显式安装 Interception，它不会随 Container 自动安装。缺包、运行时 API 不兼容或契约不支持代理时会明确报错，扫描失败不提交部分注册。外部钩子仍需注册到 DI，可在扫描前或后注册。
+
+选中的闭合业务接口均注册为代理，同一实现的 Scoped/Singleton 代理共享真实对象。重复扫描不重复注册；先普通扫描再拦截扫描，会替换相同映射。无参数拦截扫描不支持开放泛型，不能与同一次链式扫描的 `WithProxy` 混用。
+
+`AddInterceptedAssemblyServices` 继续位于 Interception 包，无需迁移。无需 Interception 时，可使用下方自定义代理工厂入口。
+
+## 按指定接口注入代理（自定义工厂）
 
 Container 与 `M.Simple.Services.Interception` 互不依赖。Container 负责筛选、注册和管理对象生命周期，调用方通过工厂提供代理；代理可以来自自定义实现、DispatchProxy 或其他独立组件。
 
@@ -59,7 +82,7 @@ builder.Services.Scan(Assembly.Load("MyApp.Business"))
 
 `AsSelf()` 暴露真实对象，直接调用它不经过代理。真实对象由 DI 释放，代理不应再次释放它；代理自身的可释放资源由 DI 管理。代理接口不能继承 IDisposable/IAsyncDisposable。代理扫描要求闭合类型，不支持开放泛型；注册校验失败时不提交部分扫描结果。工厂内部依赖在解析时由容器校验，Singleton 工厂不得解析 Scoped 服务。
 
-Container 不识别钩子特性或执行前后置方法。Interception 包保留 `AddInterceptedAssemblyServices`、钩子特性、代理创建及单服务注册，不需要依赖 Container。将两个包组合使用时，适配逻辑放在应用项目中。
+自定义工厂入口不要求 Interception。若使用其钩子且不想手写工厂，优先使用上方无参数 `InterceptedScoped()` 等入口。
 
 ## 按继承接口筛选
 

@@ -1,3 +1,5 @@
+using M.Simple.Services.Interception;
+
 namespace M.Simple.Container.Sample;
 
 public interface IScopedService;
@@ -25,8 +27,8 @@ public sealed class UserRepository : IUserRepository
 }
 
 // This marker selects proxy services independently of ordinary scoped services.
-public interface IProxyService;
-public interface IGreetingService : IProxyService
+public interface IInterception;
+public interface IGreetingService : IInterception
 {
     Guid ScopeId { get; }
     string SayHello(string message);
@@ -35,13 +37,10 @@ public interface IGreetingService : IProxyService
 public sealed class GreetingService : IGreetingService
 {
     public Guid ScopeId { get; } = Guid.NewGuid();
+    [BeforeMethod(nameof(Before)), AfterMethod(nameof(After))]
     public string SayHello(string message) => $"{message},hello world!";
-}
-
-// The application supplies this proxy; neither package needs to depend on the other.
-public sealed class GreetingServiceProxy(IGreetingService target) : IGreetingService
-{
-    public Guid ScopeId => target.ScopeId;
-    public string SayHello(string message)
-        => target.SayHello(message + "【代理前置】") + "【代理后置】";
+    private void Before(MethodInvocationContext context)
+        => context.SetArgument("message", context.GetArgument<string>("message") + "【代理前置】");
+    private void After(MethodInvocationContext context)
+        => context.SetResult(context.Result + "【代理后置】");
 }

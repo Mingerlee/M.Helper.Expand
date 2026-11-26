@@ -23,7 +23,7 @@ app.Run();</code></pre></div>
 <h2 id="使用说明">使用说明</h2>
 <p>默认双泛型注册按特性启用，三泛型注册可指定通用拦截器。同一接口不要再被后续普通注册或程序集扫描覆盖。new 实现类、直接调用真实对象及类内部自调用均不会经过代理。不支持 Native AOT。</p>
 <h2 id="外部钩子与批量扫描1004-起">外部钩子与批量扫描（1.0.0.4 起）</h2>
-<p><code>AddInterceptedAssemblyServices</code> 保留在本包的 <code>M.Simple.Services.Interception</code> 命名空间，不依赖 Container。若应用需要 Container 1.0.0.2 的接口筛选和代理工厂扫描，可由应用层组合两个包，见 <a href="container.html">Container 的代理注册与组合示例</a>。两种入口选择一种，避免对同一映射重复执行两套扫描。</p>
+<p><code>AddInterceptedAssemblyServices</code> 保留在本包的 <code>M.Simple.Services.Interception</code> 命名空间，不依赖 Container。Container 1.0.0.3 源码新增的无参数 <code>InterceptedScoped()</code>、<code>InterceptedTransient()</code>、<code>InterceptedSingleton()</code> 可在注册时运行时适配本包，应用无需提供代理工厂；1.0.0.2 的自定义工厂入口也可继续组合使用。详见 <a href="container.html">Container 的代理注册与组合示例</a>。两种入口选择一种，避免对同一映射重复执行两套扫描。</p>
 <p>本次改变旧版失败规则，不提供全局或方法级失败开关：前置普通异常记录日志后继续业务；业务失败或取消直接抛出、不执行任何后置；后置普通异常记录日志并保留该钩子执行前的结果。通用拦截器和指定方法钩子使用同一规则。必须执行的清理应放在业务方法自己的 try/finally 中。</p>
 <div class="code-block"><div class="code-toolbar"><span>csharp</span><button class="copy-button" type="button" aria-label="复制代码">复制代码</button></div><pre><code data-language="csharp">using System.Reflection;
 using M.Simple.Services.Interception;

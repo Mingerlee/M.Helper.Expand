@@ -5,10 +5,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSimpleContainer();
 builder.Services.AddAssemblyServices<IScopedService>(typeof(UserService).Assembly);
 builder.Services.Scan(typeof(GreetingService).Assembly)
-    .AssignableTo<IProxyService>()
-    .Where(type => type == typeof(GreetingService))
-    .As<IGreetingService>()
-    .ProxyScoped((_, target, _) => new GreetingServiceProxy((IGreetingService)target));
+    .AssignableTo<IInterception>()
+    .ExcludeInterface(typeof(IInterception))
+    .AsImplementedInterfaces()
+    .InterceptedScoped();
 
 var app = builder.Build();
 app.MapGet("/", () => "M.Simple.Container: try /users/1, /scope and /proxy?message=hello");

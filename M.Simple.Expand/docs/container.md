@@ -1,13 +1,15 @@
 # M.Simple.Container 接入与使用
 
-`M.Simple.Container` 是面向 .NET 8 的依赖注入容器，沿用 `IServiceCollection` 注册和构造函数注入，提供 Host 接入、程序集批量扫描及按指定接口注入代理。本文使用已发布版本 `1.0.0.2`，与 Interception 包互不依赖。
+`M.Simple.Container` 是面向 .NET 8 的依赖注入容器，沿用 `IServiceCollection` 注册和构造函数注入，提供 Host 接入、程序集批量扫描及按指定接口注入代理。本文使用版本 `1.0.0.3`，与 Interception 包互不依赖。
+
+`1.0.0.3` 新增无参数 `InterceptedScoped()`、`InterceptedTransient()`、`InterceptedSingleton()`。下面的普通注册及自定义工厂入口同时兼容 1.0.0.2。
 
 ## 安装包
 
 在 Web API 项目目录执行，或通过 `--project` 指定项目：
 
 ```powershell
-dotnet add package M.Simple.Container --version 1.0.0.2
+dotnet add package M.Simple.Container --version 1.0.0.3
 ```
 
 ## Program.cs 配置
@@ -106,7 +108,36 @@ builder.Services.Scan(
 
 也可使用 `typeof(TestLogic).Assembly` 等实际实现类型定位程序集。不能省略程序集；当前不自动扫描整个解决方案或所有应用依赖。
 
-## 按指定接口注入代理（1.0.0.2 起）
+## 无参数拦截扫描（1.0.0.3 起）
+
+应用同时引用 Container 和 Interception 1.0.0.4 或兼容的后续版本后，可直接使用以下链式注册，不需要指定业务接口或手写代理工厂：
+
+```csharp
+using System.Reflection;
+using M.Simple.Container;
+
+builder.Services.Scan(Assembly.Load("M.Simple.Business"))
+    .AssignableTo<IInterception>()
+    .ExcludeInterface(typeof(IInterception))
+    .AsImplementedInterfaces()
+    .InterceptedScoped();
+```
+
+`IInterception` 由项目自行定义。实现该标记的业务类会按其业务接口注册代理；标记接口本身排除。业务方法继续使用 Interception 的 `BeforeMethod` / `AfterMethod` 特性；外部钩子类仍需注册到 DI，可在扫描前或后注册。
+
+| 入口 | 生命周期 |
+| --- | --- |
+| InterceptedScoped() | 每个作用域共享代理和真实对象 |
+| InterceptedTransient() | 每次解析创建新的代理和真实对象 |
+| InterceptedSingleton() | 全应用共享代理和真实对象，不能捕获 Scoped 依赖 |
+
+Container 在注册阶段按程序集名称加载 Interception 的公开注册方法，之后沿用 Interception 的代理、日志和校验；两个包不增加相互包引用。Interception 不会随 Container 自动安装，应用必须显式引用。缺包或运行时 API 不兼容时，扫描会明确报错；注册失败不提交部分映射。
+
+重复扫描不增加注册；先普通扫描再拦截扫描，会替换相同接口与实现的普通映射。选中的闭合接口都经过代理，按特性执行钩子；开放泛型不支持此入口。同一次扫描不要混用无参数拦截入口与 `WithProxy`。`AddInterceptedAssemblyServices` 仍属于 Interception 包。
+
+源码 Web 示例 `M.Simple.Container.Sample` 已采用此方式，访问 `/proxy?message=hello` 可看到前后置处理后的结果及自动生成的代理类型。
+
+## 按指定接口注入代理（自定义工厂，1.0.0.2 起）
 
 Container 管理代理注册和生命周期，调用方提供代理工厂，不要求引用 Interception。以下是完整的类型定义和注册方式：
 
@@ -149,7 +180,9 @@ public sealed class GreetingServiceProxy(IGreetingService target) : IGreetingSer
 
 ## 与 Interception 组合使用
 
-两个包互不依赖，需要组合时由应用项目同时引用 Container 1.0.0.2 和 Interception 1.0.0.4，再在工厂中适配。以下假设项目已有带钩子特性的 ITestLogic / TestLogic：
+使用 Interception 钩子时，优先采用上方 1.0.0.3 新增的无参数拦截扫描，直接调用 `InterceptedScoped()`、`InterceptedTransient()` 或 `InterceptedSingleton()`。应用只需提供钩子特性及方法，不需要手写代理或工厂。
+
+已发布的 Container 1.0.0.2 仍可通过自定义工厂组合 Interception 1.0.0.4：
 
 ```csharp
 using M.Simple.Container;
@@ -161,7 +194,7 @@ builder.Services.Scan(typeof(TestLogic).Assembly)
         MethodHookProxy<ITestLogic>.Create((ITestLogic)target, true, provider));
 ```
 
-如果存在外部钩子类，仍需显式注册到 DI。这个入口由 Container 管理代理注册，Interception 创建代理并执行钩子；普通扫描本身不会识别钩子特性。`AddInterceptedAssemblyServices` 继续属于 Interception 包，详细用法见 [Interception 接入说明](interception.md)。
+`AddInterceptedAssemblyServices` 继续属于 Interception 包，详细用法见 [Interception 接入说明](interception.md)。无参数拦截扫描、自定义工厂和 Interception 自身的批量扫描入口选择一种，避免相同映射重复扫描。
 
 ## 默认校验与常见问题
 

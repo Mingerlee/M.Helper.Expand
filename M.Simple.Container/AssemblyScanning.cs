@@ -36,6 +36,7 @@ public sealed class AssemblyRegistrationBuilder
     private bool _self;
     private readonly HashSet<Type> _contracts = [];
     private ServiceProxyFactory? _proxyFactory;
+    private bool _intercepted;
 
     internal AssemblyRegistrationBuilder(IServiceCollection services, Assembly[] assemblies)
         => (_services, _assemblies) = (services, assemblies);
@@ -81,6 +82,8 @@ public sealed class AssemblyRegistrationBuilder
     public AssemblyRegistrationBuilder WithProxy(ServiceProxyFactory factory)
     {
         ArgumentNullException.ThrowIfNull(factory);
+        if (_intercepted)
+            throw new InvalidOperationException("Choose either Intercepted registration or an explicit proxy factory.");
         _proxyFactory = factory;
         return this;
     }
@@ -97,6 +100,21 @@ public sealed class AssemblyRegistrationBuilder
     public IServiceCollection ProxySingleton(ServiceProxyFactory factory) => WithProxy(factory).Singleton();
 
     public IServiceCollection ProxyTransient(ServiceProxyFactory factory) => WithProxy(factory).Transient();
+
+    /// <summary>Loads the optional Interception runtime and registers attribute-driven scoped proxies.</summary>
+    public IServiceCollection InterceptedScoped() => RegisterIntercepted(ServiceLifetime.Scoped);
+
+    public IServiceCollection InterceptedTransient() => RegisterIntercepted(ServiceLifetime.Transient);
+
+    public IServiceCollection InterceptedSingleton() => RegisterIntercepted(ServiceLifetime.Singleton);
+
+    private IServiceCollection RegisterIntercepted(ServiceLifetime lifetime)
+    {
+        if (_proxyFactory is not null)
+            throw new InvalidOperationException("Choose either Intercepted registration or an explicit proxy factory.");
+        _intercepted = true;
+        return Register(lifetime);
+    }
 
     private IServiceCollection Register(ServiceLifetime lifetime)
     {
@@ -126,11 +144,13 @@ public sealed class AssemblyRegistrationBuilder
                         throw new InvalidOperationException($"Cannot scan generic mapping '{mapping}' -> '{implementation}'. Register this mapping explicitly with a factory.");
                     service = mapping.GetGenericTypeDefinition();
                 }
-                if (_proxyFactory is null && _services.Concat(descriptors).Any(d => d.ServiceType == service && !d.IsKeyedService
+                if (!_intercepted && _proxyFactory is null && _services.Concat(descriptors).Any(d => d.ServiceType == service && !d.IsKeyedService
                     && d.ImplementationType == implementation && d.Lifetime == lifetime)) continue;
                 descriptors.Add(new ScannedDescriptor(service, implementation, lifetime, identity));
             }
         }
+        if (_intercepted)
+            return ProxyRegistration.Register(_services, descriptors, lifetime, null, RuntimeInterception.RegisterProxy);
         if (_proxyFactory is not null)
             return ProxyRegistration.Register(_services, descriptors, lifetime, _proxyFactory);
         foreach (var descriptor in descriptors) _services.Add(descriptor);
