@@ -1,5 +1,7 @@
 # M.Simple.EntityFrameworkCore.SqlServer
 
+1.0.0.5：最低依赖核心包 M.Simple.EntityFrameworkCore 1.0.0.5。业务仓储可直接继承 EfIntRepository<TEntity>、EfLongRepository<TEntity> 或 EfRepository<TEntity, TKey>，无需重复实现基础方法，支持通过 override 按需重写。
+
 1.0.0.4：仓储接口由 `IRepository<TEntity, TKey>` 改名为 `IBasicRepository<TEntity, TKey>`，新增已自动注册的 `IBasicIntRepository<TEntity>` 和 `IBasicLongRepository<TEntity>`。升级时需修改原接口引用。
 
 .NET 8 / EF Core 8 的 SQL Server 适配包，自动依赖 `M.Simple.EntityFrameworkCore`，提供基础仓储注册和 `SqlBulkCopy` 批量新增。

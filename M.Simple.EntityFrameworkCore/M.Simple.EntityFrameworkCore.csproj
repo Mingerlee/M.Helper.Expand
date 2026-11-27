@@ -3,8 +3,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.0.4</Version>
-    <PackageReleaseNotes>Breaking change: IRepository is renamed to IBasicRepository. Added IBasicIntRepository and IBasicLongRepository with scoped DI registration.</PackageReleaseNotes>
+    <Version>1.0.0.5</Version>
+    <PackageReleaseNotes>Repository classes support inheritance with virtual CRUD methods and protected Context/Set access. EfIntRepository and EfLongRepository can be used as custom repository base classes.</PackageReleaseNotes>
     <Authors>Mr.Sunny</Authors>
     <Description>Lightweight EF Core repositories, pagination and bulk contracts.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>

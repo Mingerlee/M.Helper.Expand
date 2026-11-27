@@ -8,24 +8,34 @@ namespace M.Simple.EntityFrameworkCore.Test;
 [TestClass]
 public class BasicRepositoryTests
 {
-    [TestMethod]
-    public async Task ShortRepositoriesShareContextAndSupportTypedKeyOperations()
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ShortRepositoriesShareContextAndSupportTypedKeyOperations(bool useCustomRepositories)
     {
         await using var connection = new SqliteConnection("Data Source=:memory:");
         await connection.OpenAsync();
         var services = new ServiceCollection();
         services.AddDbContext<ShortKeyContext>(options => options.UseSqlite(connection));
         services.AddSimpleEfCore<ShortKeyContext>();
+        services.AddScoped<IIntRecordRepository, IntRecordRepository>();
+        services.AddScoped<ILongRecordRepository, LongRecordRepository>();
         await using var provider = services.BuildServiceProvider(
             new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
         using var scope = provider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ShortKeyContext>();
         await db.Database.EnsureCreatedAsync();
 
-        var ints = scope.ServiceProvider.GetRequiredService<IBasicIntRepository<IntRecord>>();
-        var longs = scope.ServiceProvider.GetRequiredService<IBasicLongRepository<LongRecord>>();
-        Assert.AreSame(ints, scope.ServiceProvider.GetRequiredService<IBasicIntRepository<IntRecord>>());
-        Assert.AreSame(longs, scope.ServiceProvider.GetRequiredService<IBasicLongRepository<LongRecord>>());
+        IBasicIntRepository<IntRecord> GetInts() => useCustomRepositories
+            ? scope.ServiceProvider.GetRequiredService<IIntRecordRepository>()
+            : scope.ServiceProvider.GetRequiredService<IBasicIntRepository<IntRecord>>();
+        IBasicLongRepository<LongRecord> GetLongs() => useCustomRepositories
+            ? scope.ServiceProvider.GetRequiredService<ILongRecordRepository>()
+            : scope.ServiceProvider.GetRequiredService<IBasicLongRepository<LongRecord>>();
+        var ints = GetInts();
+        var longs = GetLongs();
+        Assert.AreSame(ints, GetInts());
+        Assert.AreSame(longs, GetLongs());
         IBasicRepository<IntRecord, int> typedInts = ints;
         IBasicRepository<LongRecord, long> typedLongs = longs;
         var generalInts = scope.ServiceProvider.GetRequiredService<IBasicRepository<IntRecord, int>>();
@@ -64,6 +74,64 @@ public class BasicRepositoryTests
         Assert.IsNull(await generalLongs.GetByIdAsync(longRecord.Id));
         Assert.IsFalse(await ints.RemoveByIdAsync(intRecord.Id));
         Assert.IsFalse(await longs.RemoveByIdAsync(longRecord.Id));
+    }
+
+    [TestMethod]
+    public async Task OverridesApplyThroughInterfaceAndInheritedOperations()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        var services = new ServiceCollection();
+        services.AddDbContext<ShortKeyContext>(options => options.UseSqlite(connection));
+        services.AddSimpleEfCore<ShortKeyContext>();
+        services.AddScoped<IIntRecordRepository, FilteredIntRecordRepository>();
+        await using var provider = services.BuildServiceProvider(
+            new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = true });
+        using var scope = provider.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ShortKeyContext>();
+        await db.Database.EnsureCreatedAsync();
+        var repository = scope.ServiceProvider.GetRequiredService<IIntRecordRepository>();
+        var work = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var visible = new IntRecord { Name = "visible" };
+        repository.Add(visible);
+        db.Add(new IntRecord { Name = "hidden" });
+        await work.SaveChangesAsync();
+        db.ChangeTracker.Clear();
+
+        Assert.AreEqual("added:visible", (await repository.GetByIdAsync(visible.Id))!.Name);
+        Assert.AreEqual(1, await repository.CountAsync());
+        Assert.AreEqual(1, (await repository.ListAsync()).Count);
+        Assert.IsFalse(await repository.AnyAsync(x => x.Name == "hidden"));
+        Assert.AreEqual(0, db.ChangeTracker.Entries().Count());
+        Assert.IsNotNull(await repository.GetByIdAsync(visible.Id, tracking: true));
+        Assert.AreEqual(1, db.ChangeTracker.Entries().Count());
+        Assert.IsTrue(await repository.RemoveByIdAsync(visible.Id));
+        await work.SaveChangesAsync();
+        Assert.AreEqual(0, await repository.CountAsync());
+        Assert.AreEqual(1, await db.Set<IntRecord>().CountAsync());
+    }
+
+    public interface IIntRecordRepository : IBasicIntRepository<IntRecord> { }
+
+    public sealed class IntRecordRepository(ISimpleDbContext context)
+        : EfIntRepository<IntRecord>(context), IIntRecordRepository { }
+
+    public interface ILongRecordRepository : IBasicLongRepository<LongRecord> { }
+
+    public sealed class LongRecordRepository(ISimpleDbContext context)
+        : EfLongRepository<LongRecord>(context), ILongRecordRepository { }
+
+    public sealed class FilteredIntRecordRepository(ISimpleDbContext context)
+        : EfIntRepository<IntRecord>(context), IIntRecordRepository
+    {
+        public override IQueryable<IntRecord> Query(bool tracking = false)
+            => base.Query(tracking).Where(x => x.Name != "hidden");
+
+        public override void Add(IntRecord entity)
+        {
+            entity.Name = "added:" + entity.Name;
+            base.Add(entity);
+        }
     }
 
     public sealed class IntRecord : Entity<int>

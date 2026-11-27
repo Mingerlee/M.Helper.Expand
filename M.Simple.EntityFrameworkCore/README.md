@@ -1,6 +1,50 @@
 # M.Simple.EntityFrameworkCore
 
-.NET 8 / EF Core 8 基础数据访问包，当前版本为 `1.0.0.4`。提供单主键实体仓储、工作单元、条件查询、DTO 分页和原生批量写入契约。
+.NET 8 / EF Core 8 基础数据访问包，当前核心包版本为 `1.0.0.5`。提供单主键实体仓储、工作单元、条件查询、DTO 分页和原生批量写入契约。
+
+## 自定义仓储：继承即可使用，可按需重写（1.0.0.5）
+
+业务接口继承基础接口，业务仓储类继承已有实现，无需重复实现 CRUD 方法：
+
+```csharp
+public interface IAcademicApplyRepository : IBasicIntRepository<AcademicApplyEntity>
+{
+}
+
+public class AcademicApplyRepository : EfIntRepository<AcademicApplyEntity>, IAcademicApplyRepository
+{
+    public AcademicApplyRepository(ISimpleDbContext context) : base(context) { }
+
+    // 可选：只重写需要定制的方法，其他方法直接使用继承的实现。
+    public override Task<AcademicApplyEntity?> GetByIdAsync(int id, bool tracking = false,
+        CancellationToken cancellationToken = default)
+    {
+        return base.GetByIdAsync(id, tracking, cancellationToken);
+    }
+}
+
+// AcademicApplyEntity 需实现 IEntity<int>，也可以继承 Entity<int>。
+// 先注册 DbContext 与 AddSimpleEfCore（或对应数据库适配包），再注册业务仓储：
+services.AddScoped<IAcademicApplyRepository, AcademicApplyRepository>();
+
+// 注入 IAcademicApplyRepository 后即可直接调用：
+var entity = await repository.GetByIdAsync(id, cancellationToken: token);
+var list = await repository.ListAsync(cancellationToken: token);
+repository.Add(new AcademicApplyEntity());
+await unitOfWork.SaveChangesAsync(token);
+```
+
+仅在类声明中实现 `IBasicIntRepository<TEntity>` 不会自动获得方法实现；需要同时继承 `EfIntRepository<TEntity>`，否则仍会出现 CS0535。业务仓储无需再注入另一个基础仓储并逐一转发方法。继承用 `:`，重写关键字为 `override`。
+
+`int` 主键使用 `EfIntRepository<TEntity>`，`long` 主键使用 `EfLongRepository<TEntity>`，其他主键使用 `EfRepository<TEntity, TKey>`。三个类均可继承，全部基础仓储方法均为 `virtual`，支持调用 `base` 复用默认实现。派生类可通过受保护的 `Context` 和 `Set` 访问同一 DbContext 和 DbSet。
+
+默认查询方法通过虚方法 `Query` 执行；重写 `Query` 会影响继承的查询、条件更新和条件删除，但不会自动约束 `Add`、`Update` 等跟踪写入。自定义仓储注册只针对业务接口；直接注入基础接口仍获得默认仓储。保存和事务继续通过同一作用域的 `IUnitOfWork` 完成。
+
+已有数据库适配包使用方可显式升级核心包后使用上述继承能力（包发布后或配置本地包源后执行）：
+
+```powershell
+dotnet add package M.Simple.EntityFrameworkCore --version 1.0.0.5
+```
 
 ## 仓储接口（1.0.0.4）
 

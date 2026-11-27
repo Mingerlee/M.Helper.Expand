@@ -3,8 +3,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.0.4</Version>
-    <PackageReleaseNotes>Breaking change: IRepository is renamed to IBasicRepository. Added IBasicIntRepository and IBasicLongRepository with scoped DI registration.</PackageReleaseNotes>
+    <Version>1.0.0.5</Version>
+    <PackageReleaseNotes>Depends on M.Simple.EntityFrameworkCore 1.0.0.5 with inheritable repository base classes and virtual CRUD methods for custom overrides.</PackageReleaseNotes>
     <Authors>Mr.Sunny</Authors>
     <Description>SQL Server provider and native bulk insert for M.Simple.EntityFrameworkCore.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
