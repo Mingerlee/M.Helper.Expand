@@ -1,6 +1,6 @@
 # M.Simple.Services.Interception
 
-.NET 8 接口 AOP 代理，当前版本 `1.0.0.5`。基于框架内置 DispatchProxy，依赖 Microsoft.Extensions.DependencyInjection.Abstractions 和 Microsoft.Extensions.Logging.Abstractions，不依赖 M.Simple.Expand 或其他服务包。支持方法前置、后置、特性筛选和 DI 生命周期。
+.NET 8 接口 AOP 代理，当前版本 `1.0.0.8`。基于框架内置 DispatchProxy，依赖 Microsoft.Extensions.DependencyInjection.Abstractions 和 Microsoft.Extensions.Logging.Abstractions，不依赖 M.Simple.Expand 或其他服务包。支持方法前置、后置、特性筛选和 DI 生命周期。
 
 1.0.0.2 新增 BeforeMethod / AfterMethod 与双泛型注册重载，可直接用方法名指定同一服务中的前置、后置方法。
 
@@ -15,7 +15,7 @@ dotnet test M.Simple.Services.Interception.Test -c Release
 
 ## 外部钩子与批量扫描（1.0.0.4 起）
 
-本次改变旧版失败规则，不提供全局或方法级失败开关：前置普通异常记录日志后继续业务；业务失败或取消直接抛出、不执行任何后置；后置普通异常记录日志并保留该钩子执行前的结果。通用拦截器和指定方法钩子使用同一规则。必须执行的清理应放在业务方法自己的 try/finally 中。
+默认失败规则（无全局配置，可通过方法级特性覆盖）：前置普通异常记录日志后继续业务；业务失败或取消直接抛出、不执行任何后置；后置普通异常记录日志并保留该钩子执行前的结果。通用拦截器和指定方法钩子使用同一规则。必须执行的清理应放在业务方法自己的 try/finally 中。
 
 ```csharp
 builder.Services.AddScoped<OrderHooks>();
@@ -46,6 +46,24 @@ public Task<string> CreateAsync(string name) => Task.FromResult(name);
 普通开放泛型支持按位置映射；带拦截标记的开放泛型扫描会明确报错，需要显式注册闭合类型。仅有 MethodHook 标记而没有具体钩子或通用拦截器时，没有额外处理逻辑。
 
 注册时检查已知的 Singleton → Scoped 直接或间接依赖；首次解析代理时再次检查最终注册、生命周期和钩子方法签名。错误提示包含服务和依赖链。工厂内部动态依赖依靠容器运行时作用域验证，宿主应开启 ValidateScopes（M.Simple.Container 默认开启）；构建校验不执行工厂，不保证所有错误都在 Build 时发现。
+
+## 方法级失败开关（1.0.0.6 起）
+
+不提供全局配置，当前类及外部类钩子均支持以下方法级选项：
+
+```csharp
+[BeforeMethod(typeof(OrderHooks), nameof(OrderHooks.BeforeCreate),
+    ContinueOnFailure = false)]
+[AfterMethod(typeof(OrderHooks), nameof(OrderHooks.AfterCreate),
+    RunOnBusinessFailure = true, ContinueOnFailure = false)]
+public Task<string> CreateAsync(string name) => Task.FromResult(name);
+```
+
+- BeforeMethod.ContinueOnFailure：默认 true，前置失败记录日志并继续；false 时抛出前置异常，不执行业务和后置。
+- AfterMethod.RunOnBusinessFailure：默认 false，业务失败跳过后置；true 时执行后置，再抛出原业务异常。业务取消也按此选项决定是否执行后置，取消状态不会被转为成功。
+- AfterMethod.ContinueOnFailure：默认 true，后置失败记录日志并保留此前结果；false 时业务成功则向调用方抛出后置异常。业务已经失败时始终保留原业务异常。
+- 选项作用于该特性指定的钩子；通用 MethodInterceptor 保持既有默认失败规则。接口和实现同时配置时，实现方法的特性按阶段覆盖接口配置。
+- 请求取消仍继续传播；方法级开关不会把取消当作普通钩子异常忽略。
 
 ## 注册和调用
 

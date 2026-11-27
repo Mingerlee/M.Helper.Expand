@@ -33,7 +33,7 @@
     "name": "M.Simple.Services.Interception",
     "slug": "interception",
     "title": "接口 AOP 与前后置钩子",
-    "version": "1.0.0.5"
+    "version": "1.0.0.8"
   },
   {
     "name": "M.Simple.Services.Email",

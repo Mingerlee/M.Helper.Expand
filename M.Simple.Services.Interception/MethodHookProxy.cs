@@ -130,9 +130,12 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
         Before(context);
         try { context.CancellationToken.ThrowIfCancellationRequested(); context.Result = InvokeTarget(context.Method, args); }
         catch (Exception error) { context.Exception = error; throw; }
-        finally { if (context.Exception is null) Complete(context); else context.Finish(); }
+        finally { if (ShouldComplete(context)) Complete(context); else context.Finish(); }
         return context.Result;
     }
+
+    private bool ShouldComplete(MethodInvocationContext context)
+        => context.Exception is null || ((NamedMethodInterceptor)_interceptor).RunsAfterFailure(context);
 
     private void Complete(MethodInvocationContext context)
     {
@@ -171,7 +174,7 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
             else await ((Task)result!).ConfigureAwait(false);
         }
         catch (Exception error) { context.Exception = error; throw; }
-        finally { if (context.Exception is null) await CompleteAsync(context).ConfigureAwait(false); else context.Finish(); }
+        finally { if (ShouldComplete(context)) await CompleteAsync(context).ConfigureAwait(false); else context.Finish(); }
     }
 
     private async Task<TResult> RunTaskResult<TResult>(MethodInvocationContext context, object?[]? args)
@@ -184,7 +187,7 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
             context.Result = result;
         }
         catch (Exception error) { context.Exception = error; throw; }
-        finally { if (context.Exception is null) await CompleteAsync(context).ConfigureAwait(false); else context.Finish(); }
+        finally { if (ShouldComplete(context)) await CompleteAsync(context).ConfigureAwait(false); else context.Finish(); }
         return (TResult)context.Result!;
     }
 
@@ -198,7 +201,7 @@ public class MethodHookProxy<TService> : DispatchProxy where TService : class
             context.Result = result;
         }
         catch (Exception error) { context.Exception = error; throw; }
-        finally { if (context.Exception is null) await CompleteAsync(context).ConfigureAwait(false); else context.Finish(); }
+        finally { if (ShouldComplete(context)) await CompleteAsync(context).ConfigureAwait(false); else context.Finish(); }
         return (TResult)context.Result!;
     }
 }

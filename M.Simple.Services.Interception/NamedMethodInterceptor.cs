@@ -9,7 +9,7 @@ namespace M.Simple.Services.Interception;
 internal sealed class EmptyMethodInterceptor : MethodInterceptor;
 
 internal sealed record BoundHook(object Target, MethodInfo Method);
-internal sealed record NamedMethodPlan(BoundHook? Before, BoundHook? After);
+internal sealed record NamedMethodPlan(BoundHook? Before, BoundHook? After, bool ContinueBefore = true, bool ContinueAfter = true, bool RunOnFailure = false);
 
 internal sealed class NamedMethodInterceptor(object target, MethodInterceptor inner,
     IReadOnlyDictionary<MethodInfo, NamedMethodPlan> plans, ILogger? logger) : MethodInterceptor
@@ -23,7 +23,8 @@ internal sealed class NamedMethodInterceptor(object target, MethodInterceptor in
         var after = implementation.GetCustomAttribute<AfterMethodAttribute>(true) ?? contract.GetCustomAttribute<AfterMethodAttribute>(true);
         var asyncBusiness = IsAsyncReturn(contract.ReturnType);
         return new(before is null ? null : Bind(target, before.HookType, before.MethodName, implementation, asyncBusiness, provider),
-            after is null ? null : Bind(target, after.HookType, after.MethodName, implementation, asyncBusiness, provider));
+            after is null ? null : Bind(target, after.HookType, after.MethodName, implementation, asyncBusiness, provider),
+            before?.ContinueOnFailure ?? true, after?.ContinueOnFailure ?? true, after?.RunOnBusinessFailure ?? false);
     }
 
     private static BoundHook Bind(object target, Type? hookType, string name, MethodInfo business,
@@ -99,53 +100,59 @@ internal sealed class NamedMethodInterceptor(object target, MethodInterceptor in
         catch { } // A logging provider must not replace the business outcome.
     }
 
-    private void Run(Action action, MethodInvocationContext context, bool before)
+    private void Run(Action action, MethodInvocationContext context, bool before, bool continueOnFailure = true)
     {
         var result = context.Result;
         try { action(); }
-        catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested) { throw; }
+        catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested && context.Exception is null) { throw; }
         catch (Exception error)
         {
             if (before) context.BeforeException = error;
             else context.Result = result;
             Log(error, context, before);
+            if (!continueOnFailure && context.Exception is null) throw;
         }
     }
 
-    private async ValueTask RunAsync(Func<ValueTask> action, MethodInvocationContext context, bool before)
+    private async ValueTask RunAsync(Func<ValueTask> action, MethodInvocationContext context, bool before, bool continueOnFailure = true)
     {
         var result = context.Result;
         try { await action().ConfigureAwait(false); }
-        catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested) { throw; }
+        catch (OperationCanceledException) when (context.CancellationToken.IsCancellationRequested && context.Exception is null) { throw; }
         catch (Exception error)
         {
             if (before) context.BeforeException = error;
             else context.Result = result;
             Log(error, context, before);
+            if (!continueOnFailure && context.Exception is null) throw;
         }
     }
+
+    internal bool RunsAfterFailure(MethodInvocationContext context) => Plan(context).RunOnFailure;
 
     public override void Before(MethodInvocationContext context)
     {
         Run(() => inner.Before(context), context, true);
-        Run(() => InvokeHook(Plan(context).Before, context), context, true);
+        Run(() => InvokeHook(Plan(context).Before, context), context, true, Plan(context).ContinueBefore);
     }
 
     public override async ValueTask BeforeAsync(MethodInvocationContext context)
     {
         await RunAsync(() => inner.BeforeAsync(context), context, true).ConfigureAwait(false);
-        await RunAsync(() => InvokeHookAsync(Plan(context).Before, context), context, true).ConfigureAwait(false);
+        await RunAsync(() => InvokeHookAsync(Plan(context).Before, context), context, true, Plan(context).ContinueBefore).ConfigureAwait(false);
     }
 
     public override void After(MethodInvocationContext context)
     {
-        Run(() => InvokeHook(Plan(context).After, context), context, false);
+        if (context.Exception is not null && !Plan(context).RunOnFailure) return;
+        Run(() => InvokeHook(Plan(context).After, context), context, false, Plan(context).ContinueAfter);
         Run(() => inner.After(context), context, false);
     }
 
     public override async ValueTask AfterAsync(MethodInvocationContext context)
     {
-        await RunAsync(() => InvokeHookAsync(Plan(context).After, context), context, false).ConfigureAwait(false);
+        if (context.Exception is not null && !Plan(context).RunOnFailure) return;
+        await RunAsync(() => InvokeHookAsync(Plan(context).After, context), context, false, Plan(context).ContinueAfter).ConfigureAwait(false);
         await RunAsync(() => inner.AfterAsync(context), context, false).ConfigureAwait(false);
     }
 }

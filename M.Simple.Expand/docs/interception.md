@@ -2,14 +2,14 @@
 
 基于 DispatchProxy 的接口 AOP。IOrderService 和 OrderService 替换为项目实际接口与实现，下面的详细用法展示完整类型结构。无需新增 HTTP 接口；调用方通过构造函数注入代理接口。
 
-当前项目版本 `1.0.0.5`，目标框架 .NET 8。
+当前项目版本 `1.0.0.8`，目标框架 .NET 8。
 
 ## 安装包
 
 在使用方项目目录执行，或通过 --project 指定项目：
 
 ```powershell
-dotnet add package M.Simple.Services.Interception --version 1.0.0.5
+dotnet add package M.Simple.Services.Interception --version 1.0.0.8
 ```
 
 包源需包含该版本。安装包不会自动执行注册；保留项目原有配置，无需添加示例接口。
@@ -39,7 +39,7 @@ app.Run();
 
 `AddInterceptedAssemblyServices` 已移至 Container 的 `M.Simple.Container` 命名空间；本包不再提供该扫描入口。Container 1.0.0.4 与本包通过运行时注册适配，两个包不增加相互引用。详见 [Container 的代理注册与组合示例](container.md)。
 
-本次改变旧版失败规则，不提供全局或方法级失败开关：前置普通异常记录日志后继续业务；业务失败或取消直接抛出、不执行任何后置；后置普通异常记录日志并保留该钩子执行前的结果。通用拦截器和指定方法钩子使用同一规则。必须执行的清理应放在业务方法自己的 try/finally 中。
+默认失败规则（无全局配置，可通过方法级特性覆盖）：前置普通异常记录日志后继续业务；业务失败或取消直接抛出、不执行任何后置；后置普通异常记录日志并保留该钩子执行前的结果。通用拦截器和指定方法钩子使用同一规则。必须执行的清理应放在业务方法自己的 try/finally 中。
 
 ```csharp
 using System.Reflection;
@@ -82,6 +82,24 @@ public sealed class OrderService : IOrderService
 普通开放泛型支持按位置映射；带拦截标记的开放泛型扫描会明确报错，需要显式注册闭合类型。仅有 MethodHook 标记而没有具体钩子或通用拦截器时，没有额外处理逻辑。
 
 注册时检查已知的 Singleton → Scoped 直接或间接依赖；首次解析代理时再次检查最终注册、生命周期和钩子方法签名。错误提示包含服务和依赖链。工厂内部动态依赖依靠容器运行时作用域验证，宿主应开启 ValidateScopes（M.Simple.Container 默认开启）；构建校验不执行工厂，不保证所有错误都在 Build 时发现。
+
+## 方法级失败开关（1.0.0.6 起）
+
+不提供全局配置，当前类及外部类钩子均支持以下方法级选项：
+
+```csharp
+[BeforeMethod(typeof(OrderHooks), nameof(OrderHooks.BeforeCreate),
+    ContinueOnFailure = false)]
+[AfterMethod(typeof(OrderHooks), nameof(OrderHooks.AfterCreate),
+    RunOnBusinessFailure = true, ContinueOnFailure = false)]
+public Task<string> CreateAsync(string name) => Task.FromResult(name);
+```
+
+- BeforeMethod.ContinueOnFailure：默认 true，前置失败记录日志并继续；false 时抛出前置异常，不执行业务和后置。
+- AfterMethod.RunOnBusinessFailure：默认 false，业务失败跳过后置；true 时执行后置，再抛出原业务异常。业务取消也按此选项决定是否执行后置，取消状态不会被转为成功。
+- AfterMethod.ContinueOnFailure：默认 true，后置失败记录日志并保留此前结果；false 时业务成功则向调用方抛出后置异常。业务已经失败时始终保留原业务异常。
+- 选项作用于该特性指定的钩子；通用 MethodInterceptor 保持既有默认失败规则。接口和实现同时配置时，实现方法的特性按阶段覆盖接口配置。
+- 请求取消仍继续传播；方法级开关不会把取消当作普通钩子异常忽略。
 
 ## 注册和调用
 

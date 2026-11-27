@@ -3,8 +3,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>1.0.0.4</Version>
-    <PackageReleaseNotes>Move AddInterceptedAssemblyServices into Container, sharing optional runtime registration with InterceptedScoped. No package dependency on Interception.</PackageReleaseNotes>
+    <Version>1.0.0.6</Version>
+    <PackageReleaseNotes>Republish assembly interception registration with the optional runtime adapter and without transactional interception changes.</PackageReleaseNotes>
     <Authors>Mr.Sunny</Authors>
     <Description>A lightweight .NET dependency injection container with assembly scanning and standard hosting integration.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

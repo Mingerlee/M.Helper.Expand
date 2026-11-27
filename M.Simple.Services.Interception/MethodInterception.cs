@@ -14,6 +14,7 @@ public sealed class SkipMethodHookAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Method, Inherited = true)]
 public sealed class BeforeMethodAttribute(string methodName) : Attribute
 {
+    public bool ContinueOnFailure { get; set; } = true;
     public string MethodName { get; } = methodName;
     public Type? HookType { get; }
     public BeforeMethodAttribute(Type hookType, string methodName) : this(methodName)
@@ -24,6 +25,8 @@ public sealed class BeforeMethodAttribute(string methodName) : Attribute
 [AttributeUsage(AttributeTargets.Method, Inherited = true)]
 public sealed class AfterMethodAttribute(string methodName) : Attribute
 {
+    public bool ContinueOnFailure { get; set; } = true;
+    public bool RunOnBusinessFailure { get; set; } = false;
     public string MethodName { get; } = methodName;
     public Type? HookType { get; }
     public AfterMethodAttribute(Type hookType, string methodName) : this(methodName)
